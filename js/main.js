@@ -1,4 +1,4 @@
-document.getElementById('launch').addEventListener('click', async function() {
+document.getElementById('searchBtn').addEventListener('click', async function() {
     const query = document.getElementById('search').value;
     if (!query) return alert("Please enter your need in the search bar.");
 
