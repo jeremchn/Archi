@@ -35,16 +35,19 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     const resultsTable = document.getElementById('results');
     resultsTable.innerHTML = '';
     data.forEach(item => {
+        const domain = item['Domain']
+            ? `<a href="http://${item['Domain']}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
+            : '';
+        const linkedin = item['Linkedin']
+            ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+            : '';
         const row = `<tr>
             <td>${item['Company Name'] || ''}</td>
-            <td>${item['Domain'] || ''}</td>
+            <td>${domain}</td>
+            <td>${linkedin}</td>
             <td>${item['Industry'] || ''}</td>
             <td>${item['Location'] || ''}</td>
             <td>${item['Headcount'] || ''}</td>
-            <td>${item['Linkedin'] || ''}</td>
-            <td>${item['Description'] || ''}</td>
-            <td>${item['Company Type'] || ''}</td>
-            <td>${item['contacts'] || 0}</td>
         </tr>`;
         resultsTable.innerHTML += row;
     });
