@@ -56,3 +56,8 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         resultsTable.innerHTML += row;
     });
 });
+
+document.getElementById('resetBtn').addEventListener('click', function() {
+    document.getElementById('search').value = '';
+    document.getElementById('results').innerHTML = '';
+});
