@@ -10,6 +10,13 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     });
     let data = await response.json();
 
+    // Vérifie si la réponse est bien un tableau
+    if (!Array.isArray(data)) {
+        alert(data.error || "Erreur côté serveur.");
+        console.error(data);
+        return;
+    }
+
     // Appel à l'API Hunter pour chaque entreprise (via backend)
     const contactsResponse = await fetch('/api/hunter-contacts', {
         method: 'POST',
@@ -29,15 +36,15 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     resultsTable.innerHTML = '';
     data.forEach(item => {
         const row = `<tr>
-            <td>${item['Company Name']}</td>
-            <td>${item['Domain']}</td>
-            <td>${item['Industry']}</td>
-            <td>${item['Location']}</td>
-            <td>${item['Headcount']}</td>
-            <td>${item['Linkedin']}</td>
-            <td>${item['Description']}</td>
-            <td>${item['Company Type']}</td>
-            <td>${item['contacts']}</td>
+            <td>${item['Company Name'] || ''}</td>
+            <td>${item['Domain'] || ''}</td>
+            <td>${item['Industry'] || ''}</td>
+            <td>${item['Location'] || ''}</td>
+            <td>${item['Headcount'] || ''}</td>
+            <td>${item['Linkedin'] || ''}</td>
+            <td>${item['Description'] || ''}</td>
+            <td>${item['Company Type'] || ''}</td>
+            <td>${item['contacts'] || 0}</td>
         </tr>`;
         resultsTable.innerHTML += row;
     });

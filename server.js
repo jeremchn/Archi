@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Charge les données d'entreprises
-const data = JSON.parse(fs.readFileSync('data.json', 'utf-8'));
+const data = JSON.parse(fs.readFileSync('data.json', 'utf-8')).slice(0, 100);
 // Charge les embeddings (tableau de tableaux de nombres)
 const embeddings = JSON.parse(fs.readFileSync('embeddings100.json', 'utf-8'));
 
@@ -55,6 +55,7 @@ app.post('/api/semantic-search', async (req, res) => {
           'Content-Type': 'application/json'
         }
       }
+      
     );
     const userEmbedding = embeddingResponse.data.data[0].embedding;
 
@@ -68,6 +69,7 @@ app.post('/api/semantic-search', async (req, res) => {
     scored.sort((a, b) => b.score - a.score);
     res.json(scored.slice(0, 20));
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ error: 'Embedding or search failed', details: error.message });
   }
 });
