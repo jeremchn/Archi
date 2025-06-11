@@ -88,7 +88,9 @@ app.post('/api/hunter-contacts', async (req, res) => {
       const response = await axios.get(
         `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}`
       );
-      return response.data.data.emails.length || 0;
+      // Correction ici : retourne bien le nombre d'emails trouvés (tableau d'emails, pas juste la longueur ou 0)
+      const emails = response.data.data.emails || [];
+      return emails.length;
     } catch (e) {
       return 0;
     }

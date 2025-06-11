@@ -25,10 +25,15 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     });
     const contactsData = await contactsResponse.json();
 
+    // Correction : recalculer le nombre de contacts en fonction de la vraie longueur du tableau d'emails Hunter
+    // On va refaire un appel pour chaque domaine pour obtenir le vrai nombre si besoin
+    // Mais pour éviter de refaire un appel, il faut s'assurer que l'API /api/hunter-contacts retourne bien le nombre réel de contacts (emails trouvés)
+    // Si ce n'est pas le cas, il faut corriger le backend (voir ci-dessous)
+
     // Ajoute le nombre de contacts à chaque entreprise
     data = data.map((item, idx) => ({
         ...item,
-        contacts: contactsData[idx] || 0
+        contacts: contactsData[idx] !== undefined ? contactsData[idx] : 0
     }));
 
     // Affiche les résultats dans le tableau
