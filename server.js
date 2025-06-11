@@ -97,6 +97,31 @@ app.post('/api/hunter-contacts', async (req, res) => {
   res.json(results);
 });
 
+// Endpoint pour récupérer la liste détaillée des contacts Hunter pour un domaine
+app.post('/api/hunter-contacts-details', async (req, res) => {
+  const { domain } = req.body;
+  if (!domain) {
+    return res.status(400).json({ error: 'Missing domain' });
+  }
+  try {
+    const response = await axios.get(
+      `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}`
+    );
+    const emails = response.data.data.emails || [];
+    // On ne retourne que les champs utiles
+    const contacts = emails.map(e => ({
+      email: e.value,
+      first_name: e.first_name,
+      last_name: e.last_name,
+      position: e.position,
+      linkedin_url: e.linkedin
+    }));
+    res.json(contacts);
+  } catch (e) {
+    res.json([]);
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

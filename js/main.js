@@ -41,13 +41,17 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         const linkedin = item['Linkedin']
             ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
             : '';
+        const companyName = item['Company Name'] && item['Domain']
+            ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
+            : (item['Company Name'] || '');
         const row = `<tr>
-            <td>${item['Company Name'] || ''}</td>
+            <td>${companyName}</td>
             <td>${domain}</td>
             <td>${linkedin}</td>
             <td>${item['Industry'] || ''}</td>
             <td>${item['Location'] || ''}</td>
             <td>${item['Headcount'] || ''}</td>
+            <td>${item['contacts'] || 0}</td>
         </tr>`;
         resultsTable.innerHTML += row;
     });
