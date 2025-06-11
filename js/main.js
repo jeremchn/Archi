@@ -51,6 +51,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             <td>${item['Industry'] || ''}</td>
             <td>${item['Location'] || ''}</td>
             <td>${item['Headcount'] || ''}</td>
+            <td>${item['Description'] || ''}</td>
             <td>${item['contacts'] || 0}</td>
         </tr>`;
         resultsTable.innerHTML += row;
