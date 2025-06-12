@@ -60,8 +60,12 @@ function startServer() {
 
   // Semantic search endpoint
   app.post('/api/semantic-search', async (req, res) => {
+    console.log('POST /api/semantic-search called'); // DEBUG
     const { query } = req.body;
-    if (!query) return res.status(400).json({ error: 'Missing query' });
+    if (!query) {
+      console.log('No query provided'); // DEBUG
+      return res.status(400).json({ error: 'Missing query' });
+    }
 
     try {
       // Embed the user query with OpenAI
@@ -78,7 +82,12 @@ function startServer() {
           }
         }
       );
+      console.log('Embedding response received'); // DEBUG
       const userEmbedding = embeddingResponse.data.data[0].embedding;
+      if (!userEmbedding) {
+        console.log('No embedding returned from OpenAI'); // DEBUG
+        return res.status(500).json({ error: 'No embedding returned from OpenAI' });
+      }
 
       // Compute similarity with each company
       const scored = data.map((item, idx) => ({
@@ -95,11 +104,10 @@ function startServer() {
 
       // Sort and return top 20 by similarity score
       scored.sort((a, b) => b.score - a.score);
-      // Remove the score property before sending to client (optional)
       const top20 = scored.slice(0, 20).map(({ score, ...rest }) => rest);
       res.json(top20);
     } catch (error) {
-      console.error(error); 
+      console.error('Error in /api/semantic-search:', error); 
       res.status(500).json({ error: 'Embedding or search failed', details: error.message });
     }
   });
