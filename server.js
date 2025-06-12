@@ -80,9 +80,14 @@ function startServer() {
         score: cosineSimilarity(userEmbedding, embeddings[idx])
       }));
 
-      // Sort and return top 20
+      // DEBUG: log top 5 scores
+      // console.log(scored.slice(0, 5).map(x => x.score));
+
+      // Sort and return top 20 by similarity score
       scored.sort((a, b) => b.score - a.score);
-      res.json(scored.slice(0, 20));
+      // Remove the score property before sending to client (optional)
+      const top20 = scored.slice(0, 20).map(({ score, ...rest }) => rest);
+      res.json(top20);
     } catch (error) {
       console.error(error); 
       res.status(500).json({ error: 'Embedding or search failed', details: error.message });
