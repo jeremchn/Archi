@@ -112,11 +112,11 @@ function startServer() {
         .slice(0, 10)
       );
 
-      // Sort and return top 20 by similarity score
+      // Sort and return top 50 by similarity score
       scored.sort((a, b) => b.score - a.score);
       // On retire la propriété embedding et score avant d'envoyer au client
-      const top20 = scored.slice(0, 20).map(({ score, embedding, ...rest }) => rest);
-      res.json(top20);
+      const top50 = scored.slice(0, 50).map(({ score, embedding, ...rest }) => rest);
+      res.json(top50);
     } catch (error) {
       console.error('Error in /api/semantic-search:', error); 
       res.status(500).json({ error: 'Embedding or search failed', details: error.message });
