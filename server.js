@@ -36,6 +36,12 @@ function startServer() {
   // Charge les embeddings (tableau de tableaux de nombres)
   const embeddings = JSON.parse(fs.readFileSync('data2000_embedded.json', 'utf-8'));
 
+  // Vérification de la cohérence des fichiers
+  if (data.length !== embeddings.length) {
+    console.error(`ERREUR: data2000.json (${data.length}) et data2000_embedded.json (${embeddings.length}) n'ont pas la même longueur !`);
+    process.exit(1);
+  }
+
   // Fonction pour calculer la similarité cosinus
   function cosineSimilarity(a, b) {
     let dot = 0.0, normA = 0.0, normB = 0.0;
@@ -80,8 +86,12 @@ function startServer() {
         score: cosineSimilarity(userEmbedding, embeddings[idx])
       }));
 
-      // DEBUG: log top 5 scores
-      // console.log(scored.slice(0, 5).map(x => x.score));
+      // Log les 10 meilleurs scores pour debug
+      console.log('Top 10 scores:', scored
+        .map(x => x.score)
+        .sort((a, b) => b - a)
+        .slice(0, 10)
+      );
 
       // Sort and return top 20 by similarity score
       scored.sort((a, b) => b.score - a.score);
