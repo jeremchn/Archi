@@ -32,7 +32,7 @@ function startServer() {
   app.use(express.static(__dirname));
 
   // Charge les données d'entreprises
-  const data = JSON.parse(fs.readFileSync('data2000.json', 'utf-8')).slice(0, 100);
+  const data = JSON.parse(fs.readFileSync('data2000.json', 'utf-8'));
   // Charge les embeddings (tableau de tableaux de nombres)
   const embeddings = JSON.parse(fs.readFileSync('data2000_embedded.json', 'utf-8'));
 
