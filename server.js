@@ -31,15 +31,25 @@ function startServer() {
   // Serve static files (like index.html, CSS, JS)
   app.use(express.static(__dirname));
 
-  // Charge les données d'entreprises
-  const data = JSON.parse(fs.readFileSync('data2000.json', 'utf-8'));
-  // Charge les embeddings (tableau de tableaux de nombres)
-  const embeddings = JSON.parse(fs.readFileSync('data2000_embedded.json', 'utf-8'));
+  // Charge les données d'entreprises (avec embeddings inclus)
+  const data = JSON.parse(fs.readFileSync('data2000_embedded.json', 'utf-8'));
 
-  // Vérification de la cohérence des fichiers
-  if (data.length !== embeddings.length) {
-    console.error(`ERREUR: data2000.json (${data.length}) et data2000_embedded.json (${embeddings.length}) n'ont pas la même longueur !`);
+  // Vérification de la présence et de la taille des embeddings
+  if (
+    !Array.isArray(data) ||
+    !data[0] ||
+    !Array.isArray(data[0].embedding) ||
+    data[0].embedding.length !== 1536
+  ) {
+    console.error('ERREUR: Chaque objet de data2000_embedded.json doit avoir une propriété "embedding" de taille 1536.');
     process.exit(1);
+  }
+  // Vérifie que tous les embeddings ont la bonne taille
+  for (let i = 0; i < data.length; i++) {
+    if (!Array.isArray(data[i].embedding) || data[i].embedding.length !== 1536) {
+      console.error(`ERREUR: L\'embedding à l\'index ${i} n\'a pas une taille de 1536.`);
+      process.exit(1);
+    }
   }
 
   // Fonction pour calculer la similarité cosinus
@@ -90,9 +100,9 @@ function startServer() {
       }
 
       // Compute similarity with each company
-      const scored = data.map((item, idx) => ({
+      const scored = data.map((item) => ({
         ...item,
-        score: cosineSimilarity(userEmbedding, embeddings[idx])
+        score: cosineSimilarity(userEmbedding, item.embedding)
       }));
 
       // Log les 10 meilleurs scores pour debug
@@ -104,7 +114,8 @@ function startServer() {
 
       // Sort and return top 20 by similarity score
       scored.sort((a, b) => b.score - a.score);
-      const top20 = scored.slice(0, 20).map(({ score, ...rest }) => rest);
+      // On retire la propriété embedding et score avant d'envoyer au client
+      const top20 = scored.slice(0, 20).map(({ score, embedding, ...rest }) => rest);
       res.json(top20);
     } catch (error) {
       console.error('Error in /api/semantic-search:', error); 
