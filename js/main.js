@@ -49,6 +49,8 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         const companyName = item['Company Name'] && item['Domain']
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
             : (item['Company Name'] || '');
+        // Affiche rien si contacts vaut 0 ou undefined
+        const contactsCell = item['contacts'] && item['contacts'] > 0 ? item['contacts'] : '';
         const row = `<tr>
             <td>${companyName}</td>
             <td>${domain}</td>
@@ -57,7 +59,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             <td>${item['Location'] || ''}</td>
             <td>${item['Headcount'] || ''}</td>
             <td>${item['Description'] || ''}</td>
-            <td>${item['contacts'] || 0}</td>
+            <td>${contactsCell}</td>
         </tr>`;
         resultsTable.innerHTML += row;
     });
