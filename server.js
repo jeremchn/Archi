@@ -237,7 +237,7 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
     }
     try {
       const query = name ? `${name}` : domain;
-      const apiKey = process.env.NEWSAPI_KEY; // NewsAPI key fournie par l'utilisateur
+      const apiKey = process.env.NEWSAPI_KEY;
       const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=fr&sortBy=publishedAt&pageSize=8&apiKey=${apiKey}`;
       const response = await axios.get(url);
       const articles = (response.data.articles || []).map(article => ({
@@ -247,8 +247,16 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
         description: article.description || '',
         source: article.source && article.source.name ? article.source.name : ''
       }));
+      if (articles.length === 0) {
+        console.log(`[NewsAPI] Aucun article trouvé pour la requête : ${query}`);
+      }
       res.json({ articles });
     } catch (e) {
+      if (e.response && e.response.status === 429) {
+        console.log('[NewsAPI] Limite d\'API atteinte pour la clé NewsAPI.');
+      } else {
+        console.log('[NewsAPI] Erreur lors de la récupération des actualités :', e.message);
+      }
       res.status(500).json({ error: 'Erreur lors de la récupération des actualités.' });
     }
   });

@@ -40,7 +40,15 @@
         section.className = 'section card';
         let html = '<h2>Informations LinkedIn</h2>';
         if (data.linkedin.info && (data.linkedin.info.name || data.linkedin.info.recruitment)) {
-            html += `<p>${data.linkedin.info.name || ''}</p><p>${data.linkedin.info.recruitment || ''}</p>`;
+            if (data.linkedin.info.name) {
+                html += `<p style='font-weight:bold;'>${data.linkedin.info.name}</p>`;
+            }
+            if (data.linkedin.info.recruitment) {
+                // Nettoyage des entités HTML et découpage en paragraphes
+                let clean = data.linkedin.info.recruitment.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+                clean = clean.split(/\.|\n|\r/).filter(x => x.trim()).map(x => `<p>${x.trim()}</p>`).join('');
+                html += clean;
+            }
         }
         if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
             html += `<h3>Dernier post LinkedIn</h3><p>${data.linkedin.posts[0]}</p>`;
