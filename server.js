@@ -3,9 +3,9 @@ const path = require('path');
 const https = require('https');
 
 // === CONFIGURE ICI TON LIEN DIRECT GOOGLE DRIVE OU DROPBOX ===
-const EMBEDDED_FILE = path.join(__dirname, 'data2000_embedded.json');
-// Remplace par ton vrai lien direct (exemple Google Drive)
-const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=1PAIpDMmTJcILpuRe7lVvPw1lm-n9GVmc';
+const EMBEDDED_FILE = path.join(__dirname, 'data_embedded.json');
+// Nouveau lien direct Google Drive
+const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=11lHwu_joM-zj-Np7GPQBzBJ0OJiZLAtF';
 
 function downloadFile(url, dest, cb) {
   const file = fs.createWriteStream(dest);

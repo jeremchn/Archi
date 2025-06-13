@@ -21,7 +21,8 @@ def build_text(company):
     ]
     return " | ".join(fields)
 
-with open("data2000.json", "r", encoding="utf-8") as f:
+# Correction : lire data.json et écrire data_embedded.json
+with open("data.json", "r", encoding="utf-8") as f:
     companies = json.load(f)
 
 embedded = []
@@ -42,5 +43,5 @@ for i, company in enumerate(companies):
         print(f"Erreur à l'index {i}: {e}")
         continue
 
-with open("data2000_embedded.json", "w", encoding="utf-8") as f:
+with open("data_embedded.json", "w", encoding="utf-8") as f:
     json.dump(embedded, f, ensure_ascii=False, indent=2)
