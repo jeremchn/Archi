@@ -171,6 +171,64 @@ function startServer() {
     }
   });
 
+  // Endpoint pour recherche approfondie OpenAI
+  app.post('/api/deep-company-profile', async (req, res) => {
+    const { domain, linkedin, name, description } = req.body;
+    if (!domain && !linkedin) {
+      return res.status(400).json({ error: 'Missing domain or linkedin' });
+    }
+    try {
+      // Récupère les contacts Hunter
+      let contacts = [];
+      try {
+        const hunterRes = await axios.post(`http://localhost:${PORT}/api/hunter-contacts-details`, { domain });
+        contacts = Array.isArray(hunterRes.data) ? hunterRes.data : [];
+      } catch (e) { contacts = []; }
+
+      // Récupère des "news" LinkedIn ou site web via GPT
+      let news = [];
+      let gpt_analysis = '';
+      try {
+        // Prompt pour GPT
+        const prompt = `Tu es un assistant expert en veille stratégique. Voici le site web: ${domain ? 'http://' + domain : ''}\nLinkedIn: ${linkedin || ''}\nNom: ${name || ''}\nDescription: ${description || ''}\nDonne-moi :\n- Un résumé professionnel de l'entreprise (secteur, positionnement, points forts)\n- Les actualités importantes récentes (levées de fonds, nouveaux directeurs, nouveaux produits, événements majeurs, etc.)\n- Si possible, cite les sources (LinkedIn, site web, etc.)\nRéponds de façon structurée et professionnelle, en HTML.`;
+        const gptRes = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: 'Tu es un assistant expert en analyse d\'entreprise.' },
+              { role: 'user', content: prompt }
+            ],
+            max_tokens: 900,
+            temperature: 0.2
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.OPENAIKEY}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        gpt_analysis = gptRes.data.choices[0].message.content;
+        // Optionnel : extraire les news si GPT les structure en liste
+        const newsMatch = gpt_analysis.match(/<ul.*?>([\s\S]*?)<\/ul>/);
+        if (newsMatch) {
+          news = newsMatch[1].split(/<li>|<\/li>/).filter(x => x.trim() && !x.startsWith('<'));
+        }
+      } catch (e) { gpt_analysis = 'Impossible d\'obtenir une analyse approfondie.'; }
+
+      // Renvoie toutes les infos pour la fiche
+      res.json({
+        company: { domain, linkedin, name, description, ...req.body },
+        contacts,
+        news,
+        gpt_analysis
+      });
+    } catch (e) {
+      res.status(500).json({ error: 'Erreur lors de la recherche approfondie.' });
+    }
+  });
+
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Company Details</title>
+    <title>Fiche Entreprise</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -22,7 +22,7 @@
             padding: 0;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 2em auto;
             padding: 2em;
             background: var(--card-bg);
@@ -46,8 +46,16 @@
         }
         .info-list strong {
             color: var(--primary);
-            width: 140px;
+            width: 160px;
             display: inline-block;
+        }
+        .news-list {
+            list-style: disc inside;
+            margin: 0 0 0 1em;
+            padding: 0;
+        }
+        .news-list li {
+            margin-bottom: 0.7em;
         }
         .clickable-link {
             color: var(--secondary);
@@ -80,24 +88,7 @@
         tr:nth-child(even) td {
             background: #f3f7fa;
         }
-        .btn {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 0.7em 1.5em;
-            font-size: 1em;
-            font-weight: 500;
-            cursor: pointer;
-            margin-bottom: 1.5em;
-            transition: background 0.2s, box-shadow 0.2s;
-            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
-        }
-        .btn:hover {
-            background: var(--secondary);
-            color: #fff;
-        }
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
             .container { padding: 1em; }
             th, td { font-size: 0.95em; padding: 7px 4px; }
             .info-list strong { width: 100px; }
@@ -106,17 +97,20 @@
 </head>
 <body>
     <div class="container">
-        <button class="btn" onclick="history.back()">&larr; Retour à la recherche</button>
-        <button class="btn" id="deep-search-btn" style="background:var(--secondary);color:#fff;margin-left:1em;">Recherche approfondie</button>
-        <div id="loading-deep-search" style="display:none;margin:1.5em 0;text-align:center;font-size:1.2em;color:var(--primary);font-weight:500;">
-            <span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #fff;border-top:3px solid var(--secondary);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>
-            Chargement en cours...
+        <button class="btn" onclick="history.back()">&larr; Retour</button>
+        <h1 id="fiche-company-name"></h1>
+        <div class="section card" id="fiche-company-info"></div>
+        <div class="section card" id="fiche-news-section" style="display:none;">
+            <h2>Actualités importantes</h2>
+            <ul class="news-list" id="fiche-news-list"></ul>
         </div>
-        <h1 id="company-name"></h1>
-        <div class="section card" id="company-info"></div>
+        <div class="section card" id="fiche-gpt-section" style="display:none;">
+            <h2>Analyse GPT</h2>
+            <div id="fiche-gpt-info"></div>
+        </div>
         <div class="section">
-            <h2>Contacts trouvés sur Hunter</h2>
-            <table id="contacts-table">
+            <h2>Contacts trouvés</h2>
+            <table id="fiche-contacts-table">
                 <thead>
                     <tr>
                         <th>Email</th>
@@ -130,6 +124,6 @@
             </table>
         </div>
     </div>
-    <script src="js/details.js"></script>
+    <script src="js/fiche.js"></script>
 </body>
 </html>

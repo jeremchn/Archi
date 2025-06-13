@@ -69,4 +69,44 @@ async function main() {
     }
 }
 
+// Ajout de la fonctionnalité de recherche approfondie
+const deepSearchBtn = document.getElementById('deep-search-btn');
+const loadingDeepSearch = document.getElementById('loading-deep-search');
+
+deepSearchBtn.addEventListener('click', async function() {
+    deepSearchBtn.disabled = true;
+    loadingDeepSearch.style.display = 'block';
+    const domain = getDomainFromUrl();
+    const company = await fetchCompanyInfo(domain);
+    if (!company) {
+        alert('Impossible de trouver les infos de l\'entreprise.');
+        deepSearchBtn.disabled = false;
+        loadingDeepSearch.style.display = 'none';
+        return;
+    }
+    // Appel API backend pour recherche approfondie (OpenAI)
+    try {
+        const response = await fetch('/api/deep-company-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                domain: company['Domain'],
+                linkedin: company['Linkedin'],
+                name: company['Company Name'],
+                description: company['Description']
+            })
+        });
+        if (!response.ok) throw new Error('Erreur serveur');
+        const data = await response.json();
+        // Redirige vers la page de fiche détaillée avec les infos reçues (stockées dans localStorage)
+        localStorage.setItem('deepCompanyProfile', JSON.stringify(data));
+        window.location.href = 'fiche.html';
+    } catch (e) {
+        alert('Erreur lors de la recherche approfondie.');
+    } finally {
+        deepSearchBtn.disabled = false;
+        loadingDeepSearch.style.display = 'none';
+    }
+});
+
 main();
