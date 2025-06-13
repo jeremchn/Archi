@@ -34,14 +34,33 @@
             </tr>
         `).join('');
     }
-    // Affichage des actualités LinkedIn ou site web
-    if (Array.isArray(data.news) && data.news.length > 0) {
-        document.getElementById('fiche-news-section').style.display = '';
-        document.getElementById('fiche-news-list').innerHTML = data.news.map(n => `<li>${n}</li>`).join('');
-    }
-    // Affichage de l'analyse GPT
-    if (data.gpt_analysis) {
-        document.getElementById('fiche-gpt-section').style.display = '';
-        document.getElementById('fiche-gpt-info').innerHTML = data.gpt_analysis;
-    }
+    // Affichage des sections constantes
+    const sections = [
+        { id: 'fiche-news-section', title: 'Actualités importantes', key: 'news', type: 'list' },
+        { id: 'fiche-position-section', title: 'Positionnement & Points forts', key: 'position', type: 'text' },
+        { id: 'fiche-events-section', title: 'Événements majeurs', key: 'events', type: 'list' },
+        { id: 'fiche-products-section', title: 'Nouveaux produits/services', key: 'products', type: 'list' },
+        { id: 'fiche-leadership-section', title: 'Changements de direction', key: 'leadership', type: 'list' },
+        { id: 'fiche-gpt-section', title: 'Analyse GPT', key: 'gpt_analysis', type: 'html' }
+    ];
+    sections.forEach(section => {
+        let el = document.getElementById(section.id);
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'section card';
+            el.id = section.id;
+            el.innerHTML = `<h2>${section.title}</h2>`;
+            document.querySelector('.container').appendChild(el);
+        }
+        let content = '';
+        if (section.type === 'list' && Array.isArray(data[section.key]) && data[section.key].length > 0) {
+            content = `<ul class="news-list">${data[section.key].map(x => `<li>${x}</li>`).join('')}</ul>`;
+        } else if (section.type === 'text' && data[section.key]) {
+            content = `<p>${data[section.key]}</p>`;
+        } else if (section.type === 'html' && data[section.key]) {
+            content = data[section.key];
+        }
+        el.style.display = content ? '' : 'none';
+        el.innerHTML = `<h2>${section.title}</h2>${content}`;
+    });
 })();

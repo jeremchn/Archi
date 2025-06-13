@@ -185,12 +185,12 @@ function startServer() {
         contacts = Array.isArray(hunterRes.data) ? hunterRes.data : [];
       } catch (e) { contacts = []; }
 
-      // Récupère des "news" LinkedIn ou site web via GPT
-      let news = [];
+      // Prompt structuré pour GPT
+      const prompt = `Tu es un assistant expert en veille stratégique. Voici le site web: ${domain ? 'http://' + domain : ''}\nLinkedIn: ${linkedin || ''}\nNom: ${name || ''}\nDescription: ${description || ''}\n
+Donne-moi les informations suivantes, chaque section doit être concise et adaptée à la rubrique :\n1. Actualités importantes (levées de fonds, nouveaux directeurs, nouveaux produits, événements majeurs, etc.)\n2. Positionnement & points forts de l'entreprise\n3. Événements majeurs récents\n4. Nouveaux produits/services\n5. Changements de direction\nPour chaque section, réponds uniquement par une liste ou un paragraphe adapté, sans introduction ni conclusion. Utilise le format JSON suivant :\n{\n  \"news\": [ ... ],\n  \"position\": \"...\",\n  \"events\": [ ... ],\n  \"products\": [ ... ],\n  \"leadership\": [ ... ]\n}`;
+      let gpt_sections = {};
       let gpt_analysis = '';
       try {
-        // Prompt pour GPT
-        const prompt = `Tu es un assistant expert en veille stratégique. Voici le site web: ${domain ? 'http://' + domain : ''}\nLinkedIn: ${linkedin || ''}\nNom: ${name || ''}\nDescription: ${description || ''}\nDonne-moi :\n- Un résumé professionnel de l'entreprise (secteur, positionnement, points forts)\n- Les actualités importantes récentes (levées de fonds, nouveaux directeurs, nouveaux produits, événements majeurs, etc.)\n- Si possible, cite les sources (LinkedIn, site web, etc.)\nRéponds de façon structurée et professionnelle, en HTML.`;
         const gptRes = await axios.post(
           'https://api.openai.com/v1/chat/completions',
           {
@@ -209,19 +209,19 @@ function startServer() {
             }
           }
         );
-        gpt_analysis = gptRes.data.choices[0].message.content;
-        // Optionnel : extraire les news si GPT les structure en liste
-        const newsMatch = gpt_analysis.match(/<ul.*?>([\s\S]*?)<\/ul>/);
-        if (newsMatch) {
-          news = newsMatch[1].split(/<li>|<\/li>/).filter(x => x.trim() && !x.startsWith('<'));
+        // Extraction JSON robuste
+        const match = gptRes.data.choices[0].message.content.match(/\{[\s\S]*\}/);
+        if (match) {
+          gpt_sections = JSON.parse(match[0]);
         }
+        gpt_analysis = gptRes.data.choices[0].message.content;
       } catch (e) { gpt_analysis = 'Impossible d\'obtenir une analyse approfondie.'; }
 
       // Renvoie toutes les infos pour la fiche
       res.json({
         company: { domain, linkedin, name, description, ...req.body },
         contacts,
-        news,
+        ...gpt_sections,
         gpt_analysis
       });
     } catch (e) {
