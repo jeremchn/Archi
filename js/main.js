@@ -57,6 +57,13 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
                 : (item['Company Name'] || '');
             // Affiche rien si contacts vaut 0 ou undefined
             const contactsCell = item['contacts'] && item['contacts'] > 0 ? item['contacts'] : '';
+            // Ajout de la colonne score (normalisée entre 0 et 1, arrondie à 3 décimales)
+            let scoreCell = '';
+            if (typeof item.score === 'number') {
+                // Clamp le score entre 0 et 1 (cosine similarity peut être [-1,1])
+                const normalized = Math.max(0, Math.min(1, (item.score + 1) / 2));
+                scoreCell = normalized.toFixed(3);
+            }
             const row = `<tr>
                 <td>${companyName}</td>
                 <td>${domain}</td>
@@ -66,6 +73,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
                 <td>${item['Headcount'] || ''}</td>
                 <td>${item['Description'] || ''}</td>
                 <td>${contactsCell}</td>
+                <td>${scoreCell}</td>
             </tr>`;
             resultsTable.innerHTML += row;
         });
