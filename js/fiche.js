@@ -36,13 +36,36 @@
     }
     // Affichage des sections constantes
     const sections = [
-        { id: 'fiche-news-section', title: 'Actualités importantes', key: 'news', type: 'list' },
+        { id: 'fiche-news-section', title: 'Actualités importantes', key: 'news', type: 'newsapi' },
         { id: 'fiche-position-section', title: 'Positionnement & Points forts', key: 'position', type: 'text' },
         { id: 'fiche-events-section', title: 'Événements majeurs', key: 'events', type: 'list' },
         { id: 'fiche-products-section', title: 'Nouveaux produits/services', key: 'products', type: 'list' },
         { id: 'fiche-leadership-section', title: 'Changements de direction', key: 'leadership', type: 'list' },
         { id: 'fiche-gpt-section', title: 'Analyse GPT', key: 'gpt_analysis', type: 'html' }
     ];
+    // Récupération et affichage des actualités via l'API backend
+    (async function() {
+        const newsSection = sections.find(s => s.type === 'newsapi');
+        if (newsSection) {
+            const res = await fetch('/api/company-news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: data.company['Company Name'], domain: data.company['Domain'] })
+            });
+            const result = await res.json();
+            if (result.articles && result.articles.length > 0) {
+                let el = document.getElementById(newsSection.id);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.className = 'section card';
+                    el.id = newsSection.id;
+                    document.querySelector('.container').appendChild(el);
+                }
+                el.style.display = '';
+                el.innerHTML = `<h2>${newsSection.title}</h2><ul class="news-list">${result.articles.map(a => `<li><a href="${a.url}" class="clickable-link" target="_blank">${a.title}</a> <span style='color:#888;font-size:0.95em;'>(${a.source}, ${a.date ? a.date.slice(0,10) : ''})</span><br><span style='font-size:0.97em;'>${a.description}</span></li>`).join('')}</ul>`;
+            }
+        }
+    })();
     sections.forEach(section => {
         let el = document.getElementById(section.id);
         if (!el) {

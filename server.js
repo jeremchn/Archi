@@ -229,6 +229,30 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
     }
   });
 
+  // Endpoint pour récupérer les actualités de l'entreprise via NewsAPI
+  app.post('/api/company-news', async (req, res) => {
+    const { name, domain } = req.body;
+    if (!name && !domain) {
+      return res.status(400).json({ error: 'Missing name or domain' });
+    }
+    try {
+      const query = name ? `${name}` : domain;
+      const apiKey = process.env.NEWSAPI_KEY; // NewsAPI key fournie par l'utilisateur
+      const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=fr&sortBy=publishedAt&pageSize=8&apiKey=${apiKey}`;
+      const response = await axios.get(url);
+      const articles = (response.data.articles || []).map(article => ({
+        title: article.title,
+        url: article.url,
+        date: article.publishedAt,
+        description: article.description || '',
+        source: article.source && article.source.name ? article.source.name : ''
+      }));
+      res.json({ articles });
+    } catch (e) {
+      res.status(500).json({ error: 'Erreur lors de la récupération des actualités.' });
+    }
+  });
+
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });
