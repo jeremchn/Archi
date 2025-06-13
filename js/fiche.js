@@ -39,22 +39,34 @@
         const section = document.createElement('div');
         section.className = 'section card';
         let html = '<h2>Informations LinkedIn</h2>';
-        if (data.linkedin.info && (data.linkedin.info.name || data.linkedin.info.recruitment)) {
+        // Accueil
+        if (data.linkedin.info && (data.linkedin.info.name || data.linkedin.info.description)) {
             if (data.linkedin.info.name) {
                 html += `<p style='font-weight:bold;'>${data.linkedin.info.name}</p>`;
             }
-            if (data.linkedin.info.recruitment) {
-                // Nettoyage des entités HTML et découpage en paragraphes
-                let clean = data.linkedin.info.recruitment.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+            if (data.linkedin.info.description) {
+                let clean = data.linkedin.info.description.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
                 clean = clean.split(/\.|\n|\r/).filter(x => x.trim()).map(x => `<p>${x.trim()}</p>`).join('');
                 html += clean;
             }
         }
-        if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
-            html += `<h3>Dernier post LinkedIn</h3><p>${data.linkedin.posts[0]}</p>`;
+        // About
+        if (data.linkedin.about && (data.linkedin.about.overview || data.linkedin.about.specialties)) {
+            html += `<h3>À propos</h3>`;
+            if (data.linkedin.about.overview) html += `<p>${data.linkedin.about.overview}</p>`;
+            if (data.linkedin.about.specialties) html += `<p><strong>Spécialités :</strong> ${data.linkedin.about.specialties}</p>`;
         }
+        // Posts
+        if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
+            html += `<h3>Derniers posts LinkedIn</h3><ul>${data.linkedin.posts.map(p => `<li>${p}</li>`).join('')}</ul>`;
+        }
+        // Jobs
         if (Array.isArray(data.linkedin.jobs) && data.linkedin.jobs.length > 0) {
             html += `<h3>Offres d'emploi LinkedIn</h3><ul>${data.linkedin.jobs.map(j => `<li>${j}</li>`).join('')}</ul>`;
+        }
+        // People
+        if (Array.isArray(data.linkedin.people) && data.linkedin.people.length > 0) {
+            html += `<h3>Collaborateurs LinkedIn</h3><ul>${data.linkedin.people.map(p => `<li>${p}</li>`).join('')}</ul>`;
         }
         if (html === '<h2>Informations LinkedIn</h2>') html += '<p>Aucune information LinkedIn trouvée.</p>';
         section.innerHTML = html;
@@ -66,7 +78,13 @@
         let html = `<h2>Résumé du site web</h2>`;
         if (data.site.title) html += `<strong>Titre :</strong> ${data.site.title}<br>`;
         if (data.site.description) html += `<strong>Description :</strong> ${data.site.description}<br>`;
-        if (data.site.firstP) html += `<strong>Premier paragraphe :</strong> ${data.site.firstP}<br>`;
+        if (data.site.h1) html += `<strong>H1 principal :</strong> ${data.site.h1}<br>`;
+        if (Array.isArray(data.site.h2) && data.site.h2.length > 0) {
+            html += `<strong>Sous-titres :</strong><ul>${data.site.h2.map(h2 => `<li>${h2}</li>`).join('')}</ul>`;
+        }
+        if (Array.isArray(data.site.paragraphs) && data.site.paragraphs.length > 0) {
+            html += `<strong>Paragraphes clés :</strong>${data.site.paragraphs.map(p => `<p>${p}</p>`).join('')}`;
+        }
         if (html === '<h2>Résumé du site web</h2>') html += '<p>Aucune information extraite du site web.</p>';
         section.innerHTML = html;
         container.appendChild(section);

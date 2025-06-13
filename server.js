@@ -266,44 +266,54 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
     const { linkedin } = req.body;
     if (!linkedin) return res.status(400).json({ error: 'Missing linkedin url' });
     try {
-      // Utilise un user-agent pour éviter le blocage LinkedIn
       const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
-      // Récupère la page principale
-      const mainRes = await axios.get(linkedin, { headers });
-      const mainHtml = mainRes.data;
-      // Extraction d'infos principales (nom, description, tendances recrutement)
+      // Accueil
       let info = {};
-      const infoMatch = mainHtml.match(/Accéder aux informations sur ([^<]+)<\/span>.*?Les dernières tendances du recrutement([\s\S]*?)<\/section>/);
-      if (infoMatch) {
-        info.name = infoMatch[1].trim();
-        info.recruitment = infoMatch[2].replace(/<[^>]+>/g, '').trim();
-      } else {
-        // Fallback : tente d'extraire le titre et le résumé
+      try {
+        const mainRes = await axios.get(linkedin, { headers });
+        const mainHtml = mainRes.data;
         const titleMatch = mainHtml.match(/<title>(.*?)<\/title>/i);
         if (titleMatch) info.name = titleMatch[1];
         const descMatch = mainHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
-        if (descMatch) info.recruitment = descMatch[1];
-      }
-      // Récupère la page posts
+        if (descMatch) info.description = descMatch[1];
+      } catch {}
+      // About
+      let about = {};
+      try {
+        const aboutRes = await axios.get(linkedin.replace(/(\/company\/[^/]+).*/, '$1/about/'), { headers });
+        const aboutHtml = aboutRes.data;
+        const overviewMatch = aboutHtml.match(/<section[^>]*class="about-us__basic-info.*?>([\s\S]*?)<\/section>/);
+        if (overviewMatch) about.overview = overviewMatch[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+        const specialtiesMatch = aboutHtml.match(/Specialties[\s\S]*?<dd[^>]*>(.*?)<\/dd>/);
+        if (specialtiesMatch) about.specialties = specialtiesMatch[1].replace(/<[^>]+>/g, '').trim();
+      } catch {}
+      // Posts
       let posts = [];
       try {
-        const postsRes = await axios.get(linkedin.replace(/\/company\/([^/]+).*/, '/company/$1/posts/?feedView=all'), { headers });
+        const postsRes = await axios.get(linkedin.replace(/(\/company\/[^/]+).*/, '$1/posts/?feedView=all'), { headers });
         const postsHtml = postsRes.data;
-        // Extraction simple du dernier post (à améliorer selon structure LinkedIn)
-        const postMatch = postsHtml.match(/<span[^>]*dir="ltr"[^>]*>(.*?)<\/span>/);
-        if (postMatch) posts.push(postMatch[1]);
+        const postMatches = [...postsHtml.matchAll(/<span[^>]*dir="ltr"[^>]*>(.*?)<\/span>/g)].map(m => m[1]);
+        posts = postMatches.slice(0, 3);
       } catch {}
-      // Récupère la page jobs
+      // Jobs
       let jobs = [];
       try {
-        const jobsRes = await axios.get(linkedin.replace(/\/company\/([^/]+).*/, '/company/$1/jobs/'), { headers });
+        const jobsRes = await axios.get(linkedin.replace(/(\/company\/[^/]+).*/, '$1/jobs/'), { headers });
         const jobsHtml = jobsRes.data;
-        const jobMatches = jobsHtml.match(/<a[^>]*href="[^"]*\/jobs\/view\/[0-9]+[^>]*>(.*?)<\/a>/g);
-        if (jobMatches) jobs = jobMatches.map(j => j.replace(/<[^>]+>/g, ''));
+        const jobMatches = [...jobsHtml.matchAll(/<a[^>]*href="[^"]*\/jobs\/view\/[0-9]+[^>]*>(.*?)<\/a>/g)].map(m => m[1].replace(/<[^>]+>/g, ''));
+        jobs = jobMatches.slice(0, 3);
       } catch {}
-      res.json({ info, posts, jobs });
+      // People
+      let people = [];
+      try {
+        const peopleRes = await axios.get(linkedin.replace(/(\/company\/[^/]+).*/, '$1/people/'), { headers });
+        const peopleHtml = peopleRes.data;
+        const peopleMatches = [...peopleHtml.matchAll(/<span[^>]*class="org-people-profile-card__profile-title[^>]*>(.*?)<\/span>/g)].map(m => m[1].replace(/<[^>]+>/g, ''));
+        people = peopleMatches.slice(0, 3);
+      } catch {}
+      res.json({ info, about, posts, jobs, people });
     } catch (e) {
-      res.json({ info: {}, posts: [], jobs: [] });
+      res.json({ info: {}, about: {}, posts: [], jobs: [], people: [] });
     }
   });
 
@@ -315,15 +325,20 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
       const url = domain.startsWith('http') ? domain : `http://${domain}`;
       const siteRes = await axios.get(url);
       const html = siteRes.data;
-      // Extraction simple du <title> et d'un <meta name="description">
+      // Extraction du <title>
       const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-      const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
       const title = titleMatch ? titleMatch[1] : '';
+      // Extraction du <meta name="description">
+      const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
       const description = descMatch ? descMatch[1] : '';
-      // Optionnel : extraire le premier <p>
-      const pMatch = html.match(/<p>(.*?)<\/p>/i);
-      const firstP = pMatch ? pMatch[1] : '';
-      res.json({ title, description, firstP });
+      // Extraction du premier <h1>
+      const h1Match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+      const h1 = h1Match ? h1Match[1].replace(/<[^>]+>/g, '').trim() : '';
+      // Extraction des 3 premiers <h2>
+      const h2Matches = [...html.matchAll(/<h2[^>]*>(.*?)<\/h2>/gi)].map(m => m[1].replace(/<[^>]+>/g, '').trim()).filter(Boolean).slice(0, 3);
+      // Extraction des 3 premiers paragraphes significatifs (>50 caractères)
+      const pMatches = [...html.matchAll(/<p[^>]*>(.*?)<\/p>/gi)].map(m => m[1].replace(/<[^>]+>/g, '').trim()).filter(p => p.length > 50).slice(0, 3);
+      res.json({ title, description, h1, h2: h2Matches, paragraphs: pMatches });
     } catch (e) {
       res.status(500).json({ error: 'Erreur lors de la récupération du site web.' });
     }
