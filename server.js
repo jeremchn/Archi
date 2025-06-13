@@ -32,7 +32,7 @@ function startServer() {
   app.use(express.static(__dirname));
 
   // Charge les données d'entreprises (avec embeddings inclus)
-  const data = JSON.parse(fs.readFileSync('data2000_embedded.json', 'utf-8'));
+  const data = JSON.parse(fs.readFileSync(EMBEDDED_FILE, 'utf-8'));
 
   // Vérification de la présence et de la taille des embeddings
   if (
@@ -41,13 +41,13 @@ function startServer() {
     !Array.isArray(data[0].embedding) ||
     data[0].embedding.length !== 1536
   ) {
-    console.error('ERREUR: Chaque objet de data2000_embedded.json doit avoir une propriété "embedding" de taille 1536.');
+    console.error(`ERREUR: Chaque objet de ${path.basename(EMBEDDED_FILE)} doit avoir une propriété "embedding" de taille 1536.`);
     process.exit(1);
   }
   // Vérifie que tous les embeddings ont la bonne taille
   for (let i = 0; i < data.length; i++) {
     if (!Array.isArray(data[i].embedding) || data[i].embedding.length !== 1536) {
-      console.error(`ERREUR: L\'embedding à l\'index ${i} n\'a pas une taille de 1536.`);
+      console.error(`ERREUR: L'embedding à l'index ${i} n'a pas une taille de 1536.`);
       process.exit(1);
     }
   }
@@ -178,7 +178,7 @@ function startServer() {
 
 // Si le fichier n'existe pas, on le télécharge puis on lance le serveur
 if (!fs.existsSync(EMBEDDED_FILE)) {
-  console.log('Downloading data2000_embedded.json...');
+  console.log(`Downloading ${path.basename(EMBEDDED_FILE)}...`);
   downloadFile(REMOTE_URL, EMBEDDED_FILE, () => {
     console.log('Download complete.');
     startServer();
