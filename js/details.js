@@ -109,4 +109,87 @@ deepSearchBtn.addEventListener('click', async function() {
     }
 });
 
+// Gestion des trois boutons de recherche approfondie
+const domain = getDomainFromUrl();
+
+async function showLoading(state) {
+    loadingDeepSearch.style.display = state ? 'block' : 'none';
+}
+
+async function deepSearchNews() {
+    showLoading(true);
+    const company = await fetchCompanyInfo(domain);
+    if (!company) {
+        alert('Impossible de trouver les infos de l\'entreprise.');
+        showLoading(false);
+        return;
+    }
+    try {
+        const res = await fetch('/api/company-news', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: company['Company Name'], domain: company['Domain'] })
+        });
+        const data = await res.json();
+        localStorage.setItem('deepCompanyProfile', JSON.stringify({ company, news: data.articles, mode: 'news' }));
+        window.location.href = 'fiche.html';
+    } catch (e) {
+        alert('Erreur lors de la recherche News.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function deepSearchLinkedin() {
+    showLoading(true);
+    const company = await fetchCompanyInfo(domain);
+    if (!company || !company['Linkedin']) {
+        alert('Impossible de trouver le LinkedIn de l\'entreprise.');
+        showLoading(false);
+        return;
+    }
+    try {
+        const res = await fetch('/api/company-linkedin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ linkedin: company['Linkedin'] })
+        });
+        const data = await res.json();
+        localStorage.setItem('deepCompanyProfile', JSON.stringify({ company, linkedin: data, mode: 'linkedin' }));
+        window.location.href = 'fiche.html';
+    } catch (e) {
+        alert('Erreur lors de la recherche LinkedIn.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function deepSearchSite() {
+    showLoading(true);
+    const company = await fetchCompanyInfo(domain);
+    if (!company || !company['Domain']) {
+        alert('Impossible de trouver le site web de l\'entreprise.');
+        showLoading(false);
+        return;
+    }
+    try {
+        const res = await fetch('/api/company-site', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain: company['Domain'] })
+        });
+        const data = await res.json();
+        localStorage.setItem('deepCompanyProfile', JSON.stringify({ company, site: data, mode: 'site' }));
+        window.location.href = 'fiche.html';
+    } catch (e) {
+        alert('Erreur lors de la recherche Site Web.');
+    } finally {
+        showLoading(false);
+    }
+}
+
+document.getElementById('deep-search-news-btn').onclick = deepSearchNews;
+document.getElementById('deep-search-linkedin-btn').onclick = deepSearchLinkedin;
+document.getElementById('deep-search-site-btn').onclick = deepSearchSite;
+
 main();

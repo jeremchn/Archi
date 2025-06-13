@@ -253,6 +253,66 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
     }
   });
 
+  // Endpoint pour recherche approfondie LinkedIn
+  app.post('/api/company-linkedin', async (req, res) => {
+    const { linkedin } = req.body;
+    if (!linkedin) return res.status(400).json({ error: 'Missing linkedin url' });
+    try {
+      // Récupère la page principale
+      const mainRes = await axios.get(linkedin);
+      const mainHtml = mainRes.data;
+      // Récupère la page posts
+      let posts = [];
+      try {
+        const postsRes = await axios.get(linkedin.replace(/\/company\/([^/]+).*/, '/company/$1/posts/?feedView=all'));
+        const postsHtml = postsRes.data;
+        // Extraction simple du dernier post (à améliorer selon structure LinkedIn)
+        const postMatch = postsHtml.match(/<span[^>]*dir="ltr"[^>]*>(.*?)<\/span>/);
+        if (postMatch) posts.push(postMatch[1]);
+      } catch {}
+      // Récupère la page jobs
+      let jobs = [];
+      try {
+        const jobsRes = await axios.get(linkedin.replace(/\/company\/([^/]+).*/, '/company/$1/jobs/'));
+        const jobsHtml = jobsRes.data;
+        const jobMatches = jobsHtml.match(/<a[^>]*href="[^"]*\/jobs\/view\/[0-9]+[^>]*>(.*?)<\/a>/g);
+        if (jobMatches) jobs = jobMatches.map(j => j.replace(/<[^>]+>/g, ''));
+      } catch {}
+      // Extraction d'infos principales (nom, description, tendances recrutement)
+      let info = {};
+      const infoMatch = mainHtml.match(/Accéder aux informations sur ([^<]+)<\/span>.*?Les dernières tendances du recrutement([\s\S]*?)<\/section>/);
+      if (infoMatch) {
+        info.name = infoMatch[1].trim();
+        info.recruitment = infoMatch[2].replace(/<[^>]+>/g, '').trim();
+      }
+      res.json({ info, posts, jobs });
+    } catch (e) {
+      res.status(500).json({ error: 'Erreur lors de la récupération LinkedIn.' });
+    }
+  });
+
+  // Endpoint pour recherche approfondie site web
+  app.post('/api/company-site', async (req, res) => {
+    const { domain } = req.body;
+    if (!domain) return res.status(400).json({ error: 'Missing domain' });
+    try {
+      const url = domain.startsWith('http') ? domain : `http://${domain}`;
+      const siteRes = await axios.get(url);
+      const html = siteRes.data;
+      // Extraction simple du <title> et d'un <meta name="description">
+      const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+      const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
+      const title = titleMatch ? titleMatch[1] : '';
+      const description = descMatch ? descMatch[1] : '';
+      // Optionnel : extraire le premier <p>
+      const pMatch = html.match(/<p>(.*?)<\/p>/i);
+      const firstP = pMatch ? pMatch[1] : '';
+      res.json({ title, description, firstP });
+    } catch (e) {
+      res.status(500).json({ error: 'Erreur lors de la récupération du site web.' });
+    }
+  });
+
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
   });

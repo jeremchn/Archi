@@ -5,7 +5,6 @@
         document.body.innerHTML = '<p>Impossible de charger la fiche entreprise.</p>';
         return;
     }
-    // Affichage des infos principales
     document.getElementById('fiche-company-name').textContent = data.company['Company Name'] || '';
     document.getElementById('fiche-company-info').innerHTML = `
         <div class="info-list">
@@ -18,7 +17,6 @@
             <strong>Company Type :</strong> ${data.company['Company Type'] || ''}<br>
         </div>
     `;
-    // Affichage des contacts
     const contacts = Array.isArray(data.contacts) ? data.contacts : [];
     const tbody = document.querySelector('#fiche-contacts-table tbody');
     if (contacts.length === 0) {
@@ -34,56 +32,35 @@
             </tr>
         `).join('');
     }
-    // Affichage des sections constantes
-    const sections = [
-        { id: 'fiche-news-section', title: 'Actualités importantes', key: 'news', type: 'newsapi' },
-        { id: 'fiche-position-section', title: 'Positionnement & Points forts', key: 'position', type: 'text' },
-        { id: 'fiche-events-section', title: 'Événements majeurs', key: 'events', type: 'list' },
-        { id: 'fiche-products-section', title: 'Nouveaux produits/services', key: 'products', type: 'list' },
-        { id: 'fiche-leadership-section', title: 'Changements de direction', key: 'leadership', type: 'list' },
-        { id: 'fiche-gpt-section', title: 'Analyse GPT', key: 'gpt_analysis', type: 'html' }
-    ];
-    // Récupération et affichage des actualités via l'API backend
-    (async function() {
-        const newsSection = sections.find(s => s.type === 'newsapi');
-        if (newsSection) {
-            const res = await fetch('/api/company-news', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: data.company['Company Name'], domain: data.company['Domain'] })
-            });
-            const result = await res.json();
-            if (result.articles && result.articles.length > 0) {
-                let el = document.getElementById(newsSection.id);
-                if (!el) {
-                    el = document.createElement('div');
-                    el.className = 'section card';
-                    el.id = newsSection.id;
-                    document.querySelector('.container').appendChild(el);
-                }
-                el.style.display = '';
-                el.innerHTML = `<h2>${newsSection.title}</h2><ul class="news-list">${result.articles.map(a => `<li><a href="${a.url}" class="clickable-link" target="_blank">${a.title}</a> <span style='color:#888;font-size:0.95em;'>(${a.source}, ${a.date ? a.date.slice(0,10) : ''})</span><br><span style='font-size:0.97em;'>${a.description}</span></li>`).join('')}</ul>`;
-            }
+    // Affichage selon le mode
+    if (data.mode === 'news' && Array.isArray(data.news)) {
+        document.getElementById('fiche-news-section').style.display = '';
+        document.getElementById('fiche-news-list').innerHTML = data.news.map(a => `<li><a href="${a.url}" class="clickable-link" target="_blank">${a.title}</a> <span style='color:#888;font-size:0.95em;'>(${a.source}, ${a.date ? a.date.slice(0,10) : ''})</span><br><span style='font-size:0.97em;'>${a.description}</span></li>`).join('');
+    }
+    if (data.mode === 'linkedin' && data.linkedin) {
+        let html = '';
+        if (data.linkedin.info) {
+            html += `<h2>Infos LinkedIn</h2><p>${data.linkedin.info.name || ''}</p><p>${data.linkedin.info.recruitment || ''}</p>`;
         }
-    })();
-    sections.forEach(section => {
-        let el = document.getElementById(section.id);
-        if (!el) {
-            el = document.createElement('div');
-            el.className = 'section card';
-            el.id = section.id;
-            el.innerHTML = `<h2>${section.title}</h2>`;
-            document.querySelector('.container').appendChild(el);
+        if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
+            html += `<h2>Dernier post LinkedIn</h2><p>${data.linkedin.posts[0]}</p>`;
         }
-        let content = '';
-        if (section.type === 'list' && Array.isArray(data[section.key]) && data[section.key].length > 0) {
-            content = `<ul class="news-list">${data[section.key].map(x => `<li>${x}</li>`).join('')}</ul>`;
-        } else if (section.type === 'text' && data[section.key]) {
-            content = `<p>${data[section.key]}</p>`;
-        } else if (section.type === 'html' && data[section.key]) {
-            content = data[section.key];
+        if (Array.isArray(data.linkedin.jobs) && data.linkedin.jobs.length > 0) {
+            html += `<h2>Offres d'emploi LinkedIn</h2><ul>${data.linkedin.jobs.map(j => `<li>${j}</li>`).join('')}</ul>`;
         }
-        el.style.display = content ? '' : 'none';
-        el.innerHTML = `<h2>${section.title}</h2>${content}`;
-    });
+        const section = document.createElement('div');
+        section.className = 'section card';
+        section.innerHTML = html;
+        document.querySelector('.container').appendChild(section);
+    }
+    if (data.mode === 'site' && data.site) {
+        let html = `<h2>Résumé du site web</h2>`;
+        if (data.site.title) html += `<strong>Titre :</strong> ${data.site.title}<br>`;
+        if (data.site.description) html += `<strong>Description :</strong> ${data.site.description}<br>`;
+        if (data.site.firstP) html += `<strong>Premier paragraphe :</strong> ${data.site.firstP}<br>`;
+        const section = document.createElement('div');
+        section.className = 'section card';
+        section.innerHTML = html;
+        document.querySelector('.container').appendChild(section);
+    }
 })();
