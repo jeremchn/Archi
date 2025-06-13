@@ -5,6 +5,7 @@
         document.body.innerHTML = '<p>Impossible de charger la fiche entreprise.</p>';
         return;
     }
+    // Affichage des infos principales (toujours affiché)
     document.getElementById('fiche-company-name').textContent = data.company['Company Name'] || '';
     document.getElementById('fiche-company-info').innerHTML = `
         <div class="info-list">
@@ -17,50 +18,49 @@
             <strong>Company Type :</strong> ${data.company['Company Type'] || ''}<br>
         </div>
     `;
-    const contacts = Array.isArray(data.contacts) ? data.contacts : [];
-    const tbody = document.querySelector('#fiche-contacts-table tbody');
-    if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">Aucun contact trouvé.</td></tr>';
-    } else {
-        tbody.innerHTML = contacts.map(c => `
-            <tr>
-                <td>${c.email || ''}</td>
-                <td>${c.first_name || ''}</td>
-                <td>${c.last_name || ''}</td>
-                <td>${c.position || ''}</td>
-                <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
-            </tr>
-        `).join('');
-    }
-    // Affichage selon le mode
+    // Affichage de la section concernée uniquement
+    const container = document.querySelector('.container');
+    // Supprime toutes les autres sections sauf l'info principale
+    Array.from(container.children).forEach(child => {
+        if (child.id !== 'fiche-company-name' && child.id !== 'fiche-company-info') {
+            if (child.tagName !== 'H1' && child.tagName !== 'DIV') child.remove();
+            if (child.className && !child.className.includes('info-list')) child.remove();
+        }
+    });
+    // Ajout de la section spécifique selon le mode
     if (data.mode === 'news' && Array.isArray(data.news)) {
-        document.getElementById('fiche-news-section').style.display = '';
-        document.getElementById('fiche-news-list').innerHTML = data.news.map(a => `<li><a href="${a.url}" class="clickable-link" target="_blank">${a.title}</a> <span style='color:#888;font-size:0.95em;'>(${a.source}, ${a.date ? a.date.slice(0,10) : ''})</span><br><span style='font-size:0.97em;'>${a.description}</span></li>`).join('');
-    }
-    if (data.mode === 'linkedin' && data.linkedin) {
-        let html = '';
-        if (data.linkedin.info) {
-            html += `<h2>Infos LinkedIn</h2><p>${data.linkedin.info.name || ''}</p><p>${data.linkedin.info.recruitment || ''}</p>`;
-        }
-        if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
-            html += `<h2>Dernier post LinkedIn</h2><p>${data.linkedin.posts[0]}</p>`;
-        }
-        if (Array.isArray(data.linkedin.jobs) && data.linkedin.jobs.length > 0) {
-            html += `<h2>Offres d'emploi LinkedIn</h2><ul>${data.linkedin.jobs.map(j => `<li>${j}</li>`).join('')}</ul>`;
-        }
         const section = document.createElement('div');
         section.className = 'section card';
+        section.innerHTML = `<h2>Actualités récentes</h2>` +
+            (data.news.length > 0 ? `<ul class="news-list">${data.news.map(a => `<li><a href="${a.url}" class="clickable-link" target="_blank">${a.title}</a> <span style='color:#888;font-size:0.95em;'>(${a.source}, ${a.date ? a.date.slice(0,10) : ''})</span><br><span style='font-size:0.97em;'>${a.description || 'Aucune description disponible.'}</span></li>`).join('')}</ul>` : '<p>Aucune actualité trouvée.</p>');
+        container.appendChild(section);
+    }
+    if (data.mode === 'linkedin' && data.linkedin) {
+        const section = document.createElement('div');
+        section.className = 'section card';
+        let html = '<h2>Informations LinkedIn</h2>';
+        if (data.linkedin.info && (data.linkedin.info.name || data.linkedin.info.recruitment)) {
+            html += `<p>${data.linkedin.info.name || ''}</p><p>${data.linkedin.info.recruitment || ''}</p>`;
+        }
+        if (Array.isArray(data.linkedin.posts) && data.linkedin.posts.length > 0) {
+            html += `<h3>Dernier post LinkedIn</h3><p>${data.linkedin.posts[0]}</p>`;
+        }
+        if (Array.isArray(data.linkedin.jobs) && data.linkedin.jobs.length > 0) {
+            html += `<h3>Offres d'emploi LinkedIn</h3><ul>${data.linkedin.jobs.map(j => `<li>${j}</li>`).join('')}</ul>`;
+        }
+        if (html === '<h2>Informations LinkedIn</h2>') html += '<p>Aucune information LinkedIn trouvée.</p>';
         section.innerHTML = html;
-        document.querySelector('.container').appendChild(section);
+        container.appendChild(section);
     }
     if (data.mode === 'site' && data.site) {
+        const section = document.createElement('div');
+        section.className = 'section card';
         let html = `<h2>Résumé du site web</h2>`;
         if (data.site.title) html += `<strong>Titre :</strong> ${data.site.title}<br>`;
         if (data.site.description) html += `<strong>Description :</strong> ${data.site.description}<br>`;
         if (data.site.firstP) html += `<strong>Premier paragraphe :</strong> ${data.site.firstP}<br>`;
-        const section = document.createElement('div');
-        section.className = 'section card';
+        if (html === '<h2>Résumé du site web</h2>') html += '<p>Aucune information extraite du site web.</p>';
         section.innerHTML = html;
-        document.querySelector('.container').appendChild(section);
+        container.appendChild(section);
     }
 })();
