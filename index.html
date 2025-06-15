@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alruqee Search</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2ecc71;
+            --background: #f7fafc;
+            --card-bg: #fff;
+            --text: #222;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(26,54,93,0.08);
+        }
+        html, body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2em auto;
+            padding: 2em;
+            background: var(--card-bg);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 1.5em;
+            letter-spacing: 1px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 2em;
+            flex-wrap: wrap;
+        }
+        #search {
+            flex: 1 1 250px;
+            padding: 0.7em 1em;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1em;
+            background: #f3f7fa;
+            transition: border 0.2s;
+        }
+        #search:focus {
+            border: 1.5px solid var(--primary);
+            outline: none;
+        }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.7em 1.5em;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
+        }
+        .btn:hover {
+            background: var(--secondary);
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(26,54,93,0.04);
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px 8px;
+            text-align: left;
+        }
+        th {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) td {
+            background: #f3f7fa;
+        }
+        .clickable-link {
+            color: var(--secondary);
+            text-decoration: underline;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .clickable-link:hover {
+            color: var(--primary);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+        }
+        .loader {
+            border: 3px solid #fff;
+            border-top: 3px solid var(--secondary);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        @media (max-width: 700px) {
+            .container { padding: 1em; }
+            th, td { font-size: 0.95em; padding: 7px 4px; }
+            .search-bar { flex-direction: column; gap: 0.7em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Search for Providers</h1>
+        <div class="search-bar">
+            <input type="text" id="search" placeholder="Search...">
+            <button id="searchBtn" class="btn">Rechercher</button>
+            <button id="resetBtn" class="btn" style="background:var(--secondary);color:#fff;">Reset</button>
+        </div>
+        <div style="text-align:center;margin-bottom:1em;">
+            <button id="loadingBtn" class="btn" style="display:none;pointer-events:none;min-width:120px;">
+                <span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #fff;border-top:3px solid var(--secondary);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>
+                Recherche...
+            </button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Domain</th>
+                    <th>LinkedIn</th>
+                    <th>Industry</th>
+                    <th>Location</th>
+                    <th>Headcount</th>
+                    <th>Description</th>
+                    <th>Contacts</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="results"></tbody>
+        </table>
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html>

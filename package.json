@@ -1,0 +1,19 @@
+{
+  "name": "alruqee-search-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2"
+  }
+}

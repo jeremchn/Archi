@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2ecc71;
+            --background: #f7fafc;
+            --card-bg: #fff;
+            --text: #222;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(26,54,93,0.08);
+        }
+        html, body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2em auto;
+            padding: 2em;
+            background: var(--card-bg);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+        h1, h2 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+        .section {
+            margin-bottom: 2em;
+        }
+        .card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5em;
+            margin-bottom: 2em;
+            box-shadow: 0 1px 6px rgba(26,54,93,0.06);
+        }
+        .info-list strong {
+            color: var(--primary);
+            width: 140px;
+            display: inline-block;
+        }
+        .clickable-link {
+            color: var(--secondary);
+            text-decoration: underline;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .clickable-link:hover {
+            color: var(--primary);
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(26,54,93,0.04);
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px 8px;
+            text-align: left;
+        }
+        th {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) td {
+            background: #f3f7fa;
+        }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.7em 1.5em;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 1.5em;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
+        }
+        .btn:hover {
+            background: var(--secondary);
+            color: #fff;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 1em; }
+            th, td { font-size: 0.95em; padding: 7px 4px; }
+            .info-list strong { width: 100px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="btn" onclick="history.back()">&larr; Retour à la recherche</button>
+        <button class="btn" id="deep-search-news-btn" style="background:var(--secondary);color:#fff;margin-left:1em;">Recherche approfondie News</button>
+        <button class="btn" id="deep-search-linkedin-btn" style="background:#0077b5;color:#fff;margin-left:1em;">Recherche approfondie LinkedIn</button>
+        <button class="btn" id="deep-search-site-btn" style="background:#444;color:#fff;margin-left:1em;">Recherche approfondie Site Web</button>
+        <div id="loading-deep-search" style="display:none;margin:1.5em 0;text-align:center;font-size:1.2em;color:var(--primary);font-weight:500;">
+            <span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #fff;border-top:3px solid var(--secondary);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>
+            Chargement en cours...
+        </div>
+        <h1 id="company-name"></h1>
+        <div class="section card" id="company-info"></div>
+        <div class="section">
+            <h2>Contacts trouvés sur Hunter</h2>
+            <table id="contacts-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Position</th>
+                        <th>LinkedIn</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="js/details.js"></script>
+</body>
+</html>
