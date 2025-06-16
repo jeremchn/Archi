@@ -3,17 +3,9 @@ const path = require('path');
 const https = require('https');
 
 // === CONFIGURE ICI TON LIEN DIRECT GOOGLE DRIVE OU DROPBOX ===
-const EMBEDDED_FILE = path.join(__dirname, 'data_embedded.json');
+//const EMBEDDED_FILE = path.join(__dirname, 'data_embedded2_first_20000.json');
 // Nouveau lien direct Google Drive
-const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=11lHwu_joM-zj-Np7GPQBzBJ0OJiZLAtF';
-
-function downloadFile(url, dest, cb) {
-  const file = fs.createWriteStream(dest);
-  https.get(url, (response) => {
-    response.pipe(file);
-    file.on('finish', () => file.close(cb));
-  });
-}
+const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=14DSP13Ypv4dHHvBq8R8hH1zRAMoIGCOE';
 
 function startServer() {
   require('dotenv').config();
@@ -31,25 +23,10 @@ function startServer() {
   // Serve static files (like index.html, CSS, JS)
   app.use(express.static(__dirname));
 
-  // Charge les données d'entreprises (avec embeddings inclus)
-  const data = JSON.parse(fs.readFileSync(EMBEDDED_FILE, 'utf-8'));
-
-  // Vérification de la présence et de la taille des embeddings
-  if (
-    !Array.isArray(data) ||
-    !data[0] ||
-    !Array.isArray(data[0].embedding) ||
-    data[0].embedding.length !== 1536
-  ) {
-    console.error(`ERREUR: Chaque objet de ${path.basename(EMBEDDED_FILE)} doit avoir une propriété "embedding" de taille 1536.`);
-    process.exit(1);
-  }
-  // Vérifie que tous les embeddings ont la bonne taille
-  for (let i = 0; i < data.length; i++) {
-    if (!Array.isArray(data[i].embedding) || data[i].embedding.length !== 1536) {
-      console.error(`ERREUR: L'embedding à l'index ${i} n'a pas une taille de 1536.`);
-      process.exit(1);
-    }
+  // Charge les données d'entreprises (avec embeddings inclus) depuis l'URL à chaque requête
+  async function fetchRemoteData() {
+    const response = await axios.get(REMOTE_URL);
+    return response.data;
   }
 
   // Fonction pour calculer la similarité cosinus
@@ -97,6 +74,19 @@ function startServer() {
       if (!userEmbedding) {
         console.log('No embedding returned from OpenAI'); // DEBUG
         return res.status(500).json({ error: 'No embedding returned from OpenAI' });
+      }
+
+      // Charge les données à la volée depuis le Drive
+      const data = await fetchRemoteData();
+      if (!Array.isArray(data) || !data[0] || !Array.isArray(data[0].embedding) || data[0].embedding.length !== 1536) {
+        console.error(`ERREUR: Chaque objet de la data distante doit avoir une propriété "embedding" de taille 1536.`);
+        return res.status(500).json({ error: 'Format de données incorrect' });
+      }
+      for (let i = 0; i < data.length; i++) {
+        if (!Array.isArray(data[i].embedding) || data[i].embedding.length !== 1536) {
+          console.error(`ERREUR: L'embedding à l'index ${i} n'a pas une taille de 1536.`);
+          return res.status(500).json({ error: `Embedding incorrect à l'index ${i}` });
+        }
       }
 
       // Compute similarity with each company
@@ -349,13 +339,5 @@ Donne-moi les informations suivantes, chaque section doit être concise et adapt
   });
 }
 
-// Si le fichier n'existe pas, on le télécharge puis on lance le serveur
-if (!fs.existsSync(EMBEDDED_FILE)) {
-  console.log(`Downloading ${path.basename(EMBEDDED_FILE)}...`);
-  downloadFile(REMOTE_URL, EMBEDDED_FILE, () => {
-    console.log('Download complete.');
-    startServer();
-  });
-} else {
-  startServer();
-}
+// Lance simplement le serveur (plus de gestion de fichier local)
+startServer();
