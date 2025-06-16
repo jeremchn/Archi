@@ -125,9 +125,13 @@ function startServer() {
     else res.status(401).json({ user: null });
   });
 
-  // Serve index.html at root
+  // Redirige la racine vers auth.html si non authentifié
   app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    if (req.isAuthenticated()) {
+      res.redirect('/index.html');
+    } else {
+      res.redirect('/auth.html');
+    }
   });
 
   // Semantic search endpoint
