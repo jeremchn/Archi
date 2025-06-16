@@ -42,6 +42,12 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             contacts: contactsData[idx] !== undefined ? contactsData[idx] : 0
         }));
 
+        // Trie les résultats par nombre de contacts décroissant (valeurs vides/nulles = 0)
+        data.sort((a, b) => {
+            const contactsA = (typeof a.contacts === 'number' && !isNaN(a.contacts)) ? a.contacts : 0;
+            const contactsB = (typeof b.contacts === 'number' && !isNaN(b.contacts)) ? b.contacts : 0;
+            return contactsB - contactsA;
+        });
         // Affiche les résultats dans le tableau
         const resultsTable = document.getElementById('results');
         resultsTable.innerHTML = '';

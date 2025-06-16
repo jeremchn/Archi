@@ -43,10 +43,10 @@
         }
         #search {
             flex: 1 1 250px;
-            padding: 0.7em 1em;
+            padding: 1.2em 1.2em;
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 1em;
+            font-size: 1.2em;
             background: #f3f7fa;
             transition: border 0.2s;
         }
@@ -124,16 +124,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>Search for Providers</h1>
+        <h1>Find Companies</h1>
         <div class="search-bar">
             <input type="text" id="search" placeholder="Search...">
-            <button id="searchBtn" class="btn">Rechercher</button>
+            <button id="searchBtn" class="btn">Search</button>
             <button id="resetBtn" class="btn" style="background:var(--secondary);color:#fff;">Reset</button>
         </div>
         <div style="text-align:center;margin-bottom:1em;">
             <button id="loadingBtn" class="btn" style="display:none;pointer-events:none;min-width:120px;">
                 <span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #fff;border-top:3px solid var(--secondary);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span>
-                Recherche...
+                Searching...
             </button>
         </div>
         <table>

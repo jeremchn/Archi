@@ -21,7 +21,7 @@ def build_text(company):
     ]
     return " | ".join(fields)
 
-# Correction : lire data.json et écrire data_embedded.json
+# Correction : lire data.json et écrire data_embedded2_first_20000.json
 with open("data.json", "r", encoding="utf-8") as f:
     companies = json.load(f)
 
@@ -43,5 +43,5 @@ for i, company in enumerate(companies):
         print(f"Erreur à l'index {i}: {e}")
         continue
 
-with open("data_embedded.json", "w", encoding="utf-8") as f:
+with open("data_embedded2_first_20000.json", "w", encoding="utf-8") as f:
     json.dump(embedded, f, ensure_ascii=False, indent=2)

@@ -19,7 +19,9 @@ data = []
 
 with open(input_file, encoding='utf-8') as csvfile:
     reader = csv.DictReader(csvfile)
-    for row in reader:
+    for i, row in enumerate(reader):
+        if i >= 1000:
+            break
         # Vérifie que toutes les colonnes sauf Tags sont complètes (non vides)
         if all(row[field].strip() for field in fields):
             entry = {field: row[field] for field in fields}
