@@ -60,8 +60,34 @@ function startServer() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Serve static files (like index.html, CSS, JS)
-  app.use(express.static(__dirname));
+  // Sert les fichiers JS/CSS/images en statique
+  app.use('/js', express.static(path.join(__dirname, 'js')));
+  // Ajoute d'autres dossiers statiques si besoin
+
+  // Sert auth.html sans authentification
+  app.get('/auth.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'auth.html'));
+  });
+
+  // Protège l'accès aux pages HTML principales
+  app.get('/index.html', ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
+  app.get('/fiche.html', ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'fiche.html'));
+  });
+  app.get('/details.html', ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'details.html'));
+  });
+
+  // Redirige la racine vers auth.html si non authentifié
+  app.get('/', (req, res) => {
+    if (req.isAuthenticated()) {
+      res.redirect('/index.html');
+    } else {
+      res.redirect('/auth.html');
+    }
+  });
 
   // Auth routes
   app.post('/signup', async (req, res) => {
@@ -113,26 +139,6 @@ function startServer() {
     if (req.isAuthenticated()) return next();
     res.redirect('/auth.html');
   }
-
-  // Exemple d'utilisation : protège l'accès à index.html
-  app.get('/index.html', ensureAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-  });
-
-  // Pour vérifier la session côté client
-  app.get('/me', (req, res) => {
-    if (req.isAuthenticated()) res.json({ user: { email: req.user.email } });
-    else res.status(401).json({ user: null });
-  });
-
-  // Redirige la racine vers auth.html si non authentifié
-  app.get('/', (req, res) => {
-    if (req.isAuthenticated()) {
-      res.redirect('/index.html');
-    } else {
-      res.redirect('/auth.html');
-    }
-  });
 
   // Semantic search endpoint
   app.post('/api/semantic-search', async (req, res) => {
