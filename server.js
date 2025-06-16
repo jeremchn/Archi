@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const session = require('express-session');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcryptjs');
 
 // === CONFIGURE ICI TON LIEN DIRECT GOOGLE DRIVE OU DROPBOX ===
 //const EMBEDDED_FILE = path.join(__dirname, 'data_embedded2_first_20000.json');
@@ -8,6 +12,32 @@ const https = require('https');
 const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=14DSP13Ypv4dHHvBq8R8hH1zRAMoIGCOE';
 
 let cachedData = null;
+
+const USERS_FILE = path.join(__dirname, 'users.json');
+
+function loadUsers() {
+  if (!fs.existsSync(USERS_FILE)) return [];
+  return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
+}
+function saveUsers(users) {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+}
+
+passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
+  const users = loadUsers();
+  const user = users.find(u => u.email === email);
+  if (!user) return done(null, false, { message: 'Incorrect email.' });
+  bcrypt.compare(password, user.password, (err, res) => {
+    if (res) return done(null, user);
+    else return done(null, false, { message: 'Incorrect password.' });
+  });
+}));
+passport.serializeUser((user, done) => done(null, user.email));
+passport.deserializeUser((email, done) => {
+  const users = loadUsers();
+  const user = users.find(u => u.email === email);
+  done(null, user || false);
+});
 
 function startServer() {
   require('dotenv').config();
@@ -19,11 +49,39 @@ function startServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
-  app.use(cors());
+  app.use(cors({ origin: true, credentials: true }));
   app.use(express.json());
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // mettre true si HTTPS
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // Serve static files (like index.html, CSS, JS)
   app.use(express.static(__dirname));
+
+  // Auth routes
+  app.post('/signup', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required.' });
+    const users = loadUsers();
+    if (users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already exists.' });
+    const hash = await bcrypt.hash(password, 10);
+    users.push({ email, password: hash });
+    saveUsers(users);
+    res.json({ success: true });
+  });
+  app.post('/login', passport.authenticate('local'), (req, res) => {
+    res.json({ success: true, user: { email: req.user.email } });
+  });
+  app.post('/logout', (req, res) => {
+    req.logout(() => {
+      res.json({ success: true });
+    });
+  });
 
   // Endpoint pour charger les données une fois
   app.post('/api/load-data', async (req, res) => {
@@ -49,6 +107,23 @@ function startServer() {
     }
     return dot / (Math.sqrt(normA) * Math.sqrt(normB));
   }
+
+  // Middleware pour protéger les routes (exemple)
+  function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) return next();
+    res.redirect('/auth.html');
+  }
+
+  // Exemple d'utilisation : protège l'accès à index.html
+  app.get('/index.html', ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
+
+  // Pour vérifier la session côté client
+  app.get('/me', (req, res) => {
+    if (req.isAuthenticated()) res.json({ user: { email: req.user.email } });
+    else res.status(401).json({ user: null });
+  });
 
   // Serve index.html at root
   app.get('/', (req, res) => {
