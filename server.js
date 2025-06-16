@@ -7,6 +7,8 @@ const https = require('https');
 // Nouveau lien direct Google Drive
 const REMOTE_URL = 'https://drive.google.com/uc?export=download&id=14DSP13Ypv4dHHvBq8R8hH1zRAMoIGCOE';
 
+let cachedData = null;
+
 function startServer() {
   require('dotenv').config();
 
@@ -23,11 +25,19 @@ function startServer() {
   // Serve static files (like index.html, CSS, JS)
   app.use(express.static(__dirname));
 
-  // Charge les données d'entreprises (avec embeddings inclus) depuis l'URL à chaque requête
-  async function fetchRemoteData() {
-    const response = await axios.get(REMOTE_URL);
-    return response.data;
-  }
+  // Endpoint pour charger les données une fois
+  app.post('/api/load-data', async (req, res) => {
+    try {
+      const response = await axios.get('https://drive.google.com/uc?export=download&id=14DSP13Ypv4dHHvBq8R8hH1zRAMoIGCOE');
+      if (!Array.isArray(response.data) || !response.data[0] || !Array.isArray(response.data[0].embedding)) {
+        return res.status(500).json({ error: 'Invalid data format from Drive.' });
+      }
+      cachedData = response.data;
+      res.json({ success: true, count: cachedData.length });
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to load data.' });
+    }
+  });
 
   // Fonction pour calculer la similarité cosinus
   function cosineSimilarity(a, b) {
@@ -47,6 +57,9 @@ function startServer() {
 
   // Semantic search endpoint
   app.post('/api/semantic-search', async (req, res) => {
+    if (!cachedData) {
+      return res.status(400).json({ error: 'Data not loaded. Please load data first.' });
+    }
     console.log('POST /api/semantic-search called'); // DEBUG
     const { query } = req.body;
     if (!query) {
@@ -76,8 +89,9 @@ function startServer() {
         return res.status(500).json({ error: 'No embedding returned from OpenAI' });
       }
 
-      // Charge les données à la volée depuis le Drive
-      const data = await fetchRemoteData();
+      // Utilise les données en mémoire
+      const data = cachedData;
+      // ...vérification et calculs comme avant...
       if (!Array.isArray(data) || !data[0] || !Array.isArray(data[0].embedding) || data[0].embedding.length !== 1536) {
         console.error(`ERREUR: Chaque objet de la data distante doit avoir une propriété "embedding" de taille 1536.`);
         return res.status(500).json({ error: 'Format de données incorrect' });

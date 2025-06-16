@@ -92,3 +92,31 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     document.getElementById('search').value = '';
     document.getElementById('results').innerHTML = '';
 });
+
+const loadDataBtn = document.getElementById('loadDataBtn');
+const searchBtn = document.getElementById('searchBtn');
+const resetBtn = document.getElementById('resetBtn');
+const dataStatus = document.getElementById('dataStatus');
+
+loadDataBtn.addEventListener('click', async function() {
+    loadDataBtn.disabled = true;
+    dataStatus.textContent = 'Loading data...';
+    try {
+        const res = await fetch('/api/load-data', { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+            dataStatus.textContent = `Data loaded (${result.count} companies)`;
+            searchBtn.disabled = false;
+            resetBtn.disabled = false;
+        } else {
+            dataStatus.textContent = 'Failed to load data.';
+            loadDataBtn.disabled = false;
+        }
+    } catch {
+        dataStatus.textContent = 'Failed to load data.';
+        loadDataBtn.disabled = false;
+    }
+});
+
+searchBtn.disabled = true;
+resetBtn.disabled = true;
