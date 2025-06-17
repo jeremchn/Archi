@@ -24,12 +24,15 @@ app.use('/js', express.static(path.join(__dirname, 'js')));
 // Authentification simple (mail/password)
 app.post('/api/login', async (req, res) => {
   const { mail, password } = req.body;
+  console.log('Tentative de connexion:', { mail, password }); // LOG
   if (!mail || !password) return res.status(400).json({ error: 'Mail et mot de passe requis.' });
   try {
     const result = await pool.query('SELECT * FROM users WHERE mail = $1 AND password = $2', [mail, password]);
+    console.log('Résultat SQL:', result.rows); // LOG
     if (result.rows.length === 0) return res.status(401).json({ error: 'Identifiants invalides.' });
     res.json({ success: true, mail });
   } catch (e) {
+    console.error('Erreur SQL:', e); // LOG
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });
