@@ -1,7 +1,7 @@
 document.getElementById('searchBtn').addEventListener('click', async function() {
     const query = document.getElementById('search').value;
     if (!query) return alert("Please enter your need in the search bar.");
-    if (!identifiant) return alert("Veuillez vous connecter.");
+    if (!mail) return alert("Veuillez vous connecter.");
 
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
@@ -11,7 +11,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         const response = await fetch('/api/semantic-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifiant, query })
+            body: JSON.stringify({ mail, query })
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
@@ -119,17 +119,13 @@ loadDataBtn.addEventListener('click', async function() {
     }
 });
 
-// Utilisateur connecté (identifiant)
-let identifiant = null;
-
-// Ajoute un formulaire de login simple si besoin, ou récupère l'identifiant via le frontend
-// Ici, on suppose que l'identifiant est stocké dans localStorage après login
-if (localStorage.getItem('identifiant')) {
-    identifiant = localStorage.getItem('identifiant');
+// Utilisateur connecté (mail)
+let mail = null;
+if (localStorage.getItem('mail')) {
+    mail = localStorage.getItem('mail');
     searchBtn.disabled = false;
     resetBtn.disabled = false;
 } else {
-    // Si pas d'identifiant, désactive la recherche
     searchBtn.disabled = true;
     resetBtn.disabled = true;
 }
