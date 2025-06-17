@@ -6,10 +6,11 @@ function getDomainFromUrl() {
 
 async function fetchCompanyInfo(domain) {
     // Appel au backend pour récupérer toutes les infos de l'entreprise
+    const identifiant = localStorage.getItem('identifiant');
     const res = await fetch('/api/semantic-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: domain })
+        body: JSON.stringify({ identifiant, query: domain })
     });
     const data = await res.json();
     // Cherche l'entreprise exacte par domaine

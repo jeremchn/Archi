@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion Entreprise</title>
+</head>
+<body>
+  <form id="loginForm">
+    <input type="text" id="identifiant" placeholder="Identifiant" required />
+    <input type="password" id="motdepasse" placeholder="Mot de passe" required />
+    <button type="submit">Connexion</button>
+  </form>
+  <div id="profile" style="display:none;">
+    <h2 id="company_name"></h2>
+    <img id="logo" src="" alt="Logo" style="max-width:200px;" />
+    <p id="description"></p>
+    <a id="data_url" href="#" target="_blank">Données</a>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
