@@ -1,7 +1,7 @@
 document.getElementById('searchBtn').addEventListener('click', async function() {
     const query = document.getElementById('search').value;
     if (!query) return alert("Please enter your need in the search bar.");
-    if (!mail) return alert("Veuillez vous connecter.");
+    if (!email) return alert("Veuillez vous connecter.");
 
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
@@ -11,7 +11,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         const response = await fetch('/api/semantic-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mail, query })
+            body: JSON.stringify({ email, query })
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
@@ -101,10 +101,10 @@ const dataStatus = document.getElementById('dataStatus');
 
 // Affichage du logo et du nom d'entreprise sur la page index.html
 window.addEventListener('DOMContentLoaded', async () => {
-    const mail = localStorage.getItem('mail');
-    if (!mail) return;
+    const email = localStorage.getItem('email');
+    if (!email) return;
     try {
-        const res = await fetch(`/api/profile/${mail}`);
+        const res = await fetch(`/api/profile/${email}`);
         if (!res.ok) return;
         const profile = await res.json();
         let logo = document.getElementById('company-logo');
@@ -128,10 +128,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     } catch {}
 });
 
-// Utilisateur connecté (mail)
-let mail = null;
-if (localStorage.getItem('mail')) {
-    mail = localStorage.getItem('mail');
+// Utilisateur connecté (email)
+let email = null;
+if (localStorage.getItem('email')) {
+    email = localStorage.getItem('email');
     searchBtn.disabled = false;
     resetBtn.disabled = false;
 } else {
@@ -139,13 +139,13 @@ if (localStorage.getItem('mail')) {
     resetBtn.disabled = true;
 }
 
-// Load Data doit utiliser le mail pour charger les bonnes données
+// Load Data doit utiliser l'email pour charger les bonnes données
 loadDataBtn.addEventListener('click', async function() {
     loadDataBtn.disabled = true;
     dataStatus.textContent = 'Loading data...';
     try {
-        const mail = localStorage.getItem('mail');
-        const res = await fetch(`/api/load-data/${mail}`);
+        const email = localStorage.getItem('email');
+        const res = await fetch(`/api/load-data/${email}`);
         const result = await res.json();
         if (Array.isArray(result) || result.success) {
             dataStatus.textContent = `Data loaded`;
@@ -162,6 +162,6 @@ loadDataBtn.addEventListener('click', async function() {
 });
 
 // Redirection automatique si non connecté
-if (!localStorage.getItem('mail')) {
+if (!localStorage.getItem('email')) {
     window.location.href = '/auth.html';
 }
