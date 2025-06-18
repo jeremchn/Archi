@@ -321,6 +321,11 @@ app.get('/details.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'details.html'));
 });
 
+// Sert fiche.html à la racine
+app.get('/fiche.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'fiche.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
