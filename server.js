@@ -306,6 +306,27 @@ app.post('/api/company-site', async (req, res) => {
   }
 });
 
+// Recherche d'actualités sur une entreprise via NewsAPI
+app.post('/api/news-search', async (req, res) => {
+  const { company } = req.body;
+  if (!company) return res.status(400).json({ error: 'Nom de l\'entreprise requis.' });
+  const NEWSAPI_KEY = process.env.NEWSAPIKEY;
+  try {
+    const url = `https://newsapi.org/v2/everything?q="${encodeURIComponent(company)}"&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${NEWSAPI_KEY}`;
+    const response = await axios.get(url);
+    const articles = response.data.articles.map(a => ({
+      title: a.title,
+      url: a.url,
+      source: a.source.name,
+      publishedAt: a.publishedAt,
+      description: a.description
+    }));
+    res.json({ success: true, articles });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur lors de la récupération des actualités.' });
+  }
+});
+
 // Sert index.html à la racine
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

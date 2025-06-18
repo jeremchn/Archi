@@ -81,12 +81,14 @@ async function deepSearchNews() {
         return;
     }
     try {
-        const res = await fetch('/api/company-news', {
+        // Appel à la nouvelle route backend NewsAPI
+        const res = await fetch('/api/news-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: company['Company Name'], domain: company['Domain'] })
+            body: JSON.stringify({ company: company['Company Name'] || company['Domain'] })
         });
         const data = await res.json();
+        if (!data.success) throw new Error('Aucune actualité trouvée.');
         localStorage.setItem('deepCompanyProfile', JSON.stringify({ company, news: data.articles, mode: 'news' }));
         window.location.href = 'fiche.html';
     } catch (e) {
