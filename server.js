@@ -313,6 +313,7 @@ app.post('/api/news-search', async (req, res) => {
   const NEWSAPI_KEY = process.env.NEWSAPIKEY;
   try {
     const url = `https://newsapi.org/v2/everything?q="${encodeURIComponent(company)}"&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${NEWSAPI_KEY}`;
+    console.log('Recherche NewsAPI:', url); // LOG
     const response = await axios.get(url);
     const articles = response.data.articles.map(a => ({
       title: a.title,
@@ -323,7 +324,8 @@ app.post('/api/news-search', async (req, res) => {
     }));
     res.json({ success: true, articles });
   } catch (e) {
-    res.status(500).json({ error: 'Erreur lors de la récupération des actualités.' });
+    console.error('Erreur NewsAPI:', e.response ? e.response.data : e.message); // LOG
+    res.status(500).json({ error: 'Erreur lors de la récupération des actualités.', details: e.response ? e.response.data : e.message });
   }
 });
 
