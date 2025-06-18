@@ -5,16 +5,10 @@ function getDomainFromUrl() {
 }
 
 async function fetchCompanyInfo(domain) {
-    // Appel au backend pour récupérer toutes les infos de l'entreprise
-    const mail = localStorage.getItem('mail');
-    const res = await fetch('/api/semantic-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mail, query: domain })
-    });
-    const data = await res.json();
+    // Récupère les résultats stockés dans le localStorage
+    const results = JSON.parse(localStorage.getItem('searchResults') || '[]');
     // Cherche l'entreprise exacte par domaine
-    return Array.isArray(data) ? data.find(item => item['Domain'] === domain) : null;
+    return results.find(item => item['Domain'] === domain) || null;
 }
 
 async function fetchHunterContacts(domain) {

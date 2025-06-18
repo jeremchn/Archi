@@ -49,12 +49,14 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             const contactsB = (typeof b.contacts === 'number' && !isNaN(b.contacts)) ? b.contacts : 0;
             return contactsB - contactsA;
         });
+        // Stocke les résultats dans le localStorage pour accès depuis details.html
+        localStorage.setItem('searchResults', JSON.stringify(data));
         // Affiche les résultats dans le tableau
         const resultsTable = document.getElementById('results');
         resultsTable.innerHTML = '';
         data.forEach(item => {
             const domain = item['Domain']
-                ? `<a href="http://${item['Domain']}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
+                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
                 : '';
             const linkedin = item['Linkedin']
                 ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
