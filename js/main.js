@@ -99,24 +99,33 @@ const searchBtn = document.getElementById('searchBtn');
 const resetBtn = document.getElementById('resetBtn');
 const dataStatus = document.getElementById('dataStatus');
 
-loadDataBtn.addEventListener('click', async function() {
-    loadDataBtn.disabled = true;
-    dataStatus.textContent = 'Loading data...';
+// Affichage du logo et du nom d'entreprise sur la page index.html
+window.addEventListener('DOMContentLoaded', async () => {
+    const mail = localStorage.getItem('mail');
+    if (!mail) return;
     try {
-        const res = await fetch('/api/load-data', { method: 'POST' });
-        const result = await res.json();
-        if (result.success) {
-            dataStatus.textContent = `Data loaded (${result.count} companies)`;
-            searchBtn.disabled = false;
-            resetBtn.disabled = false;
-        } else {
-            dataStatus.textContent = 'Failed to load data.';
-            loadDataBtn.disabled = false;
+        const res = await fetch(`/api/profile/${mail}`);
+        if (!res.ok) return;
+        const profile = await res.json();
+        let logo = document.getElementById('company-logo');
+        if (!logo) {
+            logo = document.createElement('img');
+            logo.id = 'company-logo';
+            logo.style.maxWidth = '120px';
+            logo.style.display = 'block';
+            logo.style.margin = '0 auto 1em auto';
+            document.querySelector('.container').prepend(logo);
         }
-    } catch {
-        dataStatus.textContent = 'Failed to load data.';
-        loadDataBtn.disabled = false;
-    }
+        logo.src = profile.logo_url;
+        let name = document.getElementById('company-title');
+        if (!name) {
+            name = document.createElement('h2');
+            name.id = 'company-title';
+            name.style.textAlign = 'center';
+            document.querySelector('.container').prepend(name);
+        }
+        name.textContent = profile.company_name;
+    } catch {}
 });
 
 // Utilisateur connecté (mail)
@@ -129,3 +138,25 @@ if (localStorage.getItem('mail')) {
     searchBtn.disabled = true;
     resetBtn.disabled = true;
 }
+
+// Load Data doit utiliser le mail pour charger les bonnes données
+loadDataBtn.addEventListener('click', async function() {
+    loadDataBtn.disabled = true;
+    dataStatus.textContent = 'Loading data...';
+    try {
+        const mail = localStorage.getItem('mail');
+        const res = await fetch(`/api/load-data/${mail}`);
+        const result = await res.json();
+        if (Array.isArray(result) || result.success) {
+            dataStatus.textContent = `Data loaded`;
+            searchBtn.disabled = false;
+            resetBtn.disabled = false;
+        } else {
+            dataStatus.textContent = 'Failed to load data.';
+            loadDataBtn.disabled = false;
+        }
+    } catch {
+        dataStatus.textContent = 'Failed to load data.';
+        loadDataBtn.disabled = false;
+    }
+});
