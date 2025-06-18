@@ -56,8 +56,14 @@ app.get('/api/load-data/:email', async (req, res) => {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     const dataUrl = profileRes.rows[0].data_url;
-    const response = await axios.get(dataUrl);
-    res.json(response.data);
+    console.log('Tentative de chargement de données depuis:', dataUrl); // LOG
+    try {
+      const response = await axios.get(dataUrl);
+      res.json(response.data);
+    } catch (err) {
+      console.error('Erreur lors du téléchargement du fichier:', err.message);
+      res.status(502).json({ error: 'Erreur lors du téléchargement du fichier distant.', details: err.message });
+    }
   } catch (e) {
     res.status(500).json({ error: 'Erreur lors du chargement des données.' });
   }
