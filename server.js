@@ -308,17 +308,19 @@ app.post('/api/company-site', async (req, res) => {
 
 // Recherche d'actualités sur une entreprise via NewsAPI
 app.post('/api/news-search', async (req, res) => {
-  const { company } = req.body;
-  if (!company) return res.status(400).json({ error: 'Nom de l\'entreprise requis.' });
+  const { company, domain } = req.body;
+  if (!company && !domain) return res.status(400).json({ error: 'Nom de l\'entreprise ou domaine requis.' });
   const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
   const queries = [
-    `"${company}"`, // recherche exacte
-    company,         // sans guillemets
-    `${company} actualité`,
-    `${company} news`,
-    `${company} press release`,
-    `${company} manufacturing`,
-  ];
+    company ? `"${company}"` : '',
+    company || '',
+    domain ? `"${domain}"` : '',
+    domain || '',
+    company ? `${company} actualité` : '',
+    company ? `${company} news` : '',
+    company ? `${company} press release` : '',
+    company ? `${company} manufacturing` : '',
+  ].filter(Boolean);
   let articles = [];
   for (const q of queries) {
     try {
@@ -340,6 +342,15 @@ app.post('/api/news-search', async (req, res) => {
   }
   // Supprime les doublons d'articles (par url)
   articles = articles.filter((a, i, arr) => arr.findIndex(b => b.url === a.url) === i);
+  // Filtrage supplémentaire : ne garder que les articles qui mentionnent le nom ou le domaine dans le titre ou la description
+  const lowerCompany = company ? company.toLowerCase() : '';
+  const lowerDomain = domain ? domain.toLowerCase() : '';
+  articles = articles.filter(a => {
+    const t = (a.title || '').toLowerCase();
+    const d = (a.description || '').toLowerCase();
+    return (lowerCompany && (t.includes(lowerCompany) || d.includes(lowerCompany))) ||
+           (lowerDomain && (t.includes(lowerDomain) || d.includes(lowerDomain)));
+  });
   if (articles.length === 0) {
     return res.json({ success: false, articles: [] });
   }
