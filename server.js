@@ -311,22 +311,41 @@ app.post('/api/news-search', async (req, res) => {
   const { company } = req.body;
   if (!company) return res.status(400).json({ error: 'Nom de l\'entreprise requis.' });
   const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
-  try {
-    const url = `https://newsapi.org/v2/everything?q="${encodeURIComponent(company)}"&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${NEWSAPI_KEY}`;
-    console.log('Recherche NewsAPI:', url); // LOG
-    const response = await axios.get(url);
-    const articles = response.data.articles.map(a => ({
-      title: a.title,
-      url: a.url,
-      source: a.source.name,
-      publishedAt: a.publishedAt,
-      description: a.description
-    }));
-    res.json({ success: true, articles });
-  } catch (e) {
-    console.error('Erreur NewsAPI:', e.response ? e.response.data : e.message); // LOG
-    res.status(500).json({ error: 'Erreur lors de la récupération des actualités.', details: e.response ? e.response.data : e.message });
+  const queries = [
+    `"${company}"`, // recherche exacte
+    company,         // sans guillemets
+    `${company} actualité`,
+    `${company} news`,
+    `${company} press release`,
+    `${company} manufacturing`,
+  ];
+  let articles = [];
+  for (const q of queries) {
+    try {
+      const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&sortBy=publishedAt&pageSize=5&apiKey=${NEWSAPI_KEY}`;
+      console.log('Recherche NewsAPI:', url); // LOG
+      const response = await axios.get(url);
+      if (response.data.articles && response.data.articles.length > 0) {
+        articles = articles.concat(response.data.articles.map(a => ({
+          title: a.title,
+          url: a.url,
+          source: a.source.name,
+          publishedAt: a.publishedAt,
+          description: a.description
+        })));
+      }
+    } catch (e) {
+      console.error('Erreur NewsAPI:', e.response ? e.response.data : e.message); // LOG
+    }
   }
+  // Supprime les doublons d'articles (par url)
+  articles = articles.filter((a, i, arr) => arr.findIndex(b => b.url === a.url) === i);
+  if (articles.length === 0) {
+    return res.json({ success: false, articles: [] });
+  }
+  // Limite à 5 articles les plus récents
+  articles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+  res.json({ success: true, articles: articles.slice(0, 5) });
 });
 
 // Sert index.html à la racine
