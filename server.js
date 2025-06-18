@@ -293,9 +293,9 @@ app.post('/api/company-site', async (req, res) => {
   }
 });
 
-// Redirige la racine vers le frontend
+// Redirige la racine vers la vraie page index.html de recherche
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
