@@ -21,27 +21,27 @@ const pool = new Pool({
 app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 
-// Authentification simple (mail/password)
+// Authentification simple (email/password)
 app.post('/api/login', async (req, res) => {
-  const { mail, password } = req.body;
-  console.log('Tentative de connexion:', { mail, password }); // LOG
-  if (!mail || !password) return res.status(400).json({ error: 'Mail et mot de passe requis.' });
+  const { email, password } = req.body;
+  console.log('Tentative de connexion:', { email, password }); // LOG
+  if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis.' });
   try {
-    const result = await pool.query('SELECT * FROM users WHERE mail = $1 AND password = $2', [mail, password]);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
     console.log('Résultat SQL:', result.rows); // LOG
     if (result.rows.length === 0) return res.status(401).json({ error: 'Identifiants invalides.' });
-    res.json({ success: true, mail });
+    res.json({ success: true, email });
   } catch (e) {
     console.error('Erreur SQL:', e); // LOG
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });
 
-// Récupérer le profil de l'entreprise via le mail
-app.get('/api/profile/:mail', async (req, res) => {
-  const { mail } = req.params;
+// Récupérer le profil de l'entreprise via l'email
+app.get('/api/profile/:email', async (req, res) => {
+  const { email } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM profile WHERE company_name = $1', [mail]);
+    const result = await pool.query('SELECT * FROM profile WHERE email = $1', [email]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     res.json(result.rows[0]);
   } catch (e) {
@@ -49,11 +49,11 @@ app.get('/api/profile/:mail', async (req, res) => {
   }
 });
 
-// Charger dynamiquement les données de l'entreprise via le mail
-app.get('/api/load-data/:mail', async (req, res) => {
-  const { mail } = req.params;
+// Charger dynamiquement les données de l'entreprise via l'email
+app.get('/api/load-data/:email', async (req, res) => {
+  const { email } = req.params;
   try {
-    const profileRes = await pool.query('SELECT data_url FROM profile WHERE company_name = $1', [mail]);
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     const dataUrl = profileRes.rows[0].data_url;
     const response = await axios.get(dataUrl);
@@ -74,12 +74,12 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// Recherche sémantique sur les données de l'entreprise via le mail
+// Recherche sémantique sur les données de l'entreprise via l'email
 app.post('/api/semantic-search', async (req, res) => {
-  const { mail, query } = req.body;
-  if (!mail || !query) return res.status(400).json({ error: 'Mail et requête requis.' });
+  const { email, query } = req.body;
+  if (!email || !query) return res.status(400).json({ error: 'Email et requête requis.' });
   try {
-    const profileRes = await pool.query('SELECT data_url FROM profile WHERE company_name = $1', [mail]);
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     const dataUrl = profileRes.rows[0].data_url;
     const response = await axios.get(dataUrl);
