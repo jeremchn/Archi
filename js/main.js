@@ -160,3 +160,8 @@ loadDataBtn.addEventListener('click', async function() {
         loadDataBtn.disabled = false;
     }
 });
+
+// Redirection automatique si non connecté
+if (!localStorage.getItem('mail')) {
+    window.location.href = '/auth.html';
+}

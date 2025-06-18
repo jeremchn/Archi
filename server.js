@@ -293,9 +293,9 @@ app.post('/api/company-site', async (req, res) => {
   }
 });
 
-// Redirige la racine vers la vraie page index.html de recherche
+// Redirige la racine vers la page de login (auth.html)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'auth.html'));
 });
 
 app.listen(PORT, () => {

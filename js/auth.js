@@ -4,17 +4,17 @@ const msg = document.getElementById('msg');
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.innerHTML = '';
-    const identifiant = document.getElementById('login-email').value;
-    const motdepasse = document.getElementById('login-password').value;
+    const mail = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
     try {
         const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifiant, motdepasse })
+            body: JSON.stringify({ mail, password })
         });
         const data = await res.json();
         if (data.success) {
-            localStorage.setItem('identifiant', identifiant);
+            localStorage.setItem('mail', mail);
             msg.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
             setTimeout(() => { window.location.href = '/index.html'; }, 1000);
         } else {
