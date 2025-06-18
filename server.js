@@ -58,8 +58,15 @@ app.get('/api/load-data/:email', async (req, res) => {
     const dataUrl = profileRes.rows[0].data_url;
     console.log('Tentative de chargement de données depuis:', dataUrl); // LOG
     try {
-      const response = await axios.get(dataUrl);
-      res.json(response.data);
+      const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
+      const data = response.data;
+      let count = 0;
+      if (Array.isArray(data)) {
+        count = data.length;
+      } else if (typeof data === 'object' && data !== null) {
+        count = Object.keys(data).length;
+      }
+      res.json({ success: true, count });
     } catch (err) {
       console.error('Erreur lors du téléchargement du fichier:', err.message);
       res.status(502).json({ error: 'Erreur lors du téléchargement du fichier distant.', details: err.message });
@@ -307,6 +314,11 @@ app.get('/index.html', (req, res) => {
 // Redirige la racine vers la page de login (auth.html)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'auth.html'));
+});
+
+// Sert details.html à la racine
+app.get('/details.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'details.html'));
 });
 
 app.listen(PORT, () => {
