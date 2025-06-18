@@ -310,7 +310,7 @@ app.post('/api/company-site', async (req, res) => {
 app.post('/api/news-search', async (req, res) => {
   const { company } = req.body;
   if (!company) return res.status(400).json({ error: 'Nom de l\'entreprise requis.' });
-  const NEWSAPI_KEY = process.env.NEWSAPIKEY;
+  const NEWSAPI_KEY = process.env.NEWSAPI_KEY;
   try {
     const url = `https://newsapi.org/v2/everything?q="${encodeURIComponent(company)}"&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${NEWSAPI_KEY}`;
     console.log('Recherche NewsAPI:', url); // LOG
