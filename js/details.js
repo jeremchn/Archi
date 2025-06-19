@@ -22,15 +22,16 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
-async function renderContacts(contacts, icebreakers = null) {
+async function renderContacts(contacts, icebreakers = null, linkedinInfos = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No contacts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">No contacts found.</td></tr>';
         return;
     }
     tbody.innerHTML = contacts.map((c, idx) => {
-        const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company;
+        const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
+        const linkedinInfo = linkedinInfos && linkedinInfos[idx] ? linkedinInfos[idx] : '';
         return `
         <tr>
             <td>${c.email || ''}</td>
@@ -39,6 +40,7 @@ async function renderContacts(contacts, icebreakers = null) {
             <td>${c.position || ''}</td>
             <td>${c.company || ''}</td>
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
+            <td class="linkedin-info-cell">${linkedinInfo}</td>
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
@@ -53,6 +55,20 @@ async function renderContacts(contacts, icebreakers = null) {
             btn.disabled = true;
             btn.textContent = 'Generating...';
             try {
+                // Récupère les infos LinkedIn du contact
+                const resInfo = await fetch('/api/contact-linkedin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ linkedin_url: contact.linkedin_url })
+                });
+                const linkedinData = await resInfo.json();
+                // Formate les infos pour affichage
+                let infoText = '';
+                if (linkedinData.info.headline) infoText += `<b>Headline:</b> ${linkedinData.info.headline}<br>`;
+                if (linkedinData.info.about) infoText += `<b>About:</b> ${linkedinData.info.about}<br>`;
+                if (linkedinData.experiences && linkedinData.experiences.length) infoText += `<b>Experiences:</b> ${linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}<br>`;
+                if (linkedinData.posts && linkedinData.posts.length) infoText += `<b>Posts:</b> ${linkedinData.posts.join(' | ')}<br>`;
+                // Génère l'ice breaker
                 const res = await fetch('/api/icebreaker', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -60,9 +76,10 @@ async function renderContacts(contacts, icebreakers = null) {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // Met à jour la cellule sans re-render tout le tableau
-                    const cell = btn.parentElement;
-                    cell.innerHTML = data.icebreaker;
+                    // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
+                    const row = btn.closest('tr');
+                    row.querySelector('.linkedin-info-cell').innerHTML = infoText;
+                    btn.parentElement.innerHTML = data.icebreaker;
                 } else {
                     btn.textContent = 'Error';
                 }
