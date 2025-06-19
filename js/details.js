@@ -22,6 +22,24 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
+async function renderContacts(contacts, icebreakers = null) {
+    const tbody = document.querySelector('#contacts-table tbody');
+    if (contacts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6">Aucun contact trouvé.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = contacts.map((c, idx) => `
+        <tr>
+            <td>${c.email || ''}</td>
+            <td>${c.first_name || ''}</td>
+            <td>${c.last_name || ''}</td>
+            <td>${c.position || ''}</td>
+            <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
+            <td class="icebreaker-cell">${icebreakers && icebreakers[idx] ? icebreakers[idx] : ''}</td>
+        </tr>
+    `).join('');
+}
+
 async function main() {
     const domain = getDomainFromUrl();
     if (!domain) {
@@ -48,19 +66,34 @@ async function main() {
 
     // Affiche les contacts Hunter
     const contacts = await fetchHunterContacts(domain);
-    const tbody = document.querySelector('#contacts-table tbody');
-    if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">Aucun contact trouvé.</td></tr>';
-    } else {
-        tbody.innerHTML = contacts.map(c => `
-            <tr>
-                <td>${c.email || ''}</td>
-                <td>${c.first_name || ''}</td>
-                <td>${c.last_name || ''}</td>
-                <td>${c.position || ''}</td>
-                <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
-            </tr>
-        `).join('');
+    window._contacts = contacts; // Pour accès global
+    await renderContacts(contacts);
+
+    // Gestion du bouton Ice Breaker
+    const btn = document.getElementById('icebreaker-btn');
+    if (btn) {
+        btn.onclick = async function() {
+            btn.disabled = true;
+            btn.textContent = 'Génération en cours...';
+            try {
+                const res = await fetch('/api/icebreakers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contacts })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await renderContacts(contacts, data.icebreakers);
+                } else {
+                    alert('Erreur lors de la génération des ice breakers.');
+                }
+            } catch {
+                alert('Erreur lors de la génération des ice breakers.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Générer Ice Breakers';
+            }
+        };
     }
 }
 

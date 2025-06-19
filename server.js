@@ -359,6 +359,48 @@ app.post('/api/news-search', async (req, res) => {
   res.json({ success: true, articles: articles.slice(0, 5) });
 });
 
+// Génération d'ice breakers personnalisés pour chaque contact via OpenAI GPT-4-turbo
+app.post('/api/icebreakers', async (req, res) => {
+  const { contacts } = req.body;
+  if (!contacts || !Array.isArray(contacts)) {
+    return res.status(400).json({ error: 'Contacts array required' });
+  }
+  const OPENAI_KEY = process.env.OPENAIKEY;
+  const results = [];
+  for (const contact of contacts) {
+    let prompt = `Tu es un expert en networking B2B. Génère une phrase d'accroche personnalisée (ice breaker) pour débuter un mail à ce contact professionnel. Sois pertinent, authentique, et base-toi sur les informations suivantes :\n`;
+    prompt += `Nom: ${contact.first_name || ''} ${contact.last_name || ''}\n`;
+    if (contact.position) prompt += `Poste: ${contact.position}\n`;
+    if (contact.linkedin_url) prompt += `Profil LinkedIn: ${contact.linkedin_url}\n`;
+    prompt += `La phrase doit être adaptée à la personne, mettre en avant un point dont elle peut être fière ou un élément marquant de son parcours, et donner envie de répondre.\nDonne uniquement la phrase d'accroche, sans introduction ni explication.`;
+    try {
+      const gptRes = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-4-turbo',
+          messages: [
+            { role: 'system', content: 'Tu es un expert en networking B2B.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 120,
+          temperature: 0.7
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${OPENAI_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      const icebreaker = gptRes.data.choices[0].message.content.trim();
+      results.push(icebreaker);
+    } catch (e) {
+      results.push(''); // En cas d’erreur, pas d’ice breaker
+    }
+  }
+  res.json({ success: true, icebreakers: results });
+});
+
 // Sert index.html à la racine
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
