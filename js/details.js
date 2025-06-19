@@ -29,7 +29,7 @@ async function renderContacts(contacts, icebreakers = null) {
         return;
     }
     tbody.innerHTML = contacts.map((c, idx) => {
-        const canGenerate = c.email && c.first_name && c.last_name && c.position && c.linkedin_url;
+        const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
         return `
         <tr>
@@ -37,6 +37,7 @@ async function renderContacts(contacts, icebreakers = null) {
             <td>${c.first_name || ''}</td>
             <td>${c.last_name || ''}</td>
             <td>${c.position || ''}</td>
+            <td>${c.company || ''}</td>
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
