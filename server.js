@@ -412,12 +412,15 @@ app.post('/api/contact-linkedin', async (req, res) => {
   if (!linkedin_url) return res.status(400).json({ error: 'Missing linkedin_url' });
   const PROXYCURL_API_KEY = process.env.PROXYCURL_API_KEY;
   try {
+    console.log('[Proxycurl] Requesting:', linkedin_url);
     const proxycurlRes = await axios.get('https://nubela.co/proxycurl/api/v2/linkedin', {
       params: { url: linkedin_url },
       headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` }
     });
+    console.log('[Proxycurl] Response:', JSON.stringify(proxycurlRes.data, null, 2));
     res.json(proxycurlRes.data);
   } catch (e) {
+    console.error('[Proxycurl] Error:', e.response ? e.response.data : e.message);
     res.json({});
   }
 });
