@@ -28,16 +28,46 @@ async function renderContacts(contacts, icebreakers = null) {
         tbody.innerHTML = '<tr><td colspan="6">Aucun contact trouvé.</td></tr>';
         return;
     }
-    tbody.innerHTML = contacts.map((c, idx) => `
+    tbody.innerHTML = contacts.map((c, idx) => {
+        const canGenerate = c.email && c.first_name && c.last_name && c.position && c.linkedin_url;
+        return `
         <tr>
             <td>${c.email || ''}</td>
             <td>${c.first_name || ''}</td>
             <td>${c.last_name || ''}</td>
             <td>${c.position || ''}</td>
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
-            <td class="icebreaker-cell">${icebreakers && icebreakers[idx] ? icebreakers[idx] : ''}</td>
+            <td class="icebreaker-cell">
+                ${icebreakers && icebreakers[idx] ? icebreakers[idx] : ''}
+                ${canGenerate && (!icebreakers || !icebreakers[idx]) ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : ''}
+            </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
+    // Ajout des listeners sur les boutons Generate
+    document.querySelectorAll('.btn-icebreaker').forEach(btn => {
+        btn.onclick = async function() {
+            const idx = parseInt(btn.getAttribute('data-idx'));
+            const contact = contacts[idx];
+            btn.disabled = true;
+            btn.textContent = 'Génération...';
+            try {
+                const res = await fetch('/api/icebreaker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await renderContacts(contacts, (icebreakers || []).map((v, i) => i === idx ? data.icebreaker : v));
+                } else {
+                    btn.textContent = 'Erreur';
+                }
+            } catch {
+                btn.textContent = 'Erreur';
+            }
+        };
+    });
 }
 
 async function main() {

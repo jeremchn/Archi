@@ -406,6 +406,42 @@ app.post('/api/icebreakers', async (req, res) => {
   res.json({ success: true, icebreakers: results });
 });
 
+// Génération d'un ice breaker personnalisé pour un contact via OpenAI GPT-4-turbo
+app.post('/api/icebreaker', async (req, res) => {
+  const { contact } = req.body;
+  if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.linkedin_url) {
+    return res.status(400).json({ error: 'All fields required (email, first_name, last_name, position, linkedin_url)' });
+  }
+  const OPENAI_KEY = process.env.OPENAIKEY;
+  let prompt = `You are a B2B networking expert. You have access to the following LinkedIn profile: ${contact.linkedin_url}\n`;
+  prompt += `The contact's information is:\n- First name: ${contact.first_name}\n- Last name: ${contact.last_name}\n- Company: ${contact.company || ''}\n- Position: ${contact.position}\n- Email: ${contact.email}\n- LinkedIn: ${contact.linkedin_url}\n`;
+  prompt += `Go to the LinkedIn profile and analyze the most recent and relevant public post. Use the content of this post to craft a highly personalized, specific, and non-generic ice breaker sentence to start an email to this contact. The sentence should reference a concrete detail from the post (achievement, project, event, etc.), and make the recipient feel truly seen.\nDo not use placeholders like [Company Name] or [specific project name].\nOnly return the ice breaker sentence, in English, with no introduction or explanation.`;
+  try {
+    const gptRes = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4-turbo',
+        messages: [
+          { role: 'system', content: 'You are a B2B networking expert.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 120,
+        temperature: 0.7
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    const icebreaker = gptRes.data.choices[0].message.content.trim();
+    res.json({ success: true, icebreaker });
+  } catch (e) {
+    res.json({ success: false, icebreaker: '' });
+  }
+});
+
 // Sert index.html à la racine
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
