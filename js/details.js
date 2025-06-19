@@ -99,35 +99,11 @@ async function main() {
 
     // Affiche les contacts Hunter
     const contacts = await fetchHunterContacts(domain);
+    // Ajoute le nom de l'entreprise à chaque contact pour la colonne Company
+    const companyName = company['Company Name'] || '';
+    contacts.forEach(c => { c.company = companyName; });
     window._contacts = contacts; // Pour accès global
     await renderContacts(contacts);
-
-    // Gestion du bouton Ice Breaker
-    const btn = document.getElementById('icebreaker-btn');
-    if (btn) {
-        btn.onclick = async function() {
-            btn.disabled = true;
-            btn.textContent = 'Génération en cours...';
-            try {
-                const res = await fetch('/api/icebreakers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contacts })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    await renderContacts(contacts, data.icebreakers);
-                } else {
-                    alert('Erreur lors de la génération des ice breakers.');
-                }
-            } catch {
-                alert('Erreur lors de la génération des ice breakers.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Generate Ice Breakers';
-            }
-        };
-    }
 }
 
 // Gestion des trois boutons de recherche approfondie
