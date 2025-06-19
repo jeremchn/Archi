@@ -55,30 +55,26 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
             btn.disabled = true;
             btn.textContent = 'Generating...';
             try {
-                // Récupère les infos LinkedIn du contact
-                const resInfo = await fetch('/api/contact-linkedin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ linkedin_url: contact.linkedin_url })
-                });
-                const linkedinData = await resInfo.json();
-                // Formate les infos pour affichage
-                let infoText = '';
-                if (linkedinData.info.headline) infoText += `<b>Headline:</b> ${linkedinData.info.headline}<br>`;
-                if (linkedinData.info.about) infoText += `<b>About:</b> ${linkedinData.info.about}<br>`;
-                if (linkedinData.experiences && linkedinData.experiences.length) infoText += `<b>Experiences:</b> ${linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}<br>`;
-                if (linkedinData.posts && linkedinData.posts.length) infoText += `<b>Posts:</b> ${linkedinData.posts.join(' | ')}<br>`;
-                // Génère l'ice breaker
+                // Génère l'ice breaker et récupère les infos LinkedIn via Proxycurl
                 const res = await fetch('/api/icebreaker', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact })
                 });
                 const data = await res.json();
+                // Formate les infos pour affichage
+                let infoText = '';
+                if (data.linkedinData) {
+                    if (data.linkedinData.headline) infoText += `<b>Headline:</b> ${data.linkedinData.headline}<br>`;
+                    if (data.linkedinData.summary) infoText += `<b>Summary:</b> ${data.linkedinData.summary}<br>`;
+                    if (data.linkedinData.experiences && data.linkedinData.experiences.length) infoText += `<b>Experiences:</b> ${data.linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}<br>`;
+                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) infoText += `<b>Accomplishments:</b> ${data.linkedinData.accomplishment_organisations.join('; ')}<br>`;
+                    if (data.linkedinData.activities && data.linkedinData.activities.length) infoText += `<b>Activities:</b> ${data.linkedinData.activities.map(a => a.activity).join(' | ')}<br>`;
+                }
+                // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
+                const row = btn.closest('tr');
+                row.querySelector('.linkedin-info-cell').innerHTML = infoText;
                 if (data.success) {
-                    // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
-                    const row = btn.closest('tr');
-                    row.querySelector('.linkedin-info-cell').innerHTML = infoText;
                     btn.parentElement.innerHTML = data.icebreaker;
                 } else {
                     btn.textContent = 'Error';

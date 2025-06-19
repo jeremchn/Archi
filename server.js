@@ -406,54 +406,31 @@ app.post('/api/icebreakers', async (req, res) => {
   res.json({ success: true, icebreakers: results });
 });
 
-// Endpoint pour récupérer les infos d'un profil LinkedIn de contact
+// Endpoint pour récupérer les infos d'un profil LinkedIn de contact via Proxycurl
 app.post('/api/contact-linkedin', async (req, res) => {
   const { linkedin_url } = req.body;
   if (!linkedin_url) return res.status(400).json({ error: 'Missing linkedin_url' });
+  const PROXYCURL_API_KEY = process.env.PROXYCURL_API_KEY;
   try {
-    const headers = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };
-    let info = {};
-    try {
-      const mainRes = await axios.get(linkedin_url, { headers });
-      const mainHtml = mainRes.data;
-      const titleMatch = mainHtml.match(/<title>(.*?)<\/title>/i);
-      if (titleMatch) info.name = titleMatch[1];
-      const descMatch = mainHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
-      if (descMatch) info.description = descMatch[1];
-      const headlineMatch = mainHtml.match(/<h2[^>]*class="top-card-layout__headline"[^>]*>(.*?)<\/h2>/);
-      if (headlineMatch) info.headline = headlineMatch[1].replace(/<[^>]+>/g, '').trim();
-      const aboutMatch = mainHtml.match(/<section[^>]*id="about"[\s\S]*?<p[^>]*>(.*?)<\/p>/);
-      if (aboutMatch) info.about = aboutMatch[1].replace(/<[^>]+>/g, '').trim();
-    } catch {}
-    let experiences = [];
-    try {
-      const expRes = await axios.get(linkedin_url + '/details/experience/', { headers });
-      const expHtml = expRes.data;
-      const expMatches = [...expHtml.matchAll(/<span[^>]*class="mr1 t-bold"[^>]*>(.*?)<\/span>[\s\S]*?<span[^>]*class="t-14 t-normal"[^>]*>(.*?)<\/span>/g)];
-      experiences = expMatches.map(m => ({ title: m[1].replace(/<[^>]+>/g, '').trim(), company: m[2].replace(/<[^>]+>/g, '').trim() }));
-    } catch {}
-    let posts = [];
-    try {
-      const postsRes = await axios.get(linkedin_url + '/recent-activity/all/', { headers });
-      const postsHtml = postsRes.data;
-      const postMatches = [...postsHtml.matchAll(/<span[^>]*dir="ltr"[^>]*>(.*?)<\/span>/g)].map(m => m[1]);
-      posts = postMatches.slice(0, 3);
-    } catch {}
-    res.json({ info, experiences, posts });
+    const proxycurlRes = await axios.get('https://nubela.co/proxycurl/api/v2/linkedin', {
+      params: { url: linkedin_url },
+      headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` }
+    });
+    res.json(proxycurlRes.data);
   } catch (e) {
-    res.json({ info: {}, experiences: [], posts: [] });
+    res.json({});
   }
 });
 
-// Modifie la génération d'ice breaker pour utiliser les infos LinkedIn du contact
+// Modifie la génération d'ice breaker pour utiliser toutes les infos Proxycurl du profil
 app.post('/api/icebreaker', async (req, res) => {
   const { contact } = req.body;
   if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.company || !contact.linkedin_url) {
     return res.status(400).json({ error: 'All fields required (email, first_name, last_name, position, company, linkedin_url)' });
   }
   const OPENAI_KEY = process.env.OPENAIKEY;
-  // Scrape LinkedIn
-  let linkedinData = { info: {}, experiences: [], posts: [] };
+  // Récupère les infos LinkedIn via Proxycurl
+  let linkedinData = {};
   try {
     const scrapeRes = await axios.post('http://localhost:' + PORT + '/api/contact-linkedin', { linkedin_url: contact.linkedin_url });
     linkedinData = scrapeRes.data;
@@ -464,10 +441,13 @@ app.post('/api/icebreaker', async (req, res) => {
   prompt += `- Company: ${contact.company}\n`;
   prompt += `- Position: ${contact.position}\n`;
   prompt += `- Email: ${contact.email}\n`;
-  if (linkedinData.info.headline) prompt += `- Headline: ${linkedinData.info.headline}\n`;
-  if (linkedinData.info.about) prompt += `- About: ${linkedinData.info.about}\n`;
-  if (linkedinData.experiences.length) prompt += `- Experiences: ${linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}\n`;
-  if (linkedinData.posts.length) prompt += `- Recent LinkedIn posts: ${linkedinData.posts.join(' | ')}\n`;
+  // Ajoute les infos Proxycurl au prompt
+  if (linkedinData.headline) prompt += `- Headline: ${linkedinData.headline}\n`;
+  if (linkedinData.summary) prompt += `- Summary: ${linkedinData.summary}\n`;
+  if (linkedinData.experiences && linkedinData.experiences.length) prompt += `- Experiences: ${linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}\n`;
+  if (linkedinData.accomplishment_organisations && linkedinData.accomplishment_organisations.length) prompt += `- Accomplishments: ${linkedinData.accomplishment_organisations.join('; ')}\n`;
+  if (linkedinData.public_identifier) prompt += `- LinkedIn public identifier: ${linkedinData.public_identifier}\n`;
+  if (linkedinData.activities && linkedinData.activities.length) prompt += `- Recent LinkedIn activities: ${linkedinData.activities.map(a => a.activity).join(' | ')}\n`;
   prompt += `The sentence should be adapted to the person, highlight something they can be proud of or a recent achievement, and make them want to reply.\nUse the real company name and avoid generic formulas.\nOnly return the ice breaker sentence, in English, with no introduction or explanation.`;
   try {
     const gptRes = await axios.post(
@@ -489,9 +469,9 @@ app.post('/api/icebreaker', async (req, res) => {
       }
     );
     const icebreaker = gptRes.data.choices[0].message.content.trim();
-    res.json({ success: true, icebreaker });
+    res.json({ success: true, icebreaker, linkedinData });
   } catch (e) {
-    res.json({ success: false, icebreaker: '' });
+    res.json({ success: false, icebreaker: '', linkedinData });
   }
 });
 
