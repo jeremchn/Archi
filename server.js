@@ -368,18 +368,23 @@ app.post('/api/icebreakers', async (req, res) => {
   const OPENAI_KEY = process.env.OPENAIKEY;
   const results = [];
   for (const contact of contacts) {
-    let prompt = `Tu es un expert en networking B2B. Génère une phrase d'accroche personnalisée (ice breaker) pour débuter un mail à ce contact professionnel. Sois pertinent, authentique, et base-toi sur les informations suivantes :\n`;
-    prompt += `Nom: ${contact.first_name || ''} ${contact.last_name || ''}\n`;
-    if (contact.position) prompt += `Poste: ${contact.position}\n`;
-    if (contact.linkedin_url) prompt += `Profil LinkedIn: ${contact.linkedin_url}\n`;
-    prompt += `La phrase doit être adaptée à la personne, mettre en avant un point dont elle peut être fière ou un élément marquant de son parcours, et donner envie de répondre.\nDonne uniquement la phrase d'accroche, sans introduction ni explication.`;
+    let prompt = `You are a B2B networking expert. Generate a personalized ice breaker sentence to start an email to this professional contact.\nHere is the contact's information:\n`;
+    prompt += `- First name: ${contact.first_name || ''}\n`;
+    prompt += `- Last name: ${contact.last_name || ''}\n`;
+    prompt += `- Company: ${contact.company || ''}\n`;
+    prompt += `- Position: ${contact.position || ''}\n`;
+    if (contact.linkedin_url) {
+      prompt += `- LinkedIn profile: ${contact.linkedin_url}\n`;
+      prompt += `If possible, base the ice breaker on the most relevant and recent public LinkedIn posts to make it truly personalized.\n`;
+    }
+    prompt += `The sentence should be adapted to the person, highlight something they can be proud of or a recent achievement, and make them want to reply.\nUse the real company name and avoid generic formulas.\nOnly return the ice breaker sentence, no introduction or explanation.`;
     try {
       const gptRes = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
           model: 'gpt-4-turbo',
           messages: [
-            { role: 'system', content: 'Tu es un expert en networking B2B.' },
+            { role: 'system', content: 'You are a B2B networking expert.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 120,
@@ -395,7 +400,7 @@ app.post('/api/icebreakers', async (req, res) => {
       const icebreaker = gptRes.data.choices[0].message.content.trim();
       results.push(icebreaker);
     } catch (e) {
-      results.push(''); // En cas d’erreur, pas d’ice breaker
+      results.push(''); // In case of error, no ice breaker
     }
   }
   res.json({ success: true, icebreakers: results });

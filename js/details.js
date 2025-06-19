@@ -91,7 +91,7 @@ async function main() {
                 alert('Erreur lors de la génération des ice breakers.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Générer Ice Breakers';
+                btn.textContent = 'Generate Ice Breakers';
             }
         };
     }
