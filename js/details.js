@@ -68,8 +68,15 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
                     if (data.linkedinData.headline) infoText += `<b>Headline:</b> ${data.linkedinData.headline}<br>`;
                     if (data.linkedinData.summary) infoText += `<b>Summary:</b> ${data.linkedinData.summary}<br>`;
                     if (data.linkedinData.experiences && data.linkedinData.experiences.length) infoText += `<b>Experiences:</b> ${data.linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}<br>`;
-                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) infoText += `<b>Accomplishments:</b> ${data.linkedinData.accomplishment_organisations.join('; ')}<br>`;
+                    if (data.linkedinData.education && data.linkedinData.education.length) infoText += `<b>Education:</b> ${data.linkedinData.education.map(e => `${e.degree_name || ''} at ${e.school}`.trim()).join('; ')}<br>`;
+                    if (data.linkedinData.languages_and_proficiencies && data.linkedinData.languages_and_proficiencies.length) infoText += `<b>Languages:</b> ${data.linkedinData.languages_and_proficiencies.map(l => `${l.language} (${l.proficiency})`).join('; ')}<br>`;
+                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) infoText += `<b>Organisations:</b> ${data.linkedinData.accomplishment_organisations.map(o => o.name).join('; ')}<br>`;
+                    if (data.linkedinData.accomplishment_publications && data.linkedinData.accomplishment_publications.length) infoText += `<b>Publications:</b> ${data.linkedinData.accomplishment_publications.map(p => p.name).join('; ')}<br>`;
+                    if (data.linkedinData.accomplishment_honors_awards && data.linkedinData.accomplishment_honors_awards.length) infoText += `<b>Honors & Awards:</b> ${data.linkedinData.accomplishment_honors_awards.map(a => a.title).join('; ')}<br>`;
                     if (data.linkedinData.activities && data.linkedinData.activities.length) infoText += `<b>Activities:</b> ${data.linkedinData.activities.map(a => a.activity).join(' | ')}<br>`;
+                    if (data.linkedinData.articles && data.linkedinData.articles.length) infoText += `<b>Articles:</b> ${data.linkedinData.articles.map(a => a.title).join('; ')}<br>`;
+                    if (data.linkedinData.personal_emails && data.linkedinData.personal_emails.length) infoText += `<b>Personal Emails:</b> ${data.linkedinData.personal_emails.join('; ')}<br>`;
+                    if (data.linkedinData.personal_numbers && data.linkedinData.personal_numbers.length) infoText += `<b>Personal Numbers:</b> ${data.linkedinData.personal_numbers.join('; ')}<br>`;
                 }
                 // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
                 const row = btn.closest('tr');
