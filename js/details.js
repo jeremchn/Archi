@@ -25,11 +25,12 @@ async function fetchHunterContacts(domain) {
 async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">Aucun contact trouvé.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6">No contacts found.</td></tr>';
         return;
     }
     tbody.innerHTML = contacts.map((c, idx) => {
         const canGenerate = c.email && c.first_name && c.last_name && c.position && c.linkedin_url;
+        const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
         return `
         <tr>
             <td>${c.email || ''}</td>
@@ -38,8 +39,7 @@ async function renderContacts(contacts, icebreakers = null) {
             <td>${c.position || ''}</td>
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
             <td class="icebreaker-cell">
-                ${icebreakers && icebreakers[idx] ? icebreakers[idx] : ''}
-                ${canGenerate && (!icebreakers || !icebreakers[idx]) ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : ''}
+                ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
         </tr>
         `;
@@ -50,7 +50,7 @@ async function renderContacts(contacts, icebreakers = null) {
             const idx = parseInt(btn.getAttribute('data-idx'));
             const contact = contacts[idx];
             btn.disabled = true;
-            btn.textContent = 'Génération...';
+            btn.textContent = 'Generating...';
             try {
                 const res = await fetch('/api/icebreaker', {
                     method: 'POST',
@@ -59,12 +59,14 @@ async function renderContacts(contacts, icebreakers = null) {
                 });
                 const data = await res.json();
                 if (data.success) {
-                    await renderContacts(contacts, (icebreakers || []).map((v, i) => i === idx ? data.icebreaker : v));
+                    // Met à jour la cellule sans re-render tout le tableau
+                    const cell = btn.parentElement;
+                    cell.innerHTML = data.icebreaker;
                 } else {
-                    btn.textContent = 'Erreur';
+                    btn.textContent = 'Error';
                 }
             } catch {
-                btn.textContent = 'Erreur';
+                btn.textContent = 'Error';
             }
         };
     });
