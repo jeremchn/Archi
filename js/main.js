@@ -115,6 +115,39 @@ window.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch(`/api/profile/${email}`);
         if (!res.ok) return;
         const profile = await res.json();
+        // Header dynamique
+        let header = document.querySelector('header');
+        if (header) {
+            // Logo
+            let logo = header.querySelector('.company-logo');
+            if (!logo) {
+                logo = document.createElement('img');
+                logo.className = 'company-logo';
+                logo.style.height = '38px';
+                logo.style.width = '38px';
+                logo.style.verticalAlign = 'middle';
+                header.querySelector('div').prepend(logo);
+            }
+            logo.src = profile.logo_url;
+            // Nom
+            let name = header.querySelector('.company-title');
+            if (!name) {
+                name = document.createElement('span');
+                name.className = 'company-title';
+                name.style.fontSize = '1.5em';
+                name.style.fontWeight = '700';
+                name.style.color = 'var(--primary)';
+                name.style.letterSpacing = '1px';
+                header.querySelector('div').appendChild(name);
+            }
+            name.textContent = profile.company_name;
+        }
+        // Footer dynamique
+        let footer = document.querySelector('footer');
+        if (footer) {
+            footer.innerHTML = `&copy; 2025 ${profile.company_name}. All rights reserved.`;
+        }
+        // Bloc principal (pour fallback)
         let logo = document.getElementById('company-logo');
         if (!logo) {
             logo = document.createElement('img');
