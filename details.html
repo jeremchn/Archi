@@ -13,6 +13,8 @@
             --text: #222;
             --border: #e2e8f0;
             --shadow: 0 2px 12px rgba(26,54,93,0.08);
+            --danger: #e74c3c;
+            --success: #27ae60;
         }
         html, body {
             background: var(--background);
@@ -28,6 +30,11 @@
             background: var(--card-bg);
             border-radius: 18px;
             box-shadow: var(--shadow);
+            animation: fadeIn 0.7s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: none; }
         }
         h1, h2 {
             color: var(--primary);
@@ -68,39 +75,97 @@
         }
         th, td {
             border: 1px solid var(--border);
-            padding: 10px 8px;
+            padding: 13px 10px;
             text-align: left;
+            font-size: 1em;
         }
         th {
             background: var(--primary);
             color: #fff;
             font-weight: 600;
             letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
         tr:nth-child(even) td {
             background: #f3f7fa;
+        }
+        tr:hover td {
+            background: #eaf6ff;
+            transition: background 0.2s;
+        }
+        .linkedin-info-cell {
+            font-size: 0.98em;
+            line-height: 1.5;
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+        .icebreaker-cell {
+            min-width: 160px;
         }
         .btn {
             background: var(--primary);
             color: #fff;
             border: none;
-            border-radius: 6px;
-            padding: 0.7em 1.5em;
-            font-size: 1em;
+            border-radius: 8px;
+            padding: 0.5em 1.2em;
+            font-size: 1.05em;
             font-weight: 500;
             cursor: pointer;
-            margin-bottom: 1.5em;
-            transition: background 0.2s, box-shadow 0.2s;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
             box-shadow: 0 1px 4px rgba(26,54,93,0.08);
         }
-        .btn:hover {
+        .btn:hover, .btn:focus {
             background: var(--secondary);
             color: #fff;
+            transform: translateY(-2px) scale(1.03);
         }
-        @media (max-width: 600px) {
+        .btn:active {
+            background: #145;
+        }
+        .btn[disabled] {
+            background: #bfc9d1;
+            color: #fff;
+            cursor: not-allowed;
+        }
+        .loader {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .msg {
+            margin: 1em 0;
+            padding: 1em;
+            border-radius: 8px;
+            font-size: 1.1em;
+            display: none;
+        }
+        .msg.error {
+            background: #ffeaea;
+            color: var(--danger);
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .msg.success {
+            background: #eafaf1;
+            color: var(--success);
+            border: 1px solid #b7eacb;
+            display: block;
+        }
+        @media (max-width: 700px) {
             .container { padding: 1em; }
-            th, td { font-size: 0.95em; padding: 7px 4px; }
-            .info-list strong { width: 100px; }
+            table, th, td { font-size: 0.95em; }
         }
     </style>
 </head>

@@ -10,32 +10,69 @@
             max-width: 400px;
             margin: 3em auto;
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(26,54,93,0.08);
-            padding: 2em 2em 1.5em 2em;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(26,54,93,0.10);
+            padding: 2.5em 2em 2em 2em;
+            animation: fadeIn 0.7s;
         }
-        h2 { color: #1a365d; text-align: center; }
-        form { display: flex; flex-direction: column; gap: 1em; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: none; }
+        }
+        h2 { color: #1a365d; text-align: center; font-size: 2em; margin-bottom: 1.2em; }
+        form { display: flex; flex-direction: column; gap: 1.2em; }
         input[type="email"], input[type="password"] {
-            padding: 0.7em 1em;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 1em;
+            padding: 0.9em 1.1em;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1.08em;
+            background: #f3f7fa;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        input[type="email"]:focus, input[type="password"]:focus {
+            border: 1.5px solid #1a365d;
+            outline: none;
+            box-shadow: 0 0 0 2px #c3e6ff;
         }
         button {
             background: #1a365d;
             color: #fff;
             border: none;
-            border-radius: 6px;
-            padding: 0.7em 1em;
-            font-size: 1em;
+            border-radius: 8px;
+            padding: 0.9em 1.1em;
+            font-size: 1.08em;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
-        button:hover { background: #2ecc71; }
-        .error { color: #c00; text-align: center; margin-bottom: 0.5em; }
-        .success { color: #2ecc71; text-align: center; margin-bottom: 0.5em; }
+        button:hover, button:focus {
+            background: #2ecc71;
+            transform: translateY(-2px) scale(1.03);
+        }
+        .error {
+            background: #ffeaea;
+            color: #e74c3c;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 0.5em;
+            padding: 0.7em 0.5em;
+            font-size: 1.05em;
+        }
+        .success {
+            background: #eafaf1;
+            color: #27ae60;
+            border: 1px solid #b7eacb;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 0.5em;
+            padding: 0.7em 0.5em;
+            font-size: 1.05em;
+        }
+        @media (max-width: 500px) {
+            .auth-container { padding: 1.2em 0.5em; }
+            h2 { font-size: 1.3em; }
+        }
     </style>
 </head>
 <body>

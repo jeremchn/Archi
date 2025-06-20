@@ -65,18 +65,46 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
                 // Formate les infos pour affichage
                 let infoText = '';
                 if (data.linkedinData) {
-                    if (data.linkedinData.headline) infoText += `<b>Headline:</b> ${data.linkedinData.headline}<br>`;
-                    if (data.linkedinData.summary) infoText += `<b>Summary:</b> ${data.linkedinData.summary}<br>`;
-                    if (data.linkedinData.experiences && data.linkedinData.experiences.length) infoText += `<b>Experiences:</b> ${data.linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}<br>`;
-                    if (data.linkedinData.education && data.linkedinData.education.length) infoText += `<b>Education:</b> ${data.linkedinData.education.map(e => `${e.degree_name || ''} at ${e.school}`.trim()).join('; ')}<br>`;
-                    if (data.linkedinData.languages_and_proficiencies && data.linkedinData.languages_and_proficiencies.length) infoText += `<b>Languages:</b> ${data.linkedinData.languages_and_proficiencies.map(l => `${l.language} (${l.proficiency})`).join('; ')}<br>`;
-                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) infoText += `<b>Organisations:</b> ${data.linkedinData.accomplishment_organisations.map(o => o.name).join('; ')}<br>`;
-                    if (data.linkedinData.accomplishment_publications && data.linkedinData.accomplishment_publications.length) infoText += `<b>Publications:</b> ${data.linkedinData.accomplishment_publications.map(p => p.name).join('; ')}<br>`;
-                    if (data.linkedinData.accomplishment_honors_awards && data.linkedinData.accomplishment_honors_awards.length) infoText += `<b>Honors & Awards:</b> ${data.linkedinData.accomplishment_honors_awards.map(a => a.title).join('; ')}<br>`;
-                    if (data.linkedinData.activities && data.linkedinData.activities.length) infoText += `<b>Activities:</b> ${data.linkedinData.activities.map(a => a.activity).join(' | ')}<br>`;
-                    if (data.linkedinData.articles && data.linkedinData.articles.length) infoText += `<b>Articles:</b> ${data.linkedinData.articles.map(a => a.title).join('; ')}<br>`;
-                    if (data.linkedinData.personal_emails && data.linkedinData.personal_emails.length) infoText += `<b>Personal Emails:</b> ${data.linkedinData.personal_emails.join('; ')}<br>`;
-                    if (data.linkedinData.personal_numbers && data.linkedinData.personal_numbers.length) infoText += `<b>Personal Numbers:</b> ${data.linkedinData.personal_numbers.join('; ')}<br>`;
+                    if (data.linkedinData.headline) infoText += `<div><span style='color:#1a365d;font-weight:600'>Headline:</span> ${data.linkedinData.headline}</div>`;
+                    if (data.linkedinData.summary) infoText += `<div><span style='color:#1a365d;font-weight:600'>Summary:</span> ${data.linkedinData.summary}</div>`;
+                    if (data.linkedinData.experiences && data.linkedinData.experiences.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Experiences:</span><ul style='margin:0 0 0 18px;padding:0'>`;
+                        data.linkedinData.experiences.forEach(e => {
+                            infoText += `<li>${e.title ? `<b>${e.title}</b>` : ''}${e.company ? ` at <span style='color:#2ecc71'>${e.company}</span>` : ''}${e.start_date ? ` (${e.start_date}${e.end_date ? ' - ' + e.end_date : ''})` : ''}</li>`;
+                        });
+                        infoText += `</ul></div>`;
+                    }
+                    if (data.linkedinData.education && data.linkedinData.education.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Education:</span><ul style='margin:0 0 0 18px;padding:0'>`;
+                        data.linkedinData.education.forEach(e => {
+                            infoText += `<li>${e.degree_name ? `<b>${e.degree_name}</b>` : ''}${e.school ? ` at <span style='color:#2ecc71'>${e.school}</span>` : ''}${e.start_date ? ` (${e.start_date}${e.end_date ? ' - ' + e.end_date : ''})` : ''}</li>`;
+                        });
+                        infoText += `</ul></div>`;
+                    }
+                    if (data.linkedinData.languages_and_proficiencies && data.linkedinData.languages_and_proficiencies.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Languages:</span> ` + data.linkedinData.languages_and_proficiencies.map(l => `${l.language} <span style='color:#2ecc71'>(${l.proficiency})</span>`).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Organisations:</span> ` + data.linkedinData.accomplishment_organisations.map(o => o.name).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.accomplishment_publications && data.linkedinData.accomplishment_publications.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Publications:</span> ` + data.linkedinData.accomplishment_publications.map(p => p.name).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.accomplishment_honors_awards && data.linkedinData.accomplishment_honors_awards.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Honors & Awards:</span> ` + data.linkedinData.accomplishment_honors_awards.map(a => a.title).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.activities && data.linkedinData.activities.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Activities:</span> ` + data.linkedinData.activities.map(a => a.activity).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.articles && data.linkedinData.articles.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Articles:</span> ` + data.linkedinData.articles.map(a => a.title).join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.personal_emails && data.linkedinData.personal_emails.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Personal Emails:</span> ` + data.linkedinData.personal_emails.join(', ') + `</div>`;
+                    }
+                    if (data.linkedinData.personal_numbers && data.linkedinData.personal_numbers.length) {
+                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Personal Numbers:</span> ` + data.linkedinData.personal_numbers.join(', ') + `</div>`;
+                    }
                 }
                 // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
                 const row = btn.closest('tr');

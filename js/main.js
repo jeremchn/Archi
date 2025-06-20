@@ -5,6 +5,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
 
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
+    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
 
     try {
         // Appel au backend pour la recherche sémantique
@@ -15,17 +16,19 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            alert("Erreur serveur: " + (err.error || response.statusText));
+            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
             loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Rechercher';
             return;
         }
         let data = await response.json();
 
         // Vérifie si la réponse est bien un tableau
         if (!Array.isArray(data)) {
-            alert(data.error || "Erreur côté serveur.");
+            showMsg(data.error || "Erreur côté serveur.", 'error');
             console.error(data);
             loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Rechercher';
             return;
         }
 
@@ -86,6 +89,9 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             </tr>`;
             resultsTable.innerHTML += row;
         });
+        showMsg('Recherche terminée avec succès.', 'success');
+        loadingBtn.style.display = 'none';
+        loadingBtn.innerHTML = 'Rechercher';
     } finally {
         loadingBtn.style.display = 'none';
     }
@@ -166,4 +172,19 @@ loadDataBtn.addEventListener('click', async function() {
 // Redirection automatique si non connecté
 if (!localStorage.getItem('email')) {
     window.location.href = '/auth.html';
+}
+
+// Ajoute une fonction de feedback visuel
+function showMsg(msg, type = 'success') {
+    let el = document.getElementById('main-msg');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'main-msg';
+        el.className = 'msg';
+        document.querySelector('.container').prepend(el);
+    }
+    el.className = 'msg ' + type;
+    el.innerHTML = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
