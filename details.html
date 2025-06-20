@@ -171,6 +171,15 @@
 </head>
 <body>
     <div class="container">
+        <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2em;">
+            <div style="display:flex;align-items:center;gap:1em;">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg" alt="Logo" style="height:38px;width:38px;vertical-align:middle;">
+                <span style="font-size:1.5em;font-weight:700;color:var(--primary);letter-spacing:1px;">Alruqee Search</span>
+            </div>
+            <div>
+                <button class="btn" style="background:var(--secondary);color:#fff;font-size:1em;padding:0.5em 1.1em;" onclick="window.location.href='auth.html'">Logout</button>
+            </div>
+        </header>
         <button class="btn" onclick="history.back()">&larr; Back to Search</button>
         <div style="display:flex;gap:1em;margin:1em 0 2em 0;align-items:center;">
             <button class="btn" id="deep-search-news-btn" style="background:var(--secondary);color:#fff;">Deep News Search</button>
@@ -184,8 +193,8 @@
         <h1 id="company-name"></h1>
         <div class="section card" id="company-info"></div>
         <div class="section">
-            <h2>Contacts</h2>
-            <table id="contacts-table">
+            <h2 style="margin-bottom:0.7em;">Contacts</h2>
+            <table id="contacts-table" style="margin-top:0.5em;">
                 <thead>
                     <tr>
                         <th>Email</th>
@@ -201,6 +210,9 @@
                 <tbody></tbody>
             </table>
         </div>
+        <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
+            &copy; 2025 Alruqee. All rights reserved.
+        </footer>
     </div>
     <script src="js/details.js"></script>
 </body>
