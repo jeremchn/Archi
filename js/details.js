@@ -22,22 +22,6 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
-async function fetchProxycurlLinkedinInfo(linkedin_url) {
-    if (!linkedin_url) return null;
-    try {
-        const res = await fetch('/api/proxycurl-social-graph', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ linkedin_url })
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data;
-    } catch {
-        return null;
-    }
-}
-
 async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
@@ -73,7 +57,7 @@ async function renderContacts(contacts, icebreakers = null) {
                 // Appel Proxycurl pour LinkedIn info au clic sur Generate
                 let infoText = '';
                 if (contact.linkedin_url) {
-                    const res = await fetch('/api/proxycurl-social-graph', {
+                    const res = await fetch('/api/contact-linkedin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ linkedin_url: contact.linkedin_url })
