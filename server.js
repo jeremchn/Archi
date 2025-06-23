@@ -479,32 +479,35 @@ app.post('/api/icebreaker', async (req, res) => {
 });
 
 // Endpoint pour récupérer le graphe social LinkedIn via Proxycurl
-envProxycurlKey = process.env.PROXYCURLKEY;
 app.post('/api/proxycurl-social-graph', async (req, res) => {
   const { linkedin_url } = req.body;
   if (!linkedin_url) {
     return res.status(400).json({ error: 'Missing linkedin_url' });
   }
-  if (!envProxycurlKey) {
+  const PROXYCURL_API_KEY = process.env.PROXYCURL_API_KEY;
+  if (!PROXYCURL_API_KEY) {
     return res.status(500).json({ error: 'Proxycurl API key not configured.' });
   }
   try {
     const response = await axios.get(
-      'https://api.proxycurl.com/v2/linkedin',
+      'https://nubela.co/proxycurl/api/v2/linkedin',
       {
         params: {
           url: linkedin_url,
-          enrich_profile: 'enrich', // active l'enrichissement social
+          enrich_profile: 'enrich',
         },
         headers: {
-          'Authorization': `Bearer ${envProxycurlKey}`,
+          'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
           'Accept': 'application/json',
         },
         timeout: 20000
       }
     );
-    // On extrait les infos sociales principales (posts, comments, connections, etc.)
     const data = response.data;
+    // Log pour debug si la réponse ne contient pas les champs attendus
+    if (!data.posts && !data.comments && !data.connections && !data.close_contacts) {
+      console.warn('[Proxycurl] Réponse sans graphe social:', JSON.stringify(data));
+    }
     const socialGraph = {
       posts: data.posts || [],
       comments: data.comments || [],
@@ -513,11 +516,10 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
       articles: data.articles || [],
       recommendations: data.recommendations || [],
       activities: data.activities || [],
-      // Ajoutez d'autres champs si besoin
     };
     res.json(socialGraph);
   } catch (e) {
-    console.error('Erreur Proxycurl:', e.message);
+    console.error('Erreur Proxycurl:', e.response ? e.response.data : e.message);
     res.status(502).json({ error: 'Erreur lors de la récupération Proxycurl', details: e.message });
   }
 });
