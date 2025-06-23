@@ -68,12 +68,13 @@ async function renderContacts(contacts, icebreakers = null) {
                         for (const [key, value] of Object.entries(data)) {
                             if (value === null || value === undefined) continue;
                             if (Array.isArray(value) && value.length === 0) continue;
+                            // Affichage amélioré pour les objets et tableaux
                             if (typeof value === 'object' && !Array.isArray(value)) {
-                                infoText += `<div><b>${key}:</b><pre style='white-space:pre-wrap;font-size:0.97em;background:#f8fafc;border-radius:6px;padding:6px 8px;margin:2px 0 6px 0;'>${JSON.stringify(value, null, 2)}</pre></div>`;
+                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b><br><pre style='white-space:pre-wrap;font-size:0.97em;background:#f8fafc;border-radius:6px;padding:6px 8px;margin:2px 0 6px 0;'>${JSON.stringify(value, null, 2)}</pre></div>`;
                             } else if (Array.isArray(value)) {
-                                infoText += `<div><b>${key}:</b><ul style='margin:0 0 0 16px;'>` + value.slice(0, 5).map(v => `<li>${typeof v === 'object' ? JSON.stringify(v) : v}</li>`).join('') + `</ul></div>`;
+                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b><ul style='margin:0 0 0 16px;'>` + value.map(v => `<li>${typeof v === 'object' ? JSON.stringify(v, null, 2) : v}</li>`).join('') + `</ul></div>`;
                             } else {
-                                infoText += `<div><b>${key}:</b> ${value}</div>`;
+                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b> ${value}</div>`;
                             }
                         }
                     } else {
