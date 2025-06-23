@@ -22,7 +22,7 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
-async function fetchProxycurlSocialGraph(linkedin_url) {
+async function fetchProxycurlLinkedinInfo(linkedin_url) {
     if (!linkedin_url) return null;
     try {
         const res = await fetch('/api/proxycurl-social-graph', {
@@ -38,17 +38,59 @@ async function fetchProxycurlSocialGraph(linkedin_url) {
     }
 }
 
-async function renderContacts(contacts, icebreakers = null, linkedinInfos = null, socialGraphs = null) {
+async function renderContacts(contacts, icebreakers = null, linkedinInfos = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9">No contacts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">No contacts found.</td></tr>';
         return;
     }
+    // Récupère toutes les infos Proxycurl pour chaque contact (en parallèle)
+    const linkedinDataArr = await Promise.all(
+        contacts.map(async c => {
+            if (c.linkedin_url) {
+                const data = await fetchProxycurlLinkedinInfo(c.linkedin_url);
+                if (!data) return '';
+                let infoText = '';
+                if (data.profile_pic_url) infoText += `<img src='${data.profile_pic_url}' alt='photo' style='width:48px;height:48px;border-radius:50%;margin-bottom:6px;'><br>`;
+                if (data.headline) infoText += `<div><b>Headline:</b> ${data.headline}</div>`;
+                if (data.summary) infoText += `<div><b>Résumé:</b> ${data.summary}</div>`;
+                if (data.occupation) infoText += `<div><b>Occupation:</b> ${data.occupation}</div>`;
+                if (data.city || data.state || data.country_full_name) infoText += `<div><b>Localisation:</b> ${[data.city, data.state, data.country_full_name].filter(Boolean).join(', ')}</div>`;
+                if (data.connections) infoText += `<div><b>Connexions:</b> ${data.connections}</div>`;
+                if (data.follower_count) infoText += `<div><b>Followers:</b> ${data.follower_count}</div>`;
+                if (data.education && data.education.length) {
+                    infoText += `<div><b>Éducation:</b><ul style='margin:0 0 0 16px;'>` + data.education.slice(0,2).map(e => `<li>${e.degree_name ? `<b>${e.degree_name}</b>` : ''}${e.school ? ` à <span style='color:#2ecc71'>${e.school}</span>` : ''}${e.field_of_study ? ` (${e.field_of_study})` : ''}</li>`).join('') + `</ul></div>`;
+                }
+                if (data.experiences && data.experiences.length) {
+                    infoText += `<div><b>Expériences:</b><ul style='margin:0 0 0 16px;'>` + data.experiences.slice(0,2).map(e => `<li>${e.title ? `<b>${e.title}</b>` : ''}${e.company ? ` chez <span style='color:#2ecc71'>${e.company}</span>` : ''}</li>`).join('') + `</ul></div>`;
+                }
+                if (data.certifications && data.certifications.length) {
+                    infoText += `<div><b>Certifications:</b> ` + data.certifications.map(c => c.name).join(', ') + `</div>`;
+                }
+                if (data.accomplishment_projects && data.accomplishment_projects.length) {
+                    infoText += `<div><b>Projets:</b> ` + data.accomplishment_projects.map(p => p.title).join(', ') + `</div>`;
+                }
+                if (data.activities && data.activities.length) {
+                    infoText += `<div><b>Activités récentes:</b> ` + data.activities.map(a => a.title).join(', ') + `</div>`;
+                }
+                if (data.recommendations && data.recommendations.length) {
+                    infoText += `<div><b>Recommandations:</b> ` + data.recommendations.slice(0,2).map(r => r).join('<br>') + `</div>`;
+                }
+                if (data.personal_emails && data.personal_emails.length) {
+                    infoText += `<div><b>Emails:</b> ` + data.personal_emails.join(', ') + `</div>`;
+                }
+                if (data.personal_numbers && data.personal_numbers.length) {
+                    infoText += `<div><b>Téléphones:</b> ` + data.personal_numbers.join(', ') + `</div>`;
+                }
+                return infoText || '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
+            }
+            return '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
+        })
+    );
     tbody.innerHTML = contacts.map((c, idx) => {
         const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
-        const linkedinInfo = linkedinInfos && linkedinInfos[idx] ? linkedinInfos[idx] : '';
-        const socialGraph = socialGraphs && socialGraphs[idx] ? socialGraphs[idx] : '';
+        const linkedinInfo = linkedinDataArr[idx] || '';
         return `
         <tr>
             <td>${c.email || ''}</td>
@@ -61,7 +103,6 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
-            <td class="social-graph-cell">${socialGraph}</td>
         </tr>
         `;
     }).join('');
@@ -145,7 +186,6 @@ async function main() {
         document.body.innerHTML = "<p>Domaine non spécifié.</p>";
         return;
     }
-
     // Affiche les infos de l'entreprise
     const company = await fetchCompanyInfo(domain);
     if (!company) {
@@ -162,35 +202,12 @@ async function main() {
         <strong>Description :</strong> ${company['Description'] || ''}<br>
         <strong>Company Type :</strong> ${company['Company Type'] || ''}<br>
     `;
-
     // Affiche les contacts Hunter
     const contacts = await fetchHunterContacts(domain);
     const companyName = company['Company Name'] || '';
     contacts.forEach(c => { c.company = companyName; });
-    window._contacts = contacts;
-    // Appel Proxycurl pour chaque contact (en parallèle)
-    const socialGraphs = await Promise.all(
-        contacts.map(async c => {
-            if (c.linkedin_url) {
-                const data = await fetchProxycurlSocialGraph(c.linkedin_url);
-                if (!data) return '';
-                // Formatage simple (posts, comments, connections)
-                let html = '';
-                if (data.posts && data.posts.length) {
-                    html += `<div><b>Posts:</b><ul style='margin:0 0 0 16px;'>` + data.posts.slice(0,3).map(p => `<li>${p.text ? p.text.substring(0,80)+'...' : ''}</li>`).join('') + `</ul></div>`;
-                }
-                if (data.comments && data.comments.length) {
-                    html += `<div style='margin-top:4px'><b>Commentaires:</b><ul style='margin:0 0 0 16px;'>` + data.comments.slice(0,3).map(c => `<li>${c.text ? c.text.substring(0,80)+'...' : ''}</li>`).join('') + `</ul></div>`;
-                }
-                if (data.connections && data.connections.length) {
-                    html += `<div style='margin-top:4px'><b>Relations proches:</b> ` + data.connections.slice(0,3).map(r => r.full_name || r.name).filter(Boolean).join(', ') + `</div>`;
-                }
-                return html || '—';
-            }
-            return '';
-        })
-    );
-    await renderContacts(contacts, null, null, socialGraphs);
+    window._contacts = contacts; // Pour accès global
+    await renderContacts(contacts);
 }
 
 // Gestion des trois boutons de recherche approfondie
