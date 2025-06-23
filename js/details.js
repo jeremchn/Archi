@@ -38,59 +38,15 @@ async function fetchProxycurlLinkedinInfo(linkedin_url) {
     }
 }
 
-async function renderContacts(contacts, icebreakers = null, linkedinInfos = null) {
+async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8">No contacts found.</td></tr>';
         return;
     }
-    // Récupère toutes les infos Proxycurl pour chaque contact (en parallèle)
-    const linkedinDataArr = await Promise.all(
-        contacts.map(async c => {
-            if (c.linkedin_url) {
-                const data = await fetchProxycurlLinkedinInfo(c.linkedin_url);
-                if (!data) return '';
-                let infoText = '';
-                if (data.profile_pic_url) infoText += `<img src='${data.profile_pic_url}' alt='photo' style='width:48px;height:48px;border-radius:50%;margin-bottom:6px;'><br>`;
-                if (data.headline) infoText += `<div><b>Headline:</b> ${data.headline}</div>`;
-                if (data.summary) infoText += `<div><b>Résumé:</b> ${data.summary}</div>`;
-                if (data.occupation) infoText += `<div><b>Occupation:</b> ${data.occupation}</div>`;
-                if (data.city || data.state || data.country_full_name) infoText += `<div><b>Localisation:</b> ${[data.city, data.state, data.country_full_name].filter(Boolean).join(', ')}</div>`;
-                if (data.connections) infoText += `<div><b>Connexions:</b> ${data.connections}</div>`;
-                if (data.follower_count) infoText += `<div><b>Followers:</b> ${data.follower_count}</div>`;
-                if (data.education && data.education.length) {
-                    infoText += `<div><b>Éducation:</b><ul style='margin:0 0 0 16px;'>` + data.education.slice(0,2).map(e => `<li>${e.degree_name ? `<b>${e.degree_name}</b>` : ''}${e.school ? ` à <span style='color:#2ecc71'>${e.school}</span>` : ''}${e.field_of_study ? ` (${e.field_of_study})` : ''}</li>`).join('') + `</ul></div>`;
-                }
-                if (data.experiences && data.experiences.length) {
-                    infoText += `<div><b>Expériences:</b><ul style='margin:0 0 0 16px;'>` + data.experiences.slice(0,2).map(e => `<li>${e.title ? `<b>${e.title}</b>` : ''}${e.company ? ` chez <span style='color:#2ecc71'>${e.company}</span>` : ''}</li>`).join('') + `</ul></div>`;
-                }
-                if (data.certifications && data.certifications.length) {
-                    infoText += `<div><b>Certifications:</b> ` + data.certifications.map(c => c.name).join(', ') + `</div>`;
-                }
-                if (data.accomplishment_projects && data.accomplishment_projects.length) {
-                    infoText += `<div><b>Projets:</b> ` + data.accomplishment_projects.map(p => p.title).join(', ') + `</div>`;
-                }
-                if (data.activities && data.activities.length) {
-                    infoText += `<div><b>Activités récentes:</b> ` + data.activities.map(a => a.title).join(', ') + `</div>`;
-                }
-                if (data.recommendations && data.recommendations.length) {
-                    infoText += `<div><b>Recommandations:</b> ` + data.recommendations.slice(0,2).map(r => r).join('<br>') + `</div>`;
-                }
-                if (data.personal_emails && data.personal_emails.length) {
-                    infoText += `<div><b>Emails:</b> ` + data.personal_emails.join(', ') + `</div>`;
-                }
-                if (data.personal_numbers && data.personal_numbers.length) {
-                    infoText += `<div><b>Téléphones:</b> ` + data.personal_numbers.join(', ') + `</div>`;
-                }
-                return infoText || '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
-            }
-            return '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
-        })
-    );
     tbody.innerHTML = contacts.map((c, idx) => {
         const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
-        const linkedinInfo = linkedinDataArr[idx] || '';
         return `
         <tr>
             <td>${c.email || ''}</td>
@@ -99,7 +55,7 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
             <td>${c.position || ''}</td>
             <td>${c.company || ''}</td>
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
-            <td class="linkedin-info-cell">${linkedinInfo}</td>
+            <td class="linkedin-info-cell"></td>
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
@@ -114,62 +70,44 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
             btn.disabled = true;
             btn.textContent = 'Generating...';
             try {
-                // Génère l'ice breaker et récupère les infos LinkedIn via Proxycurl
-                const res = await fetch('/api/icebreaker', {
+                // Appel Proxycurl pour LinkedIn info au clic sur Generate
+                let infoText = '';
+                if (contact.linkedin_url) {
+                    const res = await fetch('/api/proxycurl-social-graph', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ linkedin_url: contact.linkedin_url })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        // Affiche toutes les infos récupérables de Proxycurl (clé: valeur)
+                        for (const [key, value] of Object.entries(data)) {
+                            if (value === null || value === undefined) continue;
+                            if (Array.isArray(value) && value.length === 0) continue;
+                            if (typeof value === 'object' && !Array.isArray(value)) {
+                                infoText += `<div><b>${key}:</b><pre style='white-space:pre-wrap;font-size:0.97em;background:#f8fafc;border-radius:6px;padding:6px 8px;margin:2px 0 6px 0;'>${JSON.stringify(value, null, 2)}</pre></div>`;
+                            } else if (Array.isArray(value)) {
+                                infoText += `<div><b>${key}:</b><ul style='margin:0 0 0 16px;'>` + value.slice(0, 5).map(v => `<li>${typeof v === 'object' ? JSON.stringify(v) : v}</li>`).join('') + `</ul></div>`;
+                            } else {
+                                infoText += `<div><b>${key}:</b> ${value}</div>`;
+                            }
+                        }
+                    } else {
+                        infoText = '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
+                    }
+                }
+                // Met à jour la cellule LinkedIn Info sans re-render tout le tableau
+                const row = btn.closest('tr');
+                row.querySelector('.linkedin-info-cell').innerHTML = infoText;
+                // Génère l'ice breaker (optionnel, tu peux garder ou retirer cette partie)
+                const iceRes = await fetch('/api/icebreaker', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact })
                 });
-                const data = await res.json();
-                // Formate les infos pour affichage
-                let infoText = '';
-                if (data.linkedinData) {
-                    if (data.linkedinData.headline) infoText += `<div><span style='color:#1a365d;font-weight:600'>Headline:</span> ${data.linkedinData.headline}</div>`;
-                    if (data.linkedinData.summary) infoText += `<div><span style='color:#1a365d;font-weight:600'>Summary:</span> ${data.linkedinData.summary}</div>`;
-                    if (data.linkedinData.experiences && data.linkedinData.experiences.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Experiences:</span><ul style='margin:0 0 0 18px;padding:0'>`;
-                        data.linkedinData.experiences.forEach(e => {
-                            infoText += `<li>${e.title ? `<b>${e.title}</b>` : ''}${e.company ? ` at <span style='color:#2ecc71'>${e.company}</span>` : ''}${e.start_date ? ` (${e.start_date}${e.end_date ? ' - ' + e.end_date : ''})` : ''}</li>`;
-                        });
-                        infoText += `</ul></div>`;
-                    }
-                    if (data.linkedinData.education && data.linkedinData.education.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Education:</span><ul style='margin:0 0 0 18px;padding:0'>`;
-                        data.linkedinData.education.forEach(e => {
-                            infoText += `<li>${e.degree_name ? `<b>${e.degree_name}</b>` : ''}${e.school ? ` at <span style='color:#2ecc71'>${e.school}</span>` : ''}${e.start_date ? ` (${e.start_date}${e.end_date ? ' - ' + e.end_date : ''})` : ''}</li>`;
-                        });
-                        infoText += `</ul></div>`;
-                    }
-                    if (data.linkedinData.languages_and_proficiencies && data.linkedinData.languages_and_proficiencies.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Languages:</span> ` + data.linkedinData.languages_and_proficiencies.map(l => `${l.language} <span style='color:#2ecc71'>(${l.proficiency})</span>`).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.accomplishment_organisations && data.linkedinData.accomplishment_organisations.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Organisations:</span> ` + data.linkedinData.accomplishment_organisations.map(o => o.name).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.accomplishment_publications && data.linkedinData.accomplishment_publications.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Publications:</span> ` + data.linkedinData.accomplishment_publications.map(p => p.name).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.accomplishment_honors_awards && data.linkedinData.accomplishment_honors_awards.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Honors & Awards:</span> ` + data.linkedinData.accomplishment_honors_awards.map(a => a.title).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.activities && data.linkedinData.activities.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Activities:</span> ` + data.linkedinData.activities.map(a => a.activity).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.articles && data.linkedinData.articles.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Articles:</span> ` + data.linkedinData.articles.map(a => a.title).join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.personal_emails && data.linkedinData.personal_emails.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Personal Emails:</span> ` + data.linkedinData.personal_emails.join(', ') + `</div>`;
-                    }
-                    if (data.linkedinData.personal_numbers && data.linkedinData.personal_numbers.length) {
-                        infoText += `<div style='margin-top:6px'><span style='color:#1a365d;font-weight:600'>Personal Numbers:</span> ` + data.linkedinData.personal_numbers.join(', ') + `</div>`;
-                    }
-                }
-                // Met à jour la cellule LinkedIn Info et Ice Breaker sans re-render tout le tableau
-                const row = btn.closest('tr');
-                row.querySelector('.linkedin-info-cell').innerHTML = infoText;
-                if (data.success) {
-                    btn.parentElement.innerHTML = data.icebreaker;
+                const iceData = await iceRes.json();
+                if (iceData.success) {
+                    btn.parentElement.innerHTML = iceData.icebreaker;
                 } else {
                     btn.textContent = 'Error';
                 }
