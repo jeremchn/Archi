@@ -478,6 +478,50 @@ app.post('/api/icebreaker', async (req, res) => {
   }
 });
 
+// Endpoint pour récupérer le graphe social LinkedIn via Proxycurl
+envProxycurlKey = process.env.PROXYCURLKEY;
+app.post('/api/proxycurl-social-graph', async (req, res) => {
+  const { linkedin_url } = req.body;
+  if (!linkedin_url) {
+    return res.status(400).json({ error: 'Missing linkedin_url' });
+  }
+  if (!envProxycurlKey) {
+    return res.status(500).json({ error: 'Proxycurl API key not configured.' });
+  }
+  try {
+    const response = await axios.get(
+      'https://api.proxycurl.com/v2/linkedin',
+      {
+        params: {
+          url: linkedin_url,
+          enrich_profile: 'enrich', // active l'enrichissement social
+        },
+        headers: {
+          'Authorization': `Bearer ${envProxycurlKey}`,
+          'Accept': 'application/json',
+        },
+        timeout: 20000
+      }
+    );
+    // On extrait les infos sociales principales (posts, comments, connections, etc.)
+    const data = response.data;
+    const socialGraph = {
+      posts: data.posts || [],
+      comments: data.comments || [],
+      connections: data.connections || data.close_contacts || [],
+      groups: data.groups || [],
+      articles: data.articles || [],
+      recommendations: data.recommendations || [],
+      activities: data.activities || [],
+      // Ajoutez d'autres champs si besoin
+    };
+    res.json(socialGraph);
+  } catch (e) {
+    console.error('Erreur Proxycurl:', e.message);
+    res.status(502).json({ error: 'Erreur lors de la récupération Proxycurl', details: e.message });
+  }
+});
+
 // Sert index.html à la racine
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

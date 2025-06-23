@@ -22,16 +22,33 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
-async function renderContacts(contacts, icebreakers = null, linkedinInfos = null) {
+async function fetchProxycurlSocialGraph(linkedin_url) {
+    if (!linkedin_url) return null;
+    try {
+        const res = await fetch('/api/proxycurl-social-graph', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ linkedin_url })
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data;
+    } catch {
+        return null;
+    }
+}
+
+async function renderContacts(contacts, icebreakers = null, linkedinInfos = null, socialGraphs = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">No contacts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">No contacts found.</td></tr>';
         return;
     }
     tbody.innerHTML = contacts.map((c, idx) => {
         const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
         const linkedinInfo = linkedinInfos && linkedinInfos[idx] ? linkedinInfos[idx] : '';
+        const socialGraph = socialGraphs && socialGraphs[idx] ? socialGraphs[idx] : '';
         return `
         <tr>
             <td>${c.email || ''}</td>
@@ -44,6 +61,7 @@ async function renderContacts(contacts, icebreakers = null, linkedinInfos = null
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
+            <td class="social-graph-cell">${socialGraph}</td>
         </tr>
         `;
     }).join('');
@@ -147,11 +165,32 @@ async function main() {
 
     // Affiche les contacts Hunter
     const contacts = await fetchHunterContacts(domain);
-    // Ajoute le nom de l'entreprise à chaque contact pour la colonne Company
     const companyName = company['Company Name'] || '';
     contacts.forEach(c => { c.company = companyName; });
-    window._contacts = contacts; // Pour accès global
-    await renderContacts(contacts);
+    window._contacts = contacts;
+    // Appel Proxycurl pour chaque contact (en parallèle)
+    const socialGraphs = await Promise.all(
+        contacts.map(async c => {
+            if (c.linkedin_url) {
+                const data = await fetchProxycurlSocialGraph(c.linkedin_url);
+                if (!data) return '';
+                // Formatage simple (posts, comments, connections)
+                let html = '';
+                if (data.posts && data.posts.length) {
+                    html += `<div><b>Posts:</b><ul style='margin:0 0 0 16px;'>` + data.posts.slice(0,3).map(p => `<li>${p.text ? p.text.substring(0,80)+'...' : ''}</li>`).join('') + `</ul></div>`;
+                }
+                if (data.comments && data.comments.length) {
+                    html += `<div style='margin-top:4px'><b>Commentaires:</b><ul style='margin:0 0 0 16px;'>` + data.comments.slice(0,3).map(c => `<li>${c.text ? c.text.substring(0,80)+'...' : ''}</li>`).join('') + `</ul></div>`;
+                }
+                if (data.connections && data.connections.length) {
+                    html += `<div style='margin-top:4px'><b>Relations proches:</b> ` + data.connections.slice(0,3).map(r => r.full_name || r.name).filter(Boolean).join(', ') + `</div>`;
+                }
+                return html || '—';
+            }
+            return '';
+        })
+    );
+    await renderContacts(contacts, null, null, socialGraphs);
 }
 
 // Gestion des trois boutons de recherche approfondie
