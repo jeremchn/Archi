@@ -53,11 +53,6 @@ function renderLinkedinInfo(info) {
             info.people_also_viewed.map(p => `
                 <li><a href="${p.link}" target="_blank">${p.name}</a>${p.summary ? `<span style="color:#888;font-size:0.95em;"> - ${p.summary}</span>` : ''}</li>`).join('') + `</ul></div>`;
     }
-    if (info.deprecation_notice) {
-        html += `<div style="margin-top:1em;padding:0.8em;background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:8px;font-size:0.97em;">
-            <strong>Deprecation Notice:</strong> ${info.deprecation_notice}
-        </div>`;
-    }
     html += '</div>';
     return html;
 }
