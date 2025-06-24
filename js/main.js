@@ -73,6 +73,8 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             let scoreCell = '';
             if (typeof item._linearizedScore === 'number') {
                 scoreCell = item._linearizedScore.toFixed(3);
+            } else {
+                scoreCell = '-';
             }
             const row = `<tr>
                 <td>${companyName}</td>

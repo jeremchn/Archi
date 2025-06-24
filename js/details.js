@@ -78,9 +78,6 @@ async function renderContacts(contacts, icebreakers = null) {
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
             </td>
-            <td class="fiche-score-cell">
-                <button class="btn btn-fiche-score" data-idx="${idx}">Fiche Score</button>
-            </td>
         </tr>
         `;
     }).join('');
@@ -124,23 +121,6 @@ async function renderContacts(contacts, icebreakers = null) {
             } catch {
                 btn.textContent = 'Error';
             }
-        };
-    });
-    // Ajout des listeners sur les boutons Fiche Score
-    document.querySelectorAll('.btn-fiche-score').forEach(btn => {
-        btn.onclick = function() {
-            const idx = parseInt(btn.getAttribute('data-idx'));
-            const contact = contacts[idx];
-            // On encode les infos nécessaires dans l'URL (email, company, etc.)
-            const params = new URLSearchParams({
-                email: contact.email || '',
-                first_name: contact.first_name || '',
-                last_name: contact.last_name || '',
-                position: contact.position || '',
-                company: contact.company || '',
-                linkedin_url: contact.linkedin_url || ''
-            });
-            window.location.href = `score.html?${params.toString()}`;
         };
     });
 }
