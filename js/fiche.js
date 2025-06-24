@@ -49,14 +49,26 @@ function getIdealClientForUser() {
     return idealClients.find(row => (row['adresse_mail'] || '').toLowerCase() === userEmail.toLowerCase()) || null;
 }
 
+function normalize(str) {
+    return (str || '').toString().trim().toLowerCase();
+}
+
+function includesNormalized(haystack, needle) {
+    return normalize(haystack).includes(normalize(needle));
+}
+
 function computeScore(company, ideal) {
     if (!ideal) return [0, 0, 0, 0];
+    // Pays : accepte si le pays est inclus dans la location (ex: "United States" dans "Los Angeles, California, United States")
     let paysScore = 0;
-    if (company['Location'] === ideal.pays_1) paysScore = 1;
-    else if (company['Location'] === ideal.pays_2) paysScore = 0.5;
-    const headcountScore = company['Headcount'] === ideal.headcount ? 1 : 0;
-    const industryScore = company['Industry'] === ideal.industry ? 1 : 0;
-    const typeScore = company['Company Type'] === ideal.company_type ? 1 : 0;
+    if (includesNormalized(company['Location'], ideal.pays_1)) paysScore = 1;
+    else if (includesNormalized(company['Location'], ideal.pays_2)) paysScore = 0.5;
+    // Headcount, industry, type : insensible à la casse et espaces
+    const headcountScore = normalize(company['Headcount']) === normalize(ideal.headcount) ? 1 : 0;
+    const industryScore = normalize(company['Industry']) === normalize(ideal.industry) ? 1 : 0;
+    const typeScore = normalize(company['Company Type']) === normalize(ideal.company_type) ? 1 : 0;
+    // Debug : affiche les valeurs comparées
+    console.log('Comparaison:', {company, ideal, paysScore, headcountScore, industryScore, typeScore});
     return [paysScore, headcountScore, industryScore, typeScore];
 }
 
