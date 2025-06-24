@@ -25,7 +25,7 @@ async function fetchHunterContacts(domain) {
 async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8">No contacts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">No contacts found.</td></tr>';
         return;
     }
     tbody.innerHTML = contacts.map((c, idx) => {
@@ -42,6 +42,9 @@ async function renderContacts(contacts, icebreakers = null) {
             <td class="linkedin-info-cell"></td>
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
+            </td>
+            <td class="fiche-score-cell">
+                <button class="btn btn-fiche-score" data-idx="${idx}">Fiche Score</button>
             </td>
         </tr>
         `;
@@ -99,6 +102,23 @@ async function renderContacts(contacts, icebreakers = null) {
             } catch {
                 btn.textContent = 'Error';
             }
+        };
+    });
+    // Ajout des listeners sur les boutons Fiche Score
+    document.querySelectorAll('.btn-fiche-score').forEach(btn => {
+        btn.onclick = function() {
+            const idx = parseInt(btn.getAttribute('data-idx'));
+            const contact = contacts[idx];
+            // On encode les infos nécessaires dans l'URL (email, company, etc.)
+            const params = new URLSearchParams({
+                email: contact.email || '',
+                first_name: contact.first_name || '',
+                last_name: contact.last_name || '',
+                position: contact.position || '',
+                company: contact.company || '',
+                linkedin_url: contact.linkedin_url || ''
+            });
+            window.location.href = `score.html?${params.toString()}`;
         };
     });
 }
@@ -220,3 +240,13 @@ document.getElementById('deep-search-linkedin-btn').onclick = deepSearchLinkedin
 document.getElementById('deep-search-site-btn').onclick = deepSearchSite;
 
 main();
+
+// Ajout du listener pour le bouton Fiche Score (spécifique à l'entreprise)
+document.getElementById('fiche-score-btn').onclick = async function() {
+    const domain = getDomainFromUrl();
+    const company = await fetchCompanyInfo(domain);
+    if (!company) return;
+    // On passe le nom de l'entreprise dans l'URL (score.html)
+    const params = new URLSearchParams({ company: company['Company Name'] || '' });
+    window.location.href = `score.html?${params.toString()}`;
+};
