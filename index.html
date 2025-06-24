@@ -181,7 +181,7 @@
         <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2em;">
             <div style="display:flex;align-items:center;gap:1em;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg" alt="Logo" style="height:38px;width:38px;vertical-align:middle;">
-                <span style="font-size:1.5em;font-weight:700;color:var(--primary);letter-spacing:1px;">Alruqee Search</span>
+                <span id="dynamic-title" style="font-size:1.5em;font-weight:700;color:var(--primary);letter-spacing:1px;">Lydi search</span>
             </div>
             <div>
                 <button class="btn" style="background:var(--secondary);color:#fff;font-size:1em;padding:0.5em 1.1em;" onclick="window.location.href='auth.html'">Logout</button>
@@ -189,7 +189,7 @@
         </header>
         <h1>Find Companies</h1>
         <div class="search-bar">
-            <textarea id="search" placeholder="Search company names, domains, industries..." rows="7" style="resize:vertical;width:100%;min-width:220px;max-width:100%;"></textarea>
+            <textarea id="search" placeholder="Search company names, domains, industries..." rows="4" style="resize:vertical;width:100%;min-width:220px;max-width:100%;"></textarea>
             <div style="display:flex;flex-direction:column;gap:0.7em;justify-content:flex-start;">
                 <button id="searchBtn" class="btn" disabled style="min-width:120px;">Search</button>
                 <button id="resetBtn" class="btn" style="background:var(--secondary);color:#fff;min-width:120px;" disabled>Reset</button>

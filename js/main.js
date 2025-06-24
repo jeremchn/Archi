@@ -109,6 +109,10 @@ const dataStatus = document.getElementById('dataStatus');
 
 // Affichage du logo et du nom d'entreprise sur la page index.html
 window.addEventListener('DOMContentLoaded', async () => {
+    // Le header est toujours 'Lydi search' pour toutes les entreprises
+    let headerTitle = document.getElementById('dynamic-title');
+    if (headerTitle) headerTitle.textContent = 'Lydi search';
+
     const email = localStorage.getItem('email');
     if (!email) return;
     try {

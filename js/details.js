@@ -22,6 +22,46 @@ async function fetchHunterContacts(domain) {
     return Array.isArray(data) ? data : [];
 }
 
+function renderLinkedinInfo(info) {
+    if (!info) return '';
+    let html = `<div class="linkedin-profile-card" style="background:#f8fafc;padding:1em;border-radius:8px;">
+        <div style="display:flex;align-items:center;gap:1em;">
+            ${info.profile_pic_url ? `<img src="${info.profile_pic_url}" alt="Profile picture" style="width:56px;height:56px;border-radius:50%;border:2px solid #eee;">` : ''}
+            <div>
+                <div style="font-size:1.1em;font-weight:700;">${info.full_name || ''}</div>
+                <div style="color:#555;">${info.headline || info.occupation || ''}</div>
+                <div style="color:#888;font-size:0.98em;">${info.country_full_name || info.country || ''}${info.city ? ', ' + info.city : ''}</div>
+            </div>
+        </div>`;
+    if (info.follower_count || info.connections) {
+        html += `<div style="margin-top:0.7em;"><strong>Followers:</strong> ${info.follower_count || info.connections}</div>`;
+    }
+    if (info.experiences) {
+        const exps = Array.isArray(info.experiences) ? info.experiences : [info.experiences];
+        html += `<div style="margin-top:0.7em;"><strong>Experiences:</strong><ul style="margin:0.5em 0 0 1em;padding:0;">` +
+            exps.filter(Boolean).map(exp => `
+                <li style="margin-bottom:0.3em;">
+                    <div><strong>${exp.title || ''}</strong> at ${exp.company_linkedin_profile_url ? `<a href="${exp.company_linkedin_profile_url}" target="_blank">${exp.company}</a>` : exp.company || ''}</div>
+                    <div style="color:#888;font-size:0.95em;">
+                        ${exp.location ? exp.location + ' - ' : ''}${exp.starts_at ? `From ${exp.starts_at.month}/${exp.starts_at.year}` : ''}
+                        ${exp.ends_at ? ` to ${exp.ends_at.month}/${exp.ends_at.year}` : ' (Current)'}
+                    </div>
+                </li>`).join('') + `</ul></div>`;
+    }
+    if (info.people_also_viewed && Array.isArray(info.people_also_viewed) && info.people_also_viewed.length) {
+        html += `<div style="margin-top:0.7em;"><strong>People also viewed:</strong><ul style="margin:0.5em 0 0 1em;padding:0;">` +
+            info.people_also_viewed.map(p => `
+                <li><a href="${p.link}" target="_blank">${p.name}</a>${p.summary ? `<span style="color:#888;font-size:0.95em;"> - ${p.summary}</span>` : ''}</li>`).join('') + `</ul></div>`;
+    }
+    if (info.deprecation_notice) {
+        html += `<div style="margin-top:1em;padding:0.8em;background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:8px;font-size:0.97em;">
+            <strong>Deprecation Notice:</strong> ${info.deprecation_notice}
+        </div>`;
+    }
+    html += '</div>';
+    return html;
+}
+
 async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
     if (contacts.length === 0) {
@@ -57,7 +97,6 @@ async function renderContacts(contacts, icebreakers = null) {
             btn.disabled = true;
             btn.textContent = 'Generating...';
             try {
-                // Appel Proxycurl pour LinkedIn info au clic sur Generate
                 let infoText = '';
                 if (contact.linkedin_url) {
                     const res = await fetch('/api/contact-linkedin', {
@@ -67,19 +106,7 @@ async function renderContacts(contacts, icebreakers = null) {
                     });
                     if (res.ok) {
                         const data = await res.json();
-                        // Affiche toutes les infos récupérables de Proxycurl (clé: valeur)
-                        for (const [key, value] of Object.entries(data)) {
-                            if (value === null || value === undefined) continue;
-                            if (Array.isArray(value) && value.length === 0) continue;
-                            // Affichage amélioré pour les objets et tableaux
-                            if (typeof value === 'object' && !Array.isArray(value)) {
-                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b><br><pre style='white-space:pre-wrap;font-size:0.97em;background:#f8fafc;border-radius:6px;padding:6px 8px;margin:2px 0 6px 0;'>${JSON.stringify(value, null, 2)}</pre></div>`;
-                            } else if (Array.isArray(value)) {
-                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b><ul style='margin:0 0 0 16px;'>` + value.map(v => `<li>${typeof v === 'object' ? JSON.stringify(v, null, 2) : v}</li>`).join('') + `</ul></div>`;
-                            } else {
-                                infoText += `<div style='margin-bottom:8px'><b>${key}:</b> ${value}</div>`;
-                            }
-                        }
+                        infoText = renderLinkedinInfo(data);
                     } else {
                         infoText = '<span style="color:#aaa">Aucune info LinkedIn disponible</span>';
                     }
