@@ -438,22 +438,11 @@ app.post('/api/icebreaker', async (req, res) => {
     const scrapeRes = await axios.post('http://localhost:' + PORT + '/api/contact-linkedin', { linkedin_url: contact.linkedin_url });
     linkedinData = scrapeRes.data;
   } catch {}
-  let prompt = `You are a B2B networking expert. Generate a personalized ice breaker sentence to start an email to this professional contact.\nHere is the contact's information:\n`;
-  prompt += `- First name: ${contact.first_name}\n`;
-  prompt += `- Last name: ${contact.last_name}\n`;
-  prompt += `- Company: ${contact.company}\n`;
-  prompt += `- Position: ${contact.position}\n`;
-  prompt += `- Email: ${contact.email}\n`;
-  // Ajoute les infos Proxycurl au prompt
-  if (linkedinData.headline) prompt += `- Headline: ${linkedinData.headline}\n`;
-  if (linkedinData.summary) prompt += `- Summary: ${linkedinData.summary}\n`;
-  if (linkedinData.experiences && linkedinData.experiences.length) prompt += `- Experiences: ${linkedinData.experiences.map(e => `${e.title} at ${e.company}`).join('; ')}\n`;
-  if (linkedinData.accomplishment_organisations && linkedinData.accomplishment_organisations.length) prompt += `- Accomplishments: ${linkedinData.accomplishment_organisations.join('; ')}\n`;
-  if (linkedinData.public_identifier) prompt += `- LinkedIn public identifier: ${linkedinData.public_identifier}\n`;
-  if (linkedinData.activities && linkedinData.activities.length) prompt += `- Recent LinkedIn activities: ${linkedinData.activities.map(a => a.activity).join(' | ')}\n`;
-  // Ajoute toutes les infos LinkedIn (sous forme JSON) au prompt pour un ice breaker ultra ciblé
-  prompt += `\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
-  prompt += `The sentence should be adapted to the person, highlight something they can be proud of or a recent achievement, and make them want to reply.\nUse the real company name and avoid generic formulas.\nOnly return the ice breaker sentence, in English, with no introduction or explanation.`;
+  // Nouveau prompt ultra-ciblé, factuel, sans flatterie, basé sur LinkedIn
+  let prompt = `Your task is to write a 1-3 sentence icebreaker that introduces a conversation naturally, based strictly on public information found on the person's LinkedIn profile, without using flattery or superlatives.\n\n` +
+    `🔍 Context:\n- Use specific information such as current role, industry, recent post, shared article, published content, job transitions, certifications, project topics, or company focus.\n- Focus on relevance and shared curiosity — not compliments.\n- Mention the fact you *noticed* or *saw* something that triggered your interest.\n- Do **not** use words like *impressive*, *amazing*, *great*, or *incredible*.\n\n` +
+    `📌 Output format:\nStart with: "I noticed on your profile that..."\nThen continue with a factual, relevant observation and one short, thoughtful reflection or question.\n\n` +
+    `✅ Examples:\n- "I noticed on your profile that you're currently focused on logistics optimization at [Company]. I've been looking into how AI is being applied in that field — do you see growing demand for automation from your clients?"\n- "I saw you recently transitioned from [Industry A] to [Industry B]. Curious what drove that shift — was it a tech trend or something company-specific?"\n- "I noticed you shared an article on the regulatory impact of the new EU AI Act. Are you seeing a lot of internal alignment work around compliance at [Company]?"\n\nGenerate only the icebreaker. Keep it neutral, concise, and based on factual LinkedIn insights.\n\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
   try {
     const gptRes = await axios.post(
       'https://api.openai.com/v1/chat/completions',

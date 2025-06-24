@@ -71,10 +71,8 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             const contactsCell = item['contacts'] && item['contacts'] > 0 ? item['contacts'] : '';
             // Ajout de la colonne score (normalisée entre 0 et 1, arrondie à 3 décimales)
             let scoreCell = '';
-            if (typeof item.score === 'number') {
-                // Clamp le score entre 0 et 1 (cosine similarity peut être [-1,1])
-                const normalized = Math.max(0, Math.min(1, (item.score + 1) / 2));
-                scoreCell = normalized.toFixed(3);
+            if (typeof item._linearizedScore === 'number') {
+                scoreCell = item._linearizedScore.toFixed(3);
             }
             const row = `<tr>
                 <td>${companyName}</td>
@@ -223,3 +221,20 @@ function showMsg(msg, type = 'success') {
     el.style.display = 'block';
     setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
+
+// Linéarisation du score : 1 pour le meilleur, 0.7 pour le pire
+        const scores = data.map(item => typeof item.score === 'number' ? item.score : null).filter(s => s !== null);
+        let minScore = Math.min(...scores);
+        let maxScore = Math.max(...scores);
+        // Si tous les scores sont identiques, tout le monde a 1
+        data.forEach(item => {
+            if (typeof item.score === 'number') {
+                let linScore = 1;
+                if (maxScore !== minScore) {
+                    linScore = 0.7 + 0.3 * (item.score - minScore) / (maxScore - minScore);
+                }
+                item._linearizedScore = linScore;
+            } else {
+                item._linearizedScore = '';
+            }
+        });
