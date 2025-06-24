@@ -544,6 +544,11 @@ app.get('/fiche.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'fiche.html'));
 });
 
+// Sert score.html à la racine
+app.get('/score.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'score.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
