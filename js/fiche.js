@@ -58,17 +58,33 @@ function includesNormalized(haystack, needle) {
 }
 
 function computeScore(company, ideal) {
-    if (!ideal) return [0, 0, 0, 0];
-    // Pays : accepte si le pays est inclus dans la location (ex: "United States" dans "Los Angeles, California, United States")
+    if (!ideal) {
+        alert('Aucun client idéal trouvé pour votre email.');
+        console.log('Aucun client idéal trouvé', {company, ideal});
+        return [0, 0, 0, 0];
+    }
+    // Debug : affiche les valeurs comparées
+    console.log('Comparaison:', {
+        company,
+        ideal,
+        location: company['Location'],
+        pays_1: ideal.pays_1,
+        pays_2: ideal.pays_2,
+        headcount: company['Headcount'],
+        ideal_headcount: ideal.headcount,
+        industry: company['Industry'],
+        ideal_industry: ideal.industry,
+        type: company['Company Type'],
+        ideal_type: ideal.company_type
+    });
     let paysScore = 0;
     if (includesNormalized(company['Location'], ideal.pays_1)) paysScore = 1;
     else if (includesNormalized(company['Location'], ideal.pays_2)) paysScore = 0.5;
-    // Headcount, industry, type : insensible à la casse et espaces
     const headcountScore = normalize(company['Headcount']) === normalize(ideal.headcount) ? 1 : 0;
     const industryScore = normalize(company['Industry']) === normalize(ideal.industry) ? 1 : 0;
     const typeScore = normalize(company['Company Type']) === normalize(ideal.company_type) ? 1 : 0;
-    // Debug : affiche les valeurs comparées
-    console.log('Comparaison:', {company, ideal, paysScore, headcountScore, industryScore, typeScore});
+    // Affiche le résultat final
+    console.log('Résultat score:', [paysScore, headcountScore, industryScore, typeScore]);
     return [paysScore, headcountScore, industryScore, typeScore];
 }
 
