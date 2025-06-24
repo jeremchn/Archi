@@ -115,9 +115,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch(`/api/profile/${email}`);
         if (!res.ok) return;
         const profile = await res.json();
-        // Header dynamique
+        // Affiche le header et le footer uniquement si l'utilisateur est "alruqee"
+        const isAlruqee = (profile.company_name && profile.company_name.toLowerCase().includes('alruqee')) ||
+            (email && email.toLowerCase().includes('alruqee'));
         let header = document.querySelector('header');
-        if (header) {
+        let footer = document.querySelector('footer');
+        if (isAlruqee) {
             // Logo
             let logo = header.querySelector('.company-logo');
             if (!logo) {
@@ -141,31 +144,26 @@ window.addEventListener('DOMContentLoaded', async () => {
                 header.querySelector('div').appendChild(name);
             }
             name.textContent = profile.company_name;
-        }
-        // Footer dynamique
-        let footer = document.querySelector('footer');
-        if (footer) {
-            footer.innerHTML = `&copy; 2025 ${profile.company_name}. All rights reserved.`;
+            if (footer) {
+                footer.innerHTML = `&copy; 2025 ${profile.company_name}. All rights reserved.`;
+            }
+        } else {
+            // Si ce n'est pas alruqee, masquer le nom/logo Alruqee
+            if (header) {
+                let logo = header.querySelector('.company-logo');
+                if (logo) logo.remove();
+                let name = header.querySelector('.company-title');
+                if (name) name.remove();
+            }
+            if (footer) {
+                footer.innerHTML = '&copy; 2025. All rights reserved.';
+            }
         }
         // Bloc principal (pour fallback)
         let logo = document.getElementById('company-logo');
-        if (!logo) {
-            logo = document.createElement('img');
-            logo.id = 'company-logo';
-            logo.style.maxWidth = '120px';
-            logo.style.display = 'block';
-            logo.style.margin = '0 auto 1em auto';
-            document.querySelector('.container').prepend(logo);
-        }
-        logo.src = profile.logo_url;
+        if (logo) logo.remove();
         let name = document.getElementById('company-title');
-        if (!name) {
-            name = document.createElement('h2');
-            name.id = 'company-title';
-            name.style.textAlign = 'center';
-            document.querySelector('.container').prepend(name);
-        }
-        name.textContent = profile.company_name;
+        if (name) name.remove();
     } catch {}
 });
 
