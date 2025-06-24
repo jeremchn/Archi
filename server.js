@@ -451,6 +451,8 @@ app.post('/api/icebreaker', async (req, res) => {
   if (linkedinData.accomplishment_organisations && linkedinData.accomplishment_organisations.length) prompt += `- Accomplishments: ${linkedinData.accomplishment_organisations.join('; ')}\n`;
   if (linkedinData.public_identifier) prompt += `- LinkedIn public identifier: ${linkedinData.public_identifier}\n`;
   if (linkedinData.activities && linkedinData.activities.length) prompt += `- Recent LinkedIn activities: ${linkedinData.activities.map(a => a.activity).join(' | ')}\n`;
+  // Ajoute toutes les infos LinkedIn (sous forme JSON) au prompt pour un ice breaker ultra ciblé
+  prompt += `\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
   prompt += `The sentence should be adapted to the person, highlight something they can be proud of or a recent achievement, and make them want to reply.\nUse the real company name and avoid generic formulas.\nOnly return the ice breaker sentence, in English, with no introduction or explanation.`;
   try {
     const gptRes = await axios.post(
