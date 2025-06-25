@@ -23,8 +23,8 @@ function getCompanyDataFromLocal(companyName) {
 
 // Récupère l'adresse mail de connexion depuis le localStorage (ou autre méthode d'auth)
 function getUserEmail() {
-    // À adapter selon votre logique d'authentification
-    return localStorage.getItem('user_email') || '';
+    // Correction : utiliser la même clé que le login ('email')
+    return localStorage.getItem('email') || '';
 }
 
 // Récupère la table client_ideal depuis le même endroit que users/profile (ex: localStorage['client_ideal'] ou API)

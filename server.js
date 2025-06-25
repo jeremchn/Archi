@@ -550,6 +550,7 @@ app.get('/api/client-ideal/:email', async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Ideal client not found.' });
     res.json(result.rows[0]);
   } catch (e) {
+    console.error('Error fetching ideal client:', e); // LOG
     res.status(500).json({ error: 'Server error fetching ideal client.' });
   }
 });

@@ -13,12 +13,20 @@ async function fetchCompanyInfo(domain) {
 
 async function fetchHunterContacts(domain) {
     // Appel direct à l'API Hunter via le backend pour récupérer les contacts détaillés
+    console.log('[fetchHunterContacts] Appel pour le domaine:', domain);
     const res = await fetch('/api/hunter-contacts-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain })
     });
     const data = await res.json();
+    if (!Array.isArray(data)) {
+        console.warn('[fetchHunterContacts] Données reçues non valides:', data);
+    } else if (data.length === 0) {
+        console.warn('[fetchHunterContacts] Aucun contact trouvé pour le domaine:', domain);
+    } else {
+        console.log(`[fetchHunterContacts] ${data.length} contacts trouvés pour le domaine:`, domain);
+    }
     return Array.isArray(data) ? data : [];
 }
 
@@ -59,10 +67,21 @@ function renderLinkedinInfo(info) {
 
 async function renderContacts(contacts, icebreakers = null) {
     const tbody = document.querySelector('#contacts-table tbody');
+    if (!tbody) {
+        console.error('[renderContacts] Élément tbody introuvable dans le DOM.');
+        return;
+    }
+    if (!Array.isArray(contacts)) {
+        console.error('[renderContacts] Contacts n\'est pas un tableau:', contacts);
+        tbody.innerHTML = '<tr><td colspan="9">Erreur de chargement des contacts.</td></tr>';
+        return;
+    }
     if (contacts.length === 0) {
+        console.warn('[renderContacts] Aucun contact à afficher.');
         tbody.innerHTML = '<tr><td colspan="9">No contacts found.</td></tr>';
         return;
     }
+    console.log(`[renderContacts] Affichage de ${contacts.length} contacts.`);
     tbody.innerHTML = contacts.map((c, idx) => {
         const canGenerate = c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url;
         const ice = icebreakers && icebreakers[idx] ? icebreakers[idx] : '';
