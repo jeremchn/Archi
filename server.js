@@ -540,6 +540,18 @@ app.get('/score.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'score.html'));
 });
 
+// Endpoint to fetch the ideal client row for a user by email
+app.get('/api/client-ideal/:email', async (req, res) => {
+  const { email } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM client_ideal WHERE email = $1', [email]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Ideal client not found.' });
+    res.json(result.rows[0]);
+  } catch (e) {
+    res.status(500).json({ error: 'Server error fetching ideal client.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

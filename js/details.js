@@ -252,3 +252,15 @@ document.getElementById('fiche-score-btn').onclick = async function() {
     const params = new URLSearchParams({ company: company['Company Name'] || '' });
     window.location.href = `score.html?${params.toString()}`;
 };
+
+// Get the ideal client for the logged-in user from the backend
+async function fetchIdealClientForUser(email) {
+    if (!email) return null;
+    try {
+        const res = await fetch(`/api/client-ideal/${encodeURIComponent(email)}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch {
+        return null;
+    }
+}

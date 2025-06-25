@@ -49,6 +49,20 @@ function getIdealClientForUser() {
     return idealClients.find(row => (row['adresse_mail'] || '').toLowerCase() === userEmail.toLowerCase()) || null;
 }
 
+// Fetch the ideal client row for the logged-in user from the backend
+async function fetchIdealClientForUser() {
+    const userEmail = getUserEmail();
+    if (!userEmail) return null;
+    try {
+        const response = await fetch(`/api/client-ideal/${encodeURIComponent(userEmail)}`);
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (e) {
+        console.error('Error fetching ideal client:', e);
+        return null;
+    }
+}
+
 function normalize(str) {
     return (str || '').toString().trim().toLowerCase();
 }
@@ -133,11 +147,11 @@ function renderRadarChart(scores) {
     });
 }
 
-window.onload = function() {
+window.onload = async function() {
     const { company } = getQueryParams();
     const companyData = getCompanyDataFromLocal(company);
-    const ideal = getIdealClientForUser();
     renderCompanyInfo(companyData);
+    const ideal = await fetchIdealClientForUser();
     const scores = computeScore(companyData, ideal);
     renderRadarChart(scores);
 };
