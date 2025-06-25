@@ -303,3 +303,6 @@ async function fetchIdealClientForUser(email) {
         return null;
     }
 }
+
+// Appel automatique de main() au chargement de la page
+window.addEventListener('DOMContentLoaded', main);
