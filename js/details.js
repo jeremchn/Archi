@@ -153,6 +153,10 @@ async function main() {
     contacts.forEach(c => { c.company = companyName; });
     window._contacts = contacts; // Pour accès global
     await renderContacts(contacts);
+
+    // Log et test de récupération du client idéal pour debug
+    const ideal = await fetchIdealClientForUser();
+    console.log('[main] Résultat client idéal:', ideal);
 }
 
 // Gestion des trois boutons de recherche approfondie
@@ -241,8 +245,6 @@ document.getElementById('deep-search-news-btn').onclick = deepSearchNews;
 document.getElementById('deep-search-linkedin-btn').onclick = deepSearchLinkedin;
 document.getElementById('deep-search-site-btn').onclick = deepSearchSite;
 
-main();
-
 // Ajout du listener pour le bouton Fiche Score (spécifique à l'entreprise)
 document.getElementById('fiche-score-btn').onclick = async function() {
     const domain = getDomainFromUrl();
@@ -253,14 +255,28 @@ document.getElementById('fiche-score-btn').onclick = async function() {
     window.location.href = `score.html?${params.toString()}`;
 };
 
+// Récupère l'email de l'utilisateur connecté depuis le localStorage
+function getUserEmail() {
+    // Doit correspondre à la clé utilisée lors du login (voir auth.js)
+    return localStorage.getItem('email') || '';
+}
+
 // Get the ideal client for the logged-in user from the backend
 async function fetchIdealClientForUser(email) {
-    if (!email) return null;
+    const userEmail = email || getUserEmail();
+    if (!userEmail) {
+        console.log('[fetchIdealClientForUser] Aucun email utilisateur trouvé');
+        return null;
+    }
     try {
-        const res = await fetch(`/api/client-ideal/${encodeURIComponent(email)}`);
+        console.log('[fetchIdealClientForUser] Email utilisé pour la requête:', userEmail);
+        const res = await fetch(`/api/client-ideal/${encodeURIComponent(userEmail)}`);
         if (!res.ok) return null;
-        return await res.json();
-    } catch {
+        const data = await res.json();
+        console.log('[fetchIdealClientForUser] Réponse backend:', data);
+        return data;
+    } catch (e) {
+        console.error('[fetchIdealClientForUser] Erreur fetch:', e);
         return null;
     }
 }
