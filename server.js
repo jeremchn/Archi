@@ -540,19 +540,13 @@ app.get('/score.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'score.html'));
 });
 
-// Endpoint to fetch the ideal client row for a user by email or adresse_mail
+// Endpoint to fetch the ideal client row for a user by email (case-insensitive, trimmed)
 app.get('/api/client-ideal/:email', async (req, res) => {
   const { email } = req.params;
   console.log('Received request for client_ideal with email:', email); // DEBUG
   try {
-    // Try with 'email' column first
-    let result = await pool.query('SELECT * FROM client_ideal WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM client_ideal WHERE TRIM(LOWER(email)) = TRIM(LOWER($1))', [email]);
     console.log('Query result for email:', result.rows); // DEBUG
-    if (result.rows.length === 0) {
-      // Try with 'adresse_mail' column if not found
-      result = await pool.query('SELECT * FROM client_ideal WHERE adresse_mail = $1', [email]);
-      console.log('Query result for adresse_mail:', result.rows); // DEBUG
-    }
     if (result.rows.length === 0) return res.status(404).json({ error: 'Ideal client not found.' });
     res.json(result.rows[0]);
   } catch (e) {
