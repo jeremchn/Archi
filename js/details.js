@@ -156,7 +156,11 @@ async function main() {
 
     // Log et test de récupération du client idéal pour debug
     const ideal = await fetchIdealClientForUser();
-    console.log('[main] Résultat client idéal:', ideal);
+    if (ideal) {
+        console.log('[main] Résultat client idéal (depuis backend):', ideal);
+    } else {
+        console.warn('[main] Aucun client idéal trouvé pour cet utilisateur.');
+    }
 }
 
 // Gestion des trois boutons de recherche approfondie
