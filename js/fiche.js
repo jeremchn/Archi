@@ -195,7 +195,10 @@ function computeScore(company, ideal, ragScore = 0) {
 function getRagScoreFromLocal(companyName) {
     const results = JSON.parse(localStorage.getItem('searchResults') || '[]');
     const found = results.find(item => item['Company Name'] === companyName);
-    if (found && typeof found.ragScore === 'number') return found.ragScore;
+    if (found) {
+        if (typeof found.ragScore === 'number') return found.ragScore;
+        if (typeof found.score === 'number') return found.score;
+    }
     return 0;
 }
 
