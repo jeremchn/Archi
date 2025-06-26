@@ -71,37 +71,6 @@ function includesNormalized(haystack, needle) {
     return normalize(haystack).includes(normalize(needle));
 }
 
-function computeScore(company, ideal) {
-    if (!ideal) {
-        alert('Aucun client idéal trouvé pour votre email.');
-        console.log('Aucun client idéal trouvé', {company, ideal});
-        return [0, 0, 0, 0];
-    }
-    // Debug : affiche les valeurs comparées
-    console.log('Comparaison:', {
-        company,
-        ideal,
-        location: company['Location'],
-        pays_1: ideal.pays_1,
-        pays_2: ideal.pays_2,
-        headcount: company['Headcount'],
-        ideal_headcount: ideal.headcount,
-        industry: company['Industry'],
-        ideal_industry: ideal.industry,
-        type: company['Company Type'],
-        ideal_type: ideal.company_type
-    });
-    let paysScore = 0;
-    if (includesNormalized(company['Location'], ideal.pays_1)) paysScore = 1;
-    else if (includesNormalized(company['Location'], ideal.pays_2)) paysScore = 0.5;
-    const headcountScore = normalize(company['Headcount']) === normalize(ideal.headcount) ? 1 : 0;
-    const industryScore = normalize(company['Industry']) === normalize(ideal.industry) ? 1 : 0;
-    const typeScore = normalize(company['Company Type']) === normalize(ideal.company_type) ? 1 : 0;
-    // Affiche le résultat final
-    console.log('Résultat score:', [paysScore, headcountScore, industryScore, typeScore]);
-    return [paysScore, headcountScore, industryScore, typeScore];
-}
-
 function renderCompanyInfo(company) {
     document.getElementById('contact-info').innerHTML = `
         <strong>Entreprise :</strong> ${company['Company Name'] || ''}<br>
@@ -119,7 +88,7 @@ function renderRadarChart(scores) {
     new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Pays', 'Headcount', 'Industry', 'Company Type'],
+            labels: ['Pays', 'Headcount', 'Industry', 'Company Type', 'Description'],
             datasets: [{
                 label: 'Score de correspondance',
                 data: scores,
@@ -147,11 +116,70 @@ function renderRadarChart(scores) {
     });
 }
 
+// Ajoute le score RAG (description) à partir de l'API semantic-search
+async function fetchRagScore(companyData, userEmail) {
+    if (!companyData || !companyData['Company Name'] || !userEmail) return 0;
+    try {
+        // On utilise le champ Description comme requête pour le RAG
+        const query = companyData['Description'] || companyData['Company Name'];
+        const response = await fetch('/api/semantic-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail, query })
+        });
+        if (!response.ok) return 0;
+        const results = await response.json();
+        // On prend le score du premier résultat (le plus pertinent)
+        if (Array.isArray(results) && results.length > 0 && typeof results[0].score === 'number') {
+            // Clamp entre 0 et 1
+            return Math.max(0, Math.min(1, results[0].score));
+        }
+        return 0;
+    } catch (e) {
+        console.error('Erreur fetchRagScore:', e);
+        return 0;
+    }
+}
+
+// Modifie computeScore pour accepter un 5e score (description)
+function computeScore(company, ideal, ragScore = 0) {
+    if (!ideal) {
+        alert('Aucun client idéal trouvé pour votre email.');
+        console.log('Aucun client idéal trouvé', {company, ideal});
+        return [0, 0, 0, 0, ragScore];
+    }
+    // Debug : affiche les valeurs comparées
+    console.log('Comparaison:', {
+        company,
+        ideal,
+        location: company['Location'],
+        pays_1: ideal.pays_1,
+        pays_2: ideal.pays_2,
+        headcount: company['Headcount'],
+        ideal_headcount: ideal.headcount,
+        industry: company['Industry'],
+        ideal_industry: ideal.industry,
+        type: company['Company Type'],
+        ideal_type: ideal.company_type
+    });
+    let paysScore = 0;
+    if (includesNormalized(company['Location'], ideal.pays_1)) paysScore = 1;
+    else if (includesNormalized(company['Location'], ideal.pays_2)) paysScore = 0.5;
+    const headcountScore = normalize(company['Headcount']) === normalize(ideal.headcount) ? 1 : 0;
+    const industryScore = normalize(company['Industry']) === normalize(ideal.industry) ? 1 : 0;
+    const typeScore = normalize(company['Company Type']) === normalize(ideal.company_type) ? 1 : 0;
+    // Affiche le résultat final
+    console.log('Résultat score:', [paysScore, headcountScore, industryScore, typeScore, ragScore]);
+    return [paysScore, headcountScore, industryScore, typeScore, ragScore];
+}
+
 window.onload = async function() {
     const { company } = getQueryParams();
     const companyData = getCompanyDataFromLocal(company);
     renderCompanyInfo(companyData);
     const ideal = await fetchIdealClientForUser();
-    const scores = computeScore(companyData, ideal);
+    const userEmail = getUserEmail();
+    const ragScore = await fetchRagScore(companyData, userEmail);
+    const scores = computeScore(companyData, ideal, ragScore);
     renderRadarChart(scores);
 };
