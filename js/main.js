@@ -32,21 +32,25 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             return;
         }
 
-        // Appel à l'API Hunter pour chaque entreprise (via backend)
-        const contactsResponse = await fetch('/api/hunter-contacts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ companies: data.map(item => item['Domain']) })
-        });
-        const contactsData = await contactsResponse.json();
-
-        // Ajoute le nombre de contacts et le score RAG à chaque entreprise
-        data = data.map((item, idx) => ({
-            ...item,
-            contacts: contactsData[idx] !== undefined ? contactsData[idx] : 0,
-            ragScore: typeof item.score === 'number' ? item.score : 0
-        }));
-
+        // Récupère le nombre réel de contacts pour chaque entreprise via /api/hunter-contacts-details
+        for (let i = 0; i < data.length; i++) {
+            const domain = data[i]['Domain'];
+            if (domain) {
+                try {
+                    const res = await fetch('/api/hunter-contacts-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ domain })
+                    });
+                    const contactsArr = await res.json();
+                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
+                } catch (e) {
+                    data[i].contacts = 0;
+                }
+            } else {
+                data[i].contacts = 0;
+            }
+        }
         // Trie les résultats par nombre de contacts décroissant (valeurs vides/nulles = 0)
         data.sort((a, b) => {
             const contactsA = (typeof a.contacts === 'number' && !isNaN(a.contacts)) ? a.contacts : 0;
@@ -68,8 +72,8 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             const companyName = item['Company Name'] && item['Domain']
                 ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
                 : (item['Company Name'] || '');
-            // Affiche rien si contacts vaut 0 ou undefined
-            const contactsCell = item['contacts'] && item['contacts'] > 0 ? item['contacts'] : '';
+            // Affiche toujours un nombre (0 si aucun contact)
+            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
             const row = `<tr>
                 <td>${companyName}</td>
                 <td>${domain}</td>
