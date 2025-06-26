@@ -181,7 +181,10 @@ function computeScore(company, ideal, ragScore = 0) {
     if (includesNormalized(company['Location'], ideal.pays_1)) paysScore = 1;
     else if (includesNormalized(company['Location'], ideal.pays_2)) paysScore = 0.5;
     const headcountScore = normalize(company['Headcount']) === normalize(ideal.headcount) ? 1 : 0;
-    const industryScore = normalize(company['Industry']) === normalize(ideal.industry) ? 1 : 0;
+    // Score industry : 1 si le mot de l'idéal est contenu dans l'industrie de l'entreprise (insensible à la casse)
+    const industryIdeal = (ideal.industry || '').toLowerCase();
+    const industryCompany = (company['Industry'] || '').toLowerCase();
+    const industryScore = industryCompany.includes(industryIdeal) && industryIdeal ? 1 : 0;
     const typeScore = normalize(company['Company Type']) === normalize(ideal.company_type) ? 1 : 0;
     // Affiche le résultat final
     console.log('Résultat score:', [paysScore, headcountScore, industryScore, typeScore, ragScore]);
