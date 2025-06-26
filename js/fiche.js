@@ -83,9 +83,24 @@ function renderCompanyInfo(company) {
     `;
 }
 
+let radarChartInstance = null;
+
 function renderRadarChart(scores) {
-    const ctx = document.getElementById('radarChart').getContext('2d');
-    new Chart(ctx, {
+    const canvas = document.getElementById('radarChart');
+    if (!canvas) {
+        console.error('[RadarChart] Canvas #radarChart introuvable dans le DOM.');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    if (!Array.isArray(scores) || scores.length !== 5 || scores.some(s => typeof s !== 'number' || isNaN(s))) {
+        console.error('[RadarChart] Scores invalides pour le radar chart:', scores);
+        return;
+    }
+    // Détruit l'ancien graphique si présent
+    if (radarChartInstance) {
+        radarChartInstance.destroy();
+    }
+    radarChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: ['Pays', 'Headcount', 'Industry', 'Company Type', 'Description'],
@@ -173,13 +188,22 @@ function computeScore(company, ideal, ragScore = 0) {
     return [paysScore, headcountScore, industryScore, typeScore, ragScore];
 }
 
+// Récupère le score RAG stocké dans searchResults (si présent)
+function getRagScoreFromLocal(companyName) {
+    const results = JSON.parse(localStorage.getItem('searchResults') || '[]');
+    const found = results.find(item => item['Company Name'] === companyName);
+    if (found && typeof found.ragScore === 'number') return found.ragScore;
+    return 0;
+}
+
 window.onload = async function() {
     const { company } = getQueryParams();
     const companyData = getCompanyDataFromLocal(company);
     renderCompanyInfo(companyData);
     const ideal = await fetchIdealClientForUser();
-    const userEmail = getUserEmail();
-    const ragScore = await fetchRagScore(companyData, userEmail);
+    // Utilise le score RAG stocké localement (plus rapide)
+    const ragScore = getRagScoreFromLocal(company);
     const scores = computeScore(companyData, ideal, ragScore);
+    console.log('[RadarChart] Données envoyées au radar chart:', scores);
     renderRadarChart(scores);
 };

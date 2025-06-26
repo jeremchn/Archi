@@ -40,10 +40,11 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         });
         const contactsData = await contactsResponse.json();
 
-        // Ajoute le nombre de contacts à chaque entreprise
+        // Ajoute le nombre de contacts et le score RAG à chaque entreprise
         data = data.map((item, idx) => ({
             ...item,
-            contacts: contactsData[idx] !== undefined ? contactsData[idx] : 0
+            contacts: contactsData[idx] !== undefined ? contactsData[idx] : 0,
+            ragScore: typeof item.score === 'number' ? item.score : 0
         }));
 
         // Trie les résultats par nombre de contacts décroissant (valeurs vides/nulles = 0)
