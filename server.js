@@ -134,8 +134,10 @@ app.post('/api/semantic-search', async (req, res) => {
     const top50 = scored.slice(0, 50).map(({ embedding, ...rest }) => rest);
     res.json(top50);
   } catch (e) {
-    console.error('Erreur recherche sémantique:', e, '| data_url utilisé :', dataUrl);
-    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message, data_url: dataUrl });
+    // Correction ReferenceError: dataUrl is not defined
+    let dataUrlSafe = typeof dataUrl !== 'undefined' ? dataUrl : null;
+    console.error('Erreur recherche sémantique:', e, '| data_url utilisé :', dataUrlSafe);
+    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message, data_url: dataUrlSafe });
   }
 });
 
