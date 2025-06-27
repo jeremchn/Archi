@@ -264,9 +264,12 @@ async function deepSearchSite() {
     }
 }
 
-document.getElementById('deep-search-news-btn').onclick = deepSearchNews;
-document.getElementById('deep-search-linkedin-btn').onclick = deepSearchLinkedin;
-document.getElementById('deep-search-site-btn').onclick = deepSearchSite;
+const btnNews = document.getElementById('deep-search-news-btn');
+if (btnNews) btnNews.onclick = deepSearchNews;
+const btnLinkedin = document.getElementById('deep-search-linkedin-btn');
+if (btnLinkedin) btnLinkedin.onclick = deepSearchLinkedin;
+const btnSite = document.getElementById('deep-search-site-btn');
+if (btnSite) btnSite.onclick = deepSearchSite;
 
 // Ajout du listener pour le bouton Fiche Score (spécifique à l'entreprise)
 document.getElementById('fiche-score-btn').onclick = async function() {
