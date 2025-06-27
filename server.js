@@ -96,11 +96,27 @@ app.post('/api/semantic-search', async (req, res) => {
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     const dataUrl = profileRes.rows[0].data_url;
     console.log('[semantic-search] data_url:', dataUrl); // DEBUG
-    const response = await axios.get(dataUrl);
-    const data = response.data;
+    const response = await axios.get(dataUrl, { responseType: 'text' });
+    const contentType = response.headers['content-type'];
+    const rawData = response.data;
+    console.log('[semantic-search] Content-Type:', contentType);
+    console.log('[semantic-search] Data length:', rawData.length);
+    console.log('[semantic-search] Data start:', rawData.slice(0, 300));
+    console.log('[semantic-search] Data end:', rawData.slice(-300));
+    if (rawData.trim().startsWith('<')) {
+      console.error('[semantic-search] ATTENTION: Le contenu commence par <, probable HTML !');
+    }
+    let data;
+    try {
+      data = JSON.parse(rawData);
+      console.log('[semantic-search] Type après parsing:', typeof data, '| Array.isArray:', Array.isArray(data));
+    } catch (parseErr) {
+      console.error('[semantic-search] Erreur de parsing JSON:', parseErr.message, '| data_url utilisé :', dataUrl);
+      return res.status(500).json({ error: 'Erreur de parsing JSON', details: parseErr.message, data_url: dataUrl, data_start: rawData.slice(0, 300) });
+    }
     if (!Array.isArray(data)) {
       console.error('[semantic-search] Le fichier JSON n\'est pas un tableau. data_url utilisé :', dataUrl);
-      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.', data_url: dataUrl });
+      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.', data_url: dataUrl, data_start: rawData.slice(0, 300) });
     }
     const embeddingResponse = await axios.post(
       'https://api.openai.com/v1/embeddings',
