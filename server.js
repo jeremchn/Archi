@@ -99,8 +99,8 @@ app.post('/api/semantic-search', async (req, res) => {
     const response = await axios.get(dataUrl);
     const data = response.data;
     if (!Array.isArray(data)) {
-      console.error('[semantic-search] Le fichier JSON n\'est pas un tableau.');
-      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
+      console.error('[semantic-search] Le fichier JSON n\'est pas un tableau. data_url utilisé :', dataUrl);
+      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.', data_url: dataUrl });
     }
     const embeddingResponse = await axios.post(
       'https://api.openai.com/v1/embeddings',
@@ -118,8 +118,8 @@ app.post('/api/semantic-search', async (req, res) => {
     const top50 = scored.slice(0, 50).map(({ embedding, ...rest }) => rest);
     res.json(top50);
   } catch (e) {
-    console.error('Erreur recherche sémantique:', e);
-    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message });
+    console.error('Erreur recherche sémantique:', e, '| data_url utilisé :', dataUrl);
+    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message, data_url: dataUrl });
   }
 });
 
