@@ -95,20 +95,31 @@ app.post('/api/semantic-search', async (req, res) => {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
     const dataUrl = profileRes.rows[0].data_url;
+    console.log('[semantic-search] data_url:', dataUrl); // DEBUG
     const response = await axios.get(dataUrl);
     const data = response.data;
+    if (!Array.isArray(data)) {
+      console.error('[semantic-search] Le fichier JSON n\'est pas un tableau.');
+      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
+    }
     const embeddingResponse = await axios.post(
       'https://api.openai.com/v1/embeddings',
       { input: query, model: 'text-embedding-3-small' },
       { headers: { 'Authorization': `Bearer ${process.env.OPENAIKEY}`, 'Content-Type': 'application/json' } }
     );
     const userEmbedding = embeddingResponse.data.data[0].embedding;
-    const scored = data.map(item => ({ ...item, score: cosineSimilarity(userEmbedding, item.embedding) }));
+    const scored = data.map(item => {
+      if (!Array.isArray(item.embedding)) {
+        console.error('[semantic-search] Entreprise sans embedding:', item);
+      }
+      return { ...item, score: Array.isArray(item.embedding) ? cosineSimilarity(userEmbedding, item.embedding) : 0 };
+    });
     scored.sort((a, b) => b.score - a.score);
     const top50 = scored.slice(0, 50).map(({ embedding, ...rest }) => rest);
     res.json(top50);
   } catch (e) {
-    res.status(500).json({ error: 'Erreur recherche sémantique.' });
+    console.error('Erreur recherche sémantique:', e);
+    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message });
   }
 });
 
