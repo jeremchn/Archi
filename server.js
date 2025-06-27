@@ -55,7 +55,13 @@ app.get('/api/load-data/:email', async (req, res) => {
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
-    const dataUrl = profileRes.rows[0].data_url;
+    let dataUrl = profileRes.rows[0].data_url;
+    if (typeof dataUrl === 'string') {
+      dataUrl = dataUrl.trim();
+      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+        dataUrl = dataUrl.slice(1, -1);
+      }
+    }
     console.log('Tentative de chargement de données depuis:', dataUrl); // LOG
     try {
       const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
@@ -94,7 +100,13 @@ app.post('/api/semantic-search', async (req, res) => {
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
-    const dataUrl = profileRes.rows[0].data_url;
+    let dataUrl = profileRes.rows[0].data_url;
+    if (typeof dataUrl === 'string') {
+      dataUrl = dataUrl.trim();
+      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+        dataUrl = dataUrl.slice(1, -1);
+      }
+    }
     console.log('[semantic-search] data_url:', dataUrl); // DEBUG
     const response = await axios.get(dataUrl, { responseType: 'text' });
     const contentType = response.headers['content-type'];
