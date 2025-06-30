@@ -45,12 +45,50 @@
             div.innerHTML = `<h2>${name}</h2><p>No leads in this list.</p>`;
             return;
         }
-        let html = `<h2>${name}</h2><table style='margin-top:1em;'><thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th></tr></thead><tbody>`;
-        leads.forEach(l => {
-            html += `<tr><td>${l.email||''}</td><td>${l.first_name||''}</td><td>${l.last_name||''}</td><td>${l.position||''}</td><td>${l.company||''}</td><td>${l.linkedin_url?`<a href='${l.linkedin_url}' target='_blank'>LinkedIn</a>`:''}</td></tr>`;
+        let html = `<h2>${name}</h2><table style='margin-top:1em;'><thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th><th>Ice breaker</th></tr></thead><tbody>`;
+        leads.forEach((l, idx) => {
+            html += `<tr><td>${l.email||''}</td><td>${l.first_name||''}</td><td>${l.last_name||''}</td><td>${l.position||''}</td><td>${l.company||''}</td><td>${l.linkedin_url?`<a href='${l.linkedin_url}' target='_blank'>LinkedIn</a>`:''}</td>`;
+            html += `<td>`;
+            if (l.icebreaker) {
+                html += l.icebreaker;
+            } else if (l.linkedin_url) {
+                html += `<button class='btn-generate-ice' data-list='${name}' data-idx='${idx}'>Generate</button>`;
+            } else {
+                html += '';
+            }
+            html += `</td></tr>`;
         });
         html += '</tbody></table>';
         div.innerHTML = html;
+        // Ajout des listeners sur les boutons Generate
+        div.querySelectorAll('.btn-generate-ice').forEach(btn => {
+            btn.onclick = async function() {
+                const idx = parseInt(btn.getAttribute('data-idx'));
+                const list = btn.getAttribute('data-list');
+                let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
+                let contact = leadsLists[list][idx];
+                btn.disabled = true;
+                btn.textContent = 'Generating...';
+                try {
+                    const res = await fetch('/api/icebreaker', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contact })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        contact.icebreaker = data.icebreaker;
+                        leadsLists[list][idx] = contact;
+                        localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                        renderLeadsDetails(list, leadsLists[list]);
+                    } else {
+                        btn.textContent = 'Error';
+                    }
+                } catch {
+                    btn.textContent = 'Error';
+                }
+            };
+        });
     }
     renderLeadsTable();
     </script>

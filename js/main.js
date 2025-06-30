@@ -530,13 +530,99 @@ if (menuSaved) {
     };
 }
 if (saveSearchBtn) {
-    saveSearchBtn.addEventListener('click', function() {
-        if (window._lastResults && Array.isArray(window._lastResults) && window._lastResults.length) {
-            saveCurrentSearch(window._lastResults);
-        } else {
-            showMsg('Aucun résultat à sauvegarder.', 'error');
-        }
-    });
+    saveSearchBtn.onclick = function() {
+        const results = JSON.parse(localStorage.getItem('searchResults') || '[]');
+        if (!results.length) return alert('No companies to save.');
+        let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
+        const listNames = Object.keys(leadsLists);
+        // Mini-modal
+        let modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.background = 'rgba(0,0,0,0.25)';
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.zIndex = '9999';
+        modal.innerHTML = `
+            <div style="background:#fff;padding:2em 2em 1.5em 2em;border-radius:14px;min-width:320px;box-shadow:0 4px 32px rgba(0,0,0,0.18);text-align:center;">
+                <div style="font-size:1.15em;font-weight:600;margin-bottom:1.2em;">Save all companies</div>
+                <button id="modal-new-list" style="background:#2ecc71;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0.7em 1em 0;cursor:pointer;">New list</button>
+                <button id="modal-add-list" style="background:#1a365d;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0 1em 0;cursor:pointer;">Add to a list</button>
+                <div id="modal-content"></div>
+                <button id="modal-cancel" style="margin-top:1.2em;background:#eee;color:#222;border:none;border-radius:7px;padding:0.5em 1.2em;font-size:1em;cursor:pointer;">Cancel</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        // Cancel
+        modal.querySelector('#modal-cancel').onclick = () => modal.remove();
+        // New list
+        modal.querySelector('#modal-new-list').onclick = () => {
+            const content = modal.querySelector('#modal-content');
+            content.innerHTML = `<input id="modal-list-name" type="text" placeholder="List name..." style="width:90%;padding:0.6em 1em;font-size:1em;border-radius:7px;border:1px solid #e2e8f0;"> <button id="modal-create-list" style="background:#2ecc71;color:#fff;border:none;border-radius:7px;padding:0.5em 1.2em;font-size:1em;margin-left:0.5em;cursor:pointer;">Create</button>`;
+            content.querySelector('#modal-create-list').onclick = () => {
+                const name = content.querySelector('#modal-list-name').value.trim();
+                if (!name) return alert('Enter a list name');
+                if (!leadsLists[name]) leadsLists[name] = [];
+                let added = 0;
+                results.forEach(company => {
+                    // On ne sauvegarde que les infos principales (Company Name, Domain, etc.)
+                    const lead = {
+                        company: company['Company Name'] || '',
+                        domain: company['Domain'] || '',
+                        linkedin_url: company['Linkedin'] || '',
+                        industry: company['Industry'] || '',
+                        location: company['Location'] || '',
+                        headcount: company['Headcount'] || '',
+                        description: company['Description'] || ''
+                    };
+                    if (!leadsLists[name].some(l => l.domain === lead.domain)) {
+                        leadsLists[name].push(lead);
+                        added++;
+                    }
+                });
+                localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                alert(added + ' companies saved in list ' + name);
+                modal.remove();
+            };
+        };
+        // Add to a list
+        modal.querySelector('#modal-add-list').onclick = () => {
+            const content = modal.querySelector('#modal-content');
+            if (listNames.length === 0) {
+                content.innerHTML = '<div style="color:#888;margin-top:1em;">No existing list.</div>';
+                return;
+            }
+            content.innerHTML = '<div style="margin-bottom:0.7em;">Choose a list:</div>' + listNames.map(n => `<button class="modal-list-btn" data-list="${n}" style="display:block;width:100%;margin:0.3em 0;padding:0.6em 0.7em;background:#f3f7fa;border:none;border-radius:7px;font-size:1em;cursor:pointer;text-align:left;">${n}</button>`).join('');
+            content.querySelectorAll('.modal-list-btn').forEach(b => {
+                b.onclick = () => {
+                    const list = b.getAttribute('data-list');
+                    let added = 0;
+                    results.forEach(company => {
+                        const lead = {
+                            company: company['Company Name'] || '',
+                            domain: company['Domain'] || '',
+                            linkedin_url: company['Linkedin'] || '',
+                            industry: company['Industry'] || '',
+                            location: company['Location'] || '',
+                            headcount: company['Headcount'] || '',
+                            description: company['Description'] || ''
+                        };
+                        if (!leadsLists[list].some(l => l.domain === lead.domain)) {
+                            leadsLists[list].push(lead);
+                            added++;
+                        }
+                    });
+                    localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                    alert(added + ' companies saved in list ' + list);
+                    modal.remove();
+                };
+            });
+        };
+    };
 }
 
 function saveCurrentSearch(results) {
@@ -560,7 +646,7 @@ function renderResultsTable(data) {
     resultsTable.innerHTML = '';
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = (data.length > 0) ? '' : 'none';
-    data.forEach(item => {
+    data.forEach((item, idx) => {
         const domain = item['Domain']
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
             : '';
@@ -571,6 +657,8 @@ function renderResultsTable(data) {
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
             : (item['Company Name'] || '');
         const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
+        // Ajout du bouton Save company
+        const saveBtn = `<button class="btn btn-save-company" data-idx="${idx}" style="background:var(--success);color:#fff;">Save company</button>`;
         const row = `<tr>
             <td>${companyName}</td>
             <td>${domain}</td>
@@ -580,22 +668,32 @@ function renderResultsTable(data) {
             <td>${item['Headcount'] || ''}</td>
             <td>${item['Description'] || ''}</td>
             <td>${contactsCell}</td>
+            <td style="text-align:center;">${saveBtn}</td>
         </tr>`;
         resultsTable.innerHTML += row;
     });
+    // Ajout des listeners sur les boutons Save company
+    setTimeout(() => {
+        document.querySelectorAll('.btn-save-company').forEach(btn => {
+            btn.onclick = function(e) {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                if (!isNaN(idx) && data[idx]) {
+                    openSaveCompanyModal(data[idx]);
+                }
+            };
+        });
+    }, 0);
     saveSearchBtn.style.display = (data.length > 0) ? 'inline-block' : 'none';
     window._lastResults = data;
 }
 
-// Remplace tous les appels à l'affichage du tableau par renderResultsTable
-// (dans les callbacks de recherche par prompt, filtre, nom, et restauration)
-
-// Au chargement, restaurer les recherches sauvegardées
-loadSavedSearches();
-
-const menuContacts = document.getElementById('menu-contacts');
-if (menuContacts) {
-    menuContacts.onclick = function() {
-        window.location.href = 'contacts.html';
-    };
+// Fonction pour ouvrir le mini-modal UX pour sauvegarder une entreprise
+function openSaveCompanyModal(company) {
+    // Réutilise le mini-modal existant pour Save lead/Save all
+    // On suppose qu'une fonction showSaveLeadModal existe déjà, sinon à adapter
+    if (typeof showSaveLeadModal === 'function') {
+        showSaveLeadModal(company, 'company');
+    } else {
+        alert('Save modal not implemented');
+    }
 }
