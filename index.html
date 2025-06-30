@@ -241,10 +241,14 @@
                     <span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span>
                 </li>
                 <li id="menu-saved" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-top:1.5em;font-weight:600;color:#1a365d;">
-                    <span style="font-size:1.2em;">💾</span> <span>Recherches sauvegardées</span>
+                    <span style="font-size:1.2em;">💾</span> <span>Saved companies</span>
                 </li>
                 <li id="menu-contacts" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">👥</span> <span>Contacts</span>
+                    <span style="font-size:1.2em;">👤</span> <span>Contacts</span>
+                </li>
+                <li style="flex:1 1 auto;"></li>
+                <li id="menu-logout" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-bottom:0.5em;align-self:flex-end;justify-content:flex-start;">
+                    <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:100%;" onclick="window.location.href='auth.html'">Logout</button>
                 </li>
             </ul>
         </nav>
@@ -256,20 +260,20 @@
         </div>
     </aside>
     <div class="container">
-        <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2em;">
-            <div style="display:flex;align-items:center;gap:1em;">
-                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg" alt="Logo" style="height:38px;width:38px;vertical-align:middle;">
-                <span id="dynamic-title" style="font-size:1.5em;font-weight:700;color:var(--primary);letter-spacing:1px;">Lydi search</span>
+        <header style="display:flex;align-items:center;justify-content:center;margin-bottom:2em;">
+            <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg" alt="Logo" style="height:48px;width:48px;vertical-align:middle;margin-bottom:0.5em;">
+                <span id="dynamic-title" style="font-size:2.1em;font-weight:800;color:var(--primary);letter-spacing:1px;">Lydi search</span>
+                <div style="font-size:1.35em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">What's your search companies today?</div>
             </div>
-            <div>
+            <div style="position:absolute;left:2em;bottom:1.5em;">
                 <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;" onclick="window.location.href='auth.html'">Logout</button>
             </div>
         </header>
-        <h1>Find Companies</h1>
         <div class="search-bar" id="prompt-search-bar">
             <textarea id="search" placeholder="Search company names, domains, industries..." rows="4" style="resize:vertical;width:100%;min-width:220px;max-width:100%;"></textarea>
             <div style="display:flex;flex-direction:column;gap:0.7em;justify-content:flex-start;">
-                <button id="searchBtn" class="btn btn-search" style="min-width:120px;">Search</button>
+                <button id="searchBtn" class="btn btn-search" style="min-width:120px;background:var(--primary);color:#fff;">Search</button>
                 <button id="resetBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
             </div>
         </div>

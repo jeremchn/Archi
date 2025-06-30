@@ -533,6 +533,79 @@ if (menuSaved) {
         window.location.href = 'saved.html';
     };
 }
+// Handler Save all companies => sauvegarde dans les recherches sauvegardées (saved companies)
+if (saveSearchBtn) {
+    saveSearchBtn.onclick = function() {
+        const results = window._lastResults || [];
+        if (!results || !results.length) return alert('Aucun résultat à sauvegarder.');
+        saveCurrentSearch(results);
+    };
+}
+
+function getSavedSearchesKey() {
+    const email = localStorage.getItem('email') || '';
+    return 'savedSearches_' + email;
+}
+
+function loadSavedSearches() {
+    const key = getSavedSearchesKey();
+    let searches = [];
+    try {
+        searches = JSON.parse(localStorage.getItem(key)) || [];
+    } catch {}
+    window._allSavedSearches = searches;
+}
+
+// Affiche la liste des recherches sauvegardées dans la section principale
+function showSavedSearchesTable() {
+    loadSavedSearches();
+    const searches = window._allSavedSearches || [];
+    let html = '<h2>Mes recherches sauvegardées</h2>';
+    if (!searches.length) {
+        html += '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
+    } else {
+        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th></tr></thead><tbody>';
+        searches.forEach((s, idx) => {
+            html += `<tr><td>${s.name || 'Sans nom'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>Voir</button></td></tr>`;
+        });
+        html += '</tbody></table>';
+    }
+    mainContainer.innerHTML = html + '<div id="savedResults"></div>';
+    // Ajoute les listeners sur les boutons "Voir"
+    document.querySelectorAll('button[data-idx]').forEach(btn => {
+        btn.onclick = function() {
+            const idx = parseInt(this.getAttribute('data-idx'));
+            showSavedListDetails(idx);
+        };
+    });
+}
+
+// Affiche le tableau compact de toutes les entreprises d'une liste sauvegardée
+function showSavedListDetails(idx) {
+    const searches = window._allSavedSearches || [];
+    if (!searches[idx]) return;
+    const data = searches[idx].data;
+    let html = `<h3>${searches[idx].name} (${data.length} entreprises)</h3>`;
+    if (!data.length) {
+        html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
+    } else {
+        html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
+        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
+        data.forEach(item => {
+            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td><td>${item['contacts']||0}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+    }
+    document.getElementById('savedResults').innerHTML = html;
+}
+
+// Remplace l'affichage du menu sauvegardé par un simple bouton/section
+const menuSaved = document.getElementById('menu-saved');
+if (menuSaved) {
+    menuSaved.onclick = function() {
+        window.location.href = 'saved.html';
+    };
+}
 if (saveSearchBtn) {
     saveSearchBtn.onclick = function() {
         const results = JSON.parse(localStorage.getItem('searchResults') || '[]');
