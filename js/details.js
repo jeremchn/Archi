@@ -95,8 +95,10 @@ async function renderContacts(contacts, icebreakers = null) {
             <td>${c.linkedin_url ? `<a href="${c.linkedin_url}" class="clickable-link" target="_blank">LinkedIn</a>` : ''}</td>
             <td class="linkedin-info-cell"></td>
             <td class="icebreaker-cell">
-                ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
-                <button class="btn btn-save-lead" data-idx="${idx}" style="background:var(--success);color:#fff;margin-left:0.5em;">Save lead</button>
+                <div style="display:flex;align-items:center;gap:0.5em;">
+                    ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
+                    <button class="btn btn-save-lead" data-idx="${idx}" style="background:var(--success);color:#fff;">Save lead</button>
+                </div>
             </td>
         </tr>
         `;
