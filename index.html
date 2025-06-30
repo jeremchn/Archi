@@ -210,6 +210,10 @@
             border: 1px solid #b7eacb;
             display: block;
         }
+        .filter-accordion { width:100%; }
+        .filter-header { background:#f3f7fa; border-radius:6px; padding:0.5em 0.8em; margin-bottom:0.2em; transition:background 0.2s; }
+        .filter-header.active { background:#e2e8f0; }
+        .filter-content { padding:0.5em 0.8em 0.5em 1.2em; }
         @media (max-width: 900px) {
             .layout { flex-direction: column; }
             aside.menu { width: 100%; border-right: none; border-bottom: 1.5px solid var(--border); flex-direction: row; gap: 1em; }
@@ -267,17 +271,17 @@
             </div>
         </div>
         <div class="filter-bar" id="filter-search-bar" style="flex-direction:column;align-items:flex-start;gap:1.2em;">
-            <div style="display:flex;flex-direction:column;gap:0.3em;">
-                <label style="font-weight:500;">Industry</label>
-                <div id="filter-industry-group"></div>
+            <div class="filter-accordion">
+                <div class="filter-header" id="industry-header" style="font-weight:500;cursor:pointer;user-select:none;">Industry ▼</div>
+                <div class="filter-content" id="filter-industry-group" style="display:none;"></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:0.3em;">
-                <label style="font-weight:500;">Location</label>
-                <div id="filter-location-group"></div>
+            <div class="filter-accordion">
+                <div class="filter-header" id="location-header" style="font-weight:500;cursor:pointer;user-select:none;">Location ▼</div>
+                <div class="filter-content" id="filter-location-group" style="display:none;"></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:0.3em;">
-                <label style="font-weight:500;">Headcount</label>
-                <div id="filter-headcount-group"></div>
+            <div class="filter-accordion">
+                <div class="filter-header" id="headcount-header" style="font-weight:500;cursor:pointer;user-select:none;">Headcount ▼</div>
+                <div class="filter-content" id="filter-headcount-group" style="display:none;"></div>
             </div>
             <button id="filterSearchBtn" class="btn btn-search" style="min-width:120px;align-self:flex-start;">Search</button>
         </div>

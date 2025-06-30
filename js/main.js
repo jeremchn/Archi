@@ -235,13 +235,44 @@ const filterIndustryGroup = document.getElementById('filter-industry-group');
 const filterLocationGroup = document.getElementById('filter-location-group');
 const filterHeadcountGroup = document.getElementById('filter-headcount-group');
 
+// Accordéon déroulant pour chaque filtre
+function setupFilterAccordion() {
+    [
+        {header: 'industry-header', content: 'filter-industry-group'},
+        {header: 'location-header', content: 'filter-location-group'},
+        {header: 'headcount-header', content: 'filter-headcount-group'}
+    ].forEach(({header, content}) => {
+        const h = document.getElementById(header);
+        const c = document.getElementById(content);
+        if (h && c) {
+            h.onclick = function() {
+                const isOpen = c.style.display === 'block';
+                document.querySelectorAll('.filter-content').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.filter-header').forEach(el => el.classList.remove('active'));
+                if (!isOpen) {
+                    c.style.display = 'block';
+                    h.classList.add('active');
+                }
+            };
+        }
+    });
+}
+setupFilterAccordion();
+
+// Helper pour extraire le pays à partir de la dernière virgule
+function extractCountry(location) {
+    if (!location) return '';
+    const parts = location.split(',');
+    return parts.length ? parts[parts.length-1].trim() : location.trim();
+}
+
 async function populateFilters() {
     try {
         const email = localStorage.getItem('email');
         const res = await fetch(`/api/filters?email=${encodeURIComponent(email)}`);
         if (!res.ok) return;
         const data = await res.json();
-        // Helper pour générer les cases à cocher avec ALL
+        // Pour Industry et Headcount, valeurs brutes
         function renderCheckboxGroup(container, values, name) {
             if (!container) return;
             container.innerHTML = '';
@@ -286,8 +317,11 @@ async function populateFilters() {
             });
         }
         renderCheckboxGroup(filterIndustryGroup, data.industries || [], 'industry');
-        renderCheckboxGroup(filterLocationGroup, data.locations || [], 'location');
         renderCheckboxGroup(filterHeadcountGroup, data.headcounts || [], 'headcount');
+        // Pour Location, extraire uniquement les pays distincts
+        const allCountries = (data.locations || []).map(extractCountry);
+        const uniqueCountries = [...new Set(allCountries)].filter(Boolean).sort();
+        renderCheckboxGroup(filterLocationGroup, uniqueCountries, 'location');
     } catch {}
 }
 // Remplit les filtres au chargement
