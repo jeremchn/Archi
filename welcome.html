@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lydi - Welcome</title>
+    <style>
+        body {
+            background: #181818;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .center-title {
+            text-align: center;
+            font-size: 3em;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-top: 2.5em;
+            margin-bottom: 2.5em;
+            color: #fff;
+        }
+        .blocks {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 2.5em;
+            margin-bottom: 3em;
+        }
+        .block {
+            background: #fff;
+            color: #1a365d;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(26,54,93,0.10);
+            padding: 2.2em 2em 2em 2em;
+            min-width: 270px;
+            max-width: 340px;
+            flex: 1 1 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            transition: box-shadow 0.2s, transform 0.2s;
+            text-decoration: none;
+        }
+        .block:hover {
+            box-shadow: 0 6px 32px rgba(26,54,93,0.18);
+            transform: translateY(-6px) scale(1.03);
+        }
+        .block-title {
+            font-size: 1.35em;
+            font-weight: 700;
+            margin-bottom: 0.7em;
+            color: #1a365d;
+        }
+        .block-desc {
+            font-size: 1.08em;
+            color: #222;
+            margin-bottom: 1.2em;
+        }
+        @media (max-width: 900px) {
+            .blocks { flex-direction: column; gap: 1.5em; align-items: center; }
+            .block { width: 90%; max-width: 500px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="center-title">Lydi</div>
+    <div class="blocks">
+        <a class="block" href="index.html#prompt" style="text-decoration:none;">
+            <div class="block-title">Prompt Finder</div>
+            <div class="block-desc">Generate ideas for potential clients based on your ideal description.</div>
+        </a>
+        <a class="block" href="index.html#domain" style="text-decoration:none;">
+            <div class="block-title">Domain Lookup</div>
+            <div class="block-desc">Find contacts by searching for a domain or company name.</div>
+        </a>
+        <a class="block" href="index.html#filter" style="text-decoration:none;">
+            <div class="block-title">Smart Filter Search</div>
+            <div class="block-desc">Search for companies using criteria like industry, company size and region.</div>
+        </a>
+    </div>
+</body>
+</html>

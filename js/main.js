@@ -223,6 +223,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuName) nameBar.classList.add('active');
         document.getElementById('results').innerHTML = '';
     }
+    // --- Ajout : activer la section selon le hash de l'URL ---
+    let hash = window.location.hash || '#prompt';
+    if (hash === '#prompt') setActiveMenu(menuPrompt);
+    else if (hash === '#domain') setActiveMenu(menuName);
+    else if (hash === '#filter') setActiveMenu(menuFilter);
+    else setActiveMenu(menuPrompt);
+    // ---
     menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
     menuFilter.addEventListener('click', () => setActiveMenu(menuFilter));
     menuName.addEventListener('click', () => setActiveMenu(menuName));
