@@ -526,13 +526,7 @@ function showSavedListDetails(idx) {
     document.getElementById('savedResults').innerHTML = html;
 }
 
-// Remplace l'affichage du menu sauvegardé par un simple bouton/section
-let menuSaved = document.getElementById('menu-saved');
-if (menuSaved) {
-    menuSaved.onclick = function() {
-        window.location.href = 'saved.html';
-    };
-}
+
 // Handler Save all companies => sauvegarde dans les recherches sauvegardées (saved companies)
 if (saveSearchBtn) {
     saveSearchBtn.onclick = function() {
