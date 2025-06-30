@@ -231,14 +231,12 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (hash === '#filter') setActiveMenu(menuFilter);
         else setActiveMenu(menuPrompt);
     }
+    // Supprimer tout appel à setActiveMenu(menuPrompt) avant activateFromHash()
     activateFromHash();
     window.addEventListener('hashchange', activateFromHash);
-    // ---
     menuPrompt.addEventListener('click', () => { setActiveMenu(menuPrompt); window.location.hash = '#prompt'; });
     menuFilter.addEventListener('click', () => { setActiveMenu(menuFilter); window.location.hash = '#filter'; });
     menuName.addEventListener('click', () => { setActiveMenu(menuName); window.location.hash = '#domain'; });
-    // Par défaut, promptBar est actif
-    // setActiveMenu(menuPrompt); // <-- supprimé car activateFromHash() gère déjà l'état initial
 });
 
 // --- RECHERCHE PAR FILTRE MULTI-CHOIX ---
