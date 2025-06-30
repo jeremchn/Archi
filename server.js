@@ -596,6 +596,116 @@ app.get('/api/client-ideal/:email', async (req, res) => {
   }
 });
 
+// Endpoint pour récupérer les valeurs uniques de filtres (industry, location, headcount) pour l'utilisateur
+app.get('/api/filters', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: 'Email requis.' });
+  try {
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
+    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
+    let dataUrl = profileRes.rows[0].data_url;
+    if (typeof dataUrl === 'string') {
+      dataUrl = dataUrl.trim();
+      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+        dataUrl = dataUrl.slice(1, -1);
+      }
+    }
+    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
+    const data = response.data;
+    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
+    const industries = [...new Set(data.map(e => e.Industry).filter(Boolean))].sort();
+    const locations = [...new Set(data.map(e => e.Location).filter(Boolean))].sort();
+    const headcounts = [...new Set(data.map(e => e.Headcount).filter(Boolean))].sort();
+    res.json({ industries, locations, headcounts });
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur lors de la récupération des filtres.' });
+  }
+});
+
+// Endpoint pour recherche par filtres
+app.post('/api/filter-search', async (req, res) => {
+  const { email, industry, location, headcount } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email requis.' });
+  try {
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
+    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
+    let dataUrl = profileRes.rows[0].data_url;
+    if (typeof dataUrl === 'string') {
+      dataUrl = dataUrl.trim();
+      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+        dataUrl = dataUrl.slice(1, -1);
+      }
+    }
+    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
+    let data = response.data;
+    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
+    // Filtrage
+    if (industry) data = data.filter(e => e.Industry === industry);
+    if (location) data = data.filter(e => e.Location === location);
+    if (headcount) data = data.filter(e => e.Headcount === headcount);
+    // Limite à 50 résultats
+    data = data.slice(0, 50);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur lors de la recherche filtrée.' });
+  }
+});
+
+// Endpoint pour recherche par nom de société (fuzzy)
+app.post('/api/company-name-search', async (req, res) => {
+  const { email, name } = req.body;
+  if (!email || !name) return res.status(400).json({ error: 'Email et nom requis.' });
+  try {
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
+    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
+    let dataUrl = profileRes.rows[0].data_url;
+    if (typeof dataUrl === 'string') {
+      dataUrl = dataUrl.trim();
+      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+        dataUrl = dataUrl.slice(1, -1);
+      }
+    }
+    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
+    let data = response.data;
+    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
+    // Recherche fuzzy (insensible à la casse, inclut les noms très proches)
+    const search = name.trim().toLowerCase();
+    data = data.filter(e => e['Company Name'] && e['Company Name'].toLowerCase().includes(search));
+    // Si aucun résultat, on tente une correspondance plus souple (distance de Levenshtein <= 2)
+    if (data.length === 0) {
+      function levenshtein(a, b) {
+        if (a.length === 0) return b.length;
+        if (b.length === 0) return a.length;
+        const matrix = [];
+        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= b.length; i++) {
+          for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+              matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+              matrix[i][j] = Math.min(
+                matrix[i - 1][j - 1] + 1,
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j] + 1
+              );
+            }
+          }
+        }
+        return matrix[b.length][a.length];
+      }
+      data = response.data.filter(e => {
+        if (!e['Company Name']) return false;
+        return levenshtein(e['Company Name'].toLowerCase(), search) <= 2;
+      });
+    }
+    data = data.slice(0, 50);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: 'Erreur lors de la recherche par nom.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

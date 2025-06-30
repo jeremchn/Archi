@@ -220,3 +220,187 @@ function showMsg(msg, type = 'success') {
     el.style.display = 'block';
     setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
+
+// --- MENU LATERAL ---
+const menuPrompt = document.getElementById('menu-prompt');
+const menuFilter = document.getElementById('menu-filter');
+const menuName = document.getElementById('menu-name');
+const promptBar = document.getElementById('prompt-search-bar');
+const filterBar = document.getElementById('filter-search-bar');
+const nameBar = document.getElementById('name-search-bar');
+
+function setActiveMenu(menu) {
+    [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
+    menu.classList.add('active');
+    promptBar.classList.remove('active');
+    filterBar.classList.remove('active');
+    nameBar.classList.remove('active');
+    if (menu === menuPrompt) promptBar.classList.add('active');
+    if (menu === menuFilter) filterBar.classList.add('active');
+    if (menu === menuName) nameBar.classList.add('active');
+    // Efface les résultats à chaque changement de mode
+    document.getElementById('results').innerHTML = '';
+}
+menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
+menuFilter.addEventListener('click', () => setActiveMenu(menuFilter));
+menuName.addEventListener('click', () => setActiveMenu(menuName));
+// Par défaut, promptBar est actif
+setActiveMenu(menuPrompt);
+
+// --- RECHERCHE PAR FILTRE ---
+const filterIndustry = document.getElementById('filter-industry');
+const filterLocation = document.getElementById('filter-location');
+const filterHeadcount = document.getElementById('filter-headcount');
+const filterSearchBtn = document.getElementById('filterSearchBtn');
+
+// Remplir dynamiquement les options de filtres (à partir d'un endpoint ou d'un fichier de données)
+async function populateFilters() {
+    // On suppose un endpoint /api/filters qui retourne { industries: [], locations: [], headcounts: [] }
+    try {
+        const email = localStorage.getItem('email');
+        const res = await fetch(`/api/filters?email=${encodeURIComponent(email)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.industries)) {
+            filterIndustry.innerHTML = '<option value="">Industry</option>' + data.industries.map(i => `<option value="${i}">${i}</option>`).join('');
+        }
+        if (Array.isArray(data.locations)) {
+            filterLocation.innerHTML = '<option value="">Location</option>' + data.locations.map(l => `<option value="${l}">${l}</option>`).join('');
+        }
+        if (Array.isArray(data.headcounts)) {
+            filterHeadcount.innerHTML = '<option value="">Headcount</option>' + data.headcounts.map(h => `<option value="${h}">${h}</option>`).join('');
+        }
+    } catch {}
+}
+// Remplit les filtres au chargement
+populateFilters();
+
+filterSearchBtn.addEventListener('click', async function() {
+    const industry = filterIndustry.value;
+    const location = filterLocation.value;
+    const headcount = filterHeadcount.value;
+    const email = localStorage.getItem('email');
+    if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    // Appel au backend pour la recherche filtrée
+    const loadingBtn = document.getElementById('loadingBtn');
+    loadingBtn.style.display = 'inline-block';
+    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
+    try {
+        const response = await fetch('/api/filter-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, industry, location, headcount })
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+            return;
+        }
+        let data = await response.json();
+        if (!Array.isArray(data)) {
+            showMsg(data.error || "Erreur côté serveur.", 'error');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+            return;
+        }
+        // Affiche les résultats dans le tableau (même logique que recherche par prompt)
+        const resultsTable = document.getElementById('results');
+        resultsTable.innerHTML = '';
+        data.forEach(item => {
+            const domain = item['Domain']
+                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
+                : '';
+            const linkedin = item['Linkedin']
+                ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+                : '';
+            const companyName = item['Company Name'] && item['Domain']
+                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
+                : (item['Company Name'] || '');
+            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
+            const row = `<tr>
+                <td>${companyName}</td>
+                <td>${domain}</td>
+                <td>${linkedin}</td>
+                <td>${item['Industry'] || ''}</td>
+                <td>${item['Location'] || ''}</td>
+                <td>${item['Headcount'] || ''}</td>
+                <td>${item['Description'] || ''}</td>
+                <td>${contactsCell}</td>
+            </tr>`;
+            resultsTable.innerHTML += row;
+        });
+        showMsg('Recherche filtrée terminée.', 'success');
+        loadingBtn.style.display = 'none';
+        loadingBtn.innerHTML = 'Search';
+    } finally {
+        loadingBtn.style.display = 'none';
+    }
+});
+
+// --- RECHERCHE PAR NOM DE SOCIETE ---
+const companyNameInput = document.getElementById('companyNameInput');
+const nameSearchBtn = document.getElementById('nameSearchBtn');
+
+nameSearchBtn.addEventListener('click', async function() {
+    const name = companyNameInput.value.trim();
+    const email = localStorage.getItem('email');
+    if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
+    if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    const loadingBtn = document.getElementById('loadingBtn');
+    loadingBtn.style.display = 'inline-block';
+    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
+    try {
+        const response = await fetch('/api/company-name-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, name })
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+            return;
+        }
+        let data = await response.json();
+        if (!Array.isArray(data)) {
+            showMsg(data.error || "Erreur côté serveur.", 'error');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+            return;
+        }
+        // Affiche les résultats dans le tableau (même logique que recherche par prompt)
+        const resultsTable = document.getElementById('results');
+        resultsTable.innerHTML = '';
+        data.forEach(item => {
+            const domain = item['Domain']
+                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
+                : '';
+            const linkedin = item['Linkedin']
+                ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+                : '';
+            const companyName = item['Company Name'] && item['Domain']
+                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
+                : (item['Company Name'] || '');
+            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
+            const row = `<tr>
+                <td>${companyName}</td>
+                <td>${domain}</td>
+                <td>${linkedin}</td>
+                <td>${item['Industry'] || ''}</td>
+                <td>${item['Location'] || ''}</td>
+                <td>${item['Headcount'] || ''}</td>
+                <td>${item['Description'] || ''}</td>
+                <td>${contactsCell}</td>
+            </tr>`;
+            resultsTable.innerHTML += row;
+        });
+        showMsg('Recherche par nom terminée.', 'success');
+        loadingBtn.style.display = 'none';
+        loadingBtn.innerHTML = 'Search';
+    } finally {
+        loadingBtn.style.display = 'none';
+    }
+});
