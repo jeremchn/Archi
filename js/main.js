@@ -222,30 +222,32 @@ function showMsg(msg, type = 'success') {
 }
 
 // --- MENU LATERAL ---
-const menuPrompt = document.getElementById('menu-prompt');
-const menuFilter = document.getElementById('menu-filter');
-const menuName = document.getElementById('menu-name');
-const promptBar = document.getElementById('prompt-search-bar');
-const filterBar = document.getElementById('filter-search-bar');
-const nameBar = document.getElementById('name-search-bar');
+document.addEventListener('DOMContentLoaded', function() {
+    const menuPrompt = document.getElementById('menu-prompt');
+    const menuFilter = document.getElementById('menu-filter');
+    const menuName = document.getElementById('menu-name');
+    const promptBar = document.getElementById('prompt-search-bar');
+    const filterBar = document.getElementById('filter-search-bar');
+    const nameBar = document.getElementById('name-search-bar');
 
-function setActiveMenu(menu) {
-    [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
-    menu.classList.add('active');
-    promptBar.classList.remove('active');
-    filterBar.classList.remove('active');
-    nameBar.classList.remove('active');
-    if (menu === menuPrompt) promptBar.classList.add('active');
-    if (menu === menuFilter) filterBar.classList.add('active');
-    if (menu === menuName) nameBar.classList.add('active');
-    // Efface les résultats à chaque changement de mode
-    document.getElementById('results').innerHTML = '';
-}
-menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
-menuFilter.addEventListener('click', () => setActiveMenu(menuFilter));
-menuName.addEventListener('click', () => setActiveMenu(menuName));
-// Par défaut, promptBar est actif
-setActiveMenu(menuPrompt);
+    function setActiveMenu(menu) {
+        [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
+        menu.classList.add('active');
+        promptBar.classList.remove('active');
+        filterBar.classList.remove('active');
+        nameBar.classList.remove('active');
+        if (menu === menuPrompt) promptBar.classList.add('active');
+        if (menu === menuFilter) filterBar.classList.add('active');
+        if (menu === menuName) nameBar.classList.add('active');
+        // Efface les résultats à chaque changement de mode
+        document.getElementById('results').innerHTML = '';
+    }
+    menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
+    menuFilter.addEventListener('click', () => setActiveMenu(menuFilter));
+    menuName.addEventListener('click', () => setActiveMenu(menuName));
+    // Par défaut, promptBar est actif
+    setActiveMenu(menuPrompt);
+});
 
 // --- RECHERCHE PAR FILTRE ---
 const filterIndustry = document.getElementById('filter-industry');
@@ -255,7 +257,6 @@ const filterSearchBtn = document.getElementById('filterSearchBtn');
 
 // Remplir dynamiquement les options de filtres (à partir d'un endpoint ou d'un fichier de données)
 async function populateFilters() {
-    // On suppose un endpoint /api/filters qui retourne { industries: [], locations: [], headcounts: [] }
     try {
         const email = localStorage.getItem('email');
         const res = await fetch(`/api/filters?email=${encodeURIComponent(email)}`);
@@ -270,7 +271,7 @@ async function populateFilters() {
         if (Array.isArray(data.headcounts)) {
             filterHeadcount.innerHTML = '<option value="">Headcount</option>' + data.headcounts.map(h => `<option value="${h}">${h}</option>`).join('');
         }
-    } catch {}
+    } catch (e) {}
 }
 // Remplit les filtres au chargement
 populateFilters();
