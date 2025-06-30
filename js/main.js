@@ -222,7 +222,7 @@ function showMsg(msg, type = 'success') {
 }
 
 // --- MENU LATERAL ---
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Log pour debug
     console.log('[DEBUG] Initialisation du menu latéral');
     const menuPrompt = document.getElementById('menu-prompt');
@@ -251,7 +251,7 @@ function showMsg(msg, type = 'success') {
     menuName.addEventListener('click', () => setActiveMenu(menuName));
     // Par défaut, promptBar est actif
     setActiveMenu(menuPrompt);
-})();
+});
 
 // --- RECHERCHE PAR FILTRE ---
 const filterIndustry = document.getElementById('filter-industry');
