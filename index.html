@@ -260,11 +260,15 @@
                 <div style="font-size:1.35em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">What's your search companies today?</div>
             </div>
         </header>
-        <div class="search-bar" id="prompt-search-bar" style="display:none;">
-            <textarea id="search" placeholder="Search company names, domains, industries..." rows="4" style="resize:vertical;width:100%;min-width:220px;max-width:100%;"></textarea>
-            <div style="display:flex;flex-direction:column;gap:0.7em;justify-content:flex-start;">
-                <button id="searchBtn" class="btn btn-search" style="min-width:120px;background:var(--primary);color:#fff;">Search</button>
+        <!-- Prompt Finder (RAG) search bar placée juste sous le header -->
+        <div class="search-bar" id="prompt-search-bar" style="display:none;flex-direction:column;gap:0.7em;">
+            <label for="search" style="font-weight:600;margin-bottom:0.3em;">Prompt Finder (RAG)</label>
+            <textarea id="search" placeholder="Décris ton besoin (ex : Je cherche des entreprises dans la robotique industrielle en France...)" rows="3" style="resize:vertical;width:100%;min-width:220px;max-width:100%;margin-bottom:0.7em;"></textarea>
+            <div style="display:flex;flex-direction:row;gap:0.7em;align-items:center;">
+                <button id="searchBtn" class="btn btn-search" style="min-width:120px;background:var(--primary);color:#fff;">Rechercher</button>
                 <button id="resetBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
+                <button id="saveSearchBtn" class="btn btn-success" style="min-width:160px;display:none;">Save all companies</button>
+                <span id="loadingBtn" style="display:none;margin-left:1em;"></span>
             </div>
         </div>
         <div class="filter-bar" id="filter-search-bar" style="flex-direction:column;align-items:flex-start;gap:1.2em;">

@@ -2,11 +2,14 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     const query = document.getElementById('search').value;
     if (!query) return alert("Please enter your need in the search bar.");
     if (!email) return alert("Veuillez vous connecter.");
-
+    // Masque l'en-tête et le bouton save avant la recherche
+    const thead = document.getElementById('results-thead');
+    if (thead) thead.style.display = 'none';
+    saveSearchBtn.style.display = 'none';
+    resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-
     try {
         // Appel au backend pour la recherche sémantique
         const response = await fetch('/api/semantic-search', {
@@ -352,6 +355,11 @@ filterSearchBtn.addEventListener('click', async function() {
     const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
     const email = localStorage.getItem('email');
     if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    // Masque l'en-tête et le bouton save avant la recherche
+    const thead = document.getElementById('results-thead');
+    if (thead) thead.style.display = 'none';
+    saveSearchBtn.style.display = 'none';
+    resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
@@ -412,6 +420,11 @@ nameSearchBtn.addEventListener('click', async function() {
     const email = localStorage.getItem('email');
     if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
     if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    // Masque l'en-tête et le bouton save avant la recherche
+    const thead = document.getElementById('results-thead');
+    if (thead) thead.style.display = 'none';
+    saveSearchBtn.style.display = 'none';
+    resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
