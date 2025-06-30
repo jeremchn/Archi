@@ -61,7 +61,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
             return contactsB - contactsA;
         });
         // Stocke les résultats dans le localStorage pour accès depuis details.html
-        localStorage.setItem('searchResults', JSON.stringify(data));
+        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
         // Affiche les résultats dans le tableau
         renderResultsTable(data);
         showMsg('Recherche terminée avec succès.', 'success');
@@ -228,7 +228,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuPrompt) promptBar.classList.add('active');
         if (menu === menuFilter) filterBar.classList.add('active');
         if (menu === menuName) nameBar.classList.add('active');
-        document.getElementById('results').innerHTML = '';
+        // Affiche les résultats du menu courant, sinon masque tout
+        const key = getCurrentMenuKey();
+        const data = JSON.parse(localStorage.getItem(key) || '[]');
+        if (Array.isArray(data) && data.length > 0) {
+            renderResultsTable(data);
+        } else {
+            document.getElementById('results').innerHTML = '';
+            const thead = document.getElementById('results-thead');
+            if (thead) thead.style.display = 'none';
+            if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+        }
     }
     // --- Ajout : activer la section selon le hash de l'URL au chargement et lors d'un changement de hash ---
     function activateFromHash() {
@@ -402,6 +412,7 @@ filterSearchBtn.addEventListener('click', async function() {
                 data[i].contacts = 0;
             }
         }
+        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
         renderResultsTable(data);
         showMsg('Recherche filtrée terminée.', 'success');
         loadingBtn.style.display = 'none';
@@ -467,6 +478,7 @@ nameSearchBtn.addEventListener('click', async function() {
                 data[i].contacts = 0;
             }
         }
+        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
         renderResultsTable(data);
         showMsg('Recherche par nom terminée.', 'success');
         loadingBtn.style.display = 'none';
@@ -899,3 +911,62 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resultsThead) resultsThead.style.display = 'none';
     if (saveSearchBtn) saveSearchBtn.style.display = 'none';
 });
+
+// --- Gestion des résultats par menu ---
+const MENU_KEYS = {
+    '#prompt': 'searchResults_prompt',
+    '#filter': 'searchResults_filter',
+    '#domain': 'searchResults_domain'
+};
+function getCurrentMenuKey() {
+    const hash = window.location.hash || '#prompt';
+    return MENU_KEYS[hash] || MENU_KEYS['#prompt'];
+}
+
+// --- Modification de chaque recherche pour stocker dans le bon menu ---
+document.getElementById('searchBtn').addEventListener('click', async function() {
+    // ...existing code...
+    // Stocke les résultats dans le localStorage pour accès depuis details.html
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    // ...existing code...
+    renderResultsTable(data);
+    // ...existing code...
+});
+
+filterSearchBtn.addEventListener('click', async function() {
+    // ...existing code...
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    renderResultsTable(data);
+    // ...existing code...
+});
+
+nameSearchBtn.addEventListener('click', async function() {
+    // ...existing code...
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    renderResultsTable(data);
+    // ...existing code...
+});
+
+// --- Affichage conditionnel du tableau lors du changement de menu ---
+function setActiveMenu(menu) {
+    [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
+    menu.classList.add('active');
+    promptBar.classList.remove('active');
+    filterBar.classList.remove('active');
+    nameBar.classList.remove('active');
+    if (menu === menuPrompt) promptBar.classList.add('active');
+    if (menu === menuFilter) filterBar.classList.add('active');
+    if (menu === menuName) nameBar.classList.add('active');
+    // Affiche les résultats du menu courant, sinon masque tout
+    const key = getCurrentMenuKey();
+    const data = JSON.parse(localStorage.getItem(key) || '[]');
+    if (Array.isArray(data) && data.length > 0) {
+        renderResultsTable(data);
+    } else {
+        document.getElementById('results').innerHTML = '';
+        const thead = document.getElementById('results-thead');
+        if (thead) thead.style.display = 'none';
+        if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+    }
+}
+// ...existing code...
