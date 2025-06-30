@@ -96,6 +96,7 @@ async function renderContacts(contacts, icebreakers = null) {
             <td class="linkedin-info-cell"></td>
             <td class="icebreaker-cell">
                 ${ice ? ice : (canGenerate ? `<button class="btn btn-icebreaker" data-idx="${idx}">Generate</button>` : '')}
+                <button class="btn btn-save-lead" data-idx="${idx}" style="background:var(--success);color:#fff;margin-left:0.5em;">Save lead</button>
             </td>
         </tr>
         `;
@@ -139,6 +140,34 @@ async function renderContacts(contacts, icebreakers = null) {
                 }
             } catch {
                 btn.textContent = 'Error';
+            }
+        };
+    });
+    // Ajout des listeners sur les boutons Save lead
+    document.querySelectorAll('.btn-save-lead').forEach(btn => {
+        btn.onclick = function() {
+            const idx = parseInt(btn.getAttribute('data-idx'));
+            const contact = contacts[idx];
+            let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
+            const listNames = Object.keys(leadsLists);
+            let list = null;
+            if (listNames.length === 0) {
+                list = prompt('Nom de la nouvelle liste de leads :');
+                if (!list) return;
+                leadsLists[list] = [];
+            } else {
+                let choix = prompt('Entrer le nom d\'une nouvelle liste ou choisir parmi :\n' + listNames.join(', '));
+                if (!choix) return;
+                list = choix;
+                if (!leadsLists[list]) leadsLists[list] = [];
+            }
+            // Ajoute le contact à la liste (évite les doublons par email)
+            if (!leadsLists[list].some(l => l.email === contact.email)) {
+                leadsLists[list].push(contact);
+                localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                alert('Lead ajouté à la liste ' + list);
+            } else {
+                alert('Ce lead est déjà dans la liste ' + list);
             }
         };
     });

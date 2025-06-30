@@ -592,3 +592,10 @@ function renderResultsTable(data) {
 
 // Au chargement, restaurer les recherches sauvegardées
 loadSavedSearches();
+
+const menuContacts = document.getElementById('menu-contacts');
+if (menuContacts) {
+    menuContacts.onclick = function() {
+        window.location.href = 'contacts.html';
+    };
+}

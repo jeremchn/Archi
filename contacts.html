@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leads Lists</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #f7fafc; color: #222; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
+        .container { max-width: 800px; margin: 2em auto; padding: 2em; background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(26,54,93,0.08); }
+        h1 { color: #1a365d; }
+        table { width: 100%; border-collapse: collapse; margin-top: 2em; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(26,54,93,0.04); }
+        th, td { border: 1px solid #e2e8f0; padding: 13px 10px; text-align: left; font-size: 1em; }
+        th { background: #1a365d; color: #fff; font-weight: 600; }
+        tr:hover td { background: #eaf6ff; transition: background 0.2s; cursor: pointer; }
+        .btn { background: #1a365d; color: #fff; border: none; border-radius: 8px; padding: 0.5em 1.2em; font-size: 1.05em; font-weight: 500; cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; box-shadow: 0 1px 4px rgba(26,54,93,0.08); }
+        .btn:hover, .btn:focus { background: #2ecc71; color: #fff; transform: translateY(-2px) scale(1.03); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Leads Lists</h1>
+        <table id="leads-table">
+            <thead>
+                <tr><th>List Name</th><th>Number of Leads</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div id="leads-details" style="margin-top:2em;"></div>
+    </div>
+    <script>
+    function renderLeadsTable() {
+        const leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
+        const tbody = document.querySelector('#leads-table tbody');
+        tbody.innerHTML = '';
+        Object.entries(leadsLists).forEach(([name, leads]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${name}</td><td>${leads.length}</td>`;
+            tr.onclick = () => renderLeadsDetails(name, leads);
+            tbody.appendChild(tr);
+        });
+    }
+    function renderLeadsDetails(name, leads) {
+        const div = document.getElementById('leads-details');
+        if (!leads || leads.length === 0) {
+            div.innerHTML = `<h2>${name}</h2><p>No leads in this list.</p>`;
+            return;
+        }
+        let html = `<h2>${name}</h2><table style='margin-top:1em;'><thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th></tr></thead><tbody>`;
+        leads.forEach(l => {
+            html += `<tr><td>${l.email||''}</td><td>${l.first_name||''}</td><td>${l.last_name||''}</td><td>${l.position||''}</td><td>${l.company||''}</td><td>${l.linkedin_url?`<a href='${l.linkedin_url}' target='_blank'>LinkedIn</a>`:''}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        div.innerHTML = html;
+    }
+    renderLeadsTable();
+    </script>
+</body>
+</html>
