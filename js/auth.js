@@ -17,8 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 localStorage.setItem('email', email);
-                msg.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                setTimeout(() => { window.location.href = '/index.html'; }, 1000);
+                window.location.href = '/welcome.html';
             } else {
                 msg.innerHTML = `<div class="error">${data.error || 'Login failed.'}</div>`;
             }
