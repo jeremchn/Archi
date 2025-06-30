@@ -378,6 +378,8 @@ nameSearchBtn.addEventListener('click', async function() {
 // --- SAUVEGARDE DE RECHERCHE ---
 const saveSearchBtn = document.getElementById('saveSearchBtn');
 const savedSearchesList = document.getElementById('saved-searches');
+const mainContainer = document.querySelector('.container');
+const resultsTable = document.getElementById('results');
 
 function getSavedSearchesKey() {
     const email = localStorage.getItem('email') || '';
@@ -390,27 +392,58 @@ function loadSavedSearches() {
     try {
         searches = JSON.parse(localStorage.getItem(key)) || [];
     } catch {}
-    renderSavedSearches(searches);
+    window._allSavedSearches = searches;
 }
 
-function renderSavedSearches(searches) {
-    if (!savedSearchesList) return;
-    savedSearchesList.innerHTML = '';
+// Affiche la liste des recherches sauvegardées dans la section principale
+function showSavedSearchesTable() {
+    loadSavedSearches();
+    const searches = window._allSavedSearches || [];
+    let html = '<h2>Mes recherches sauvegardées</h2>';
     if (!searches.length) {
-        savedSearchesList.innerHTML = '<li style="color:#888;font-style:italic;">Aucune recherche</li>';
-        return;
+        html += '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
+    } else {
+        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th></tr></thead><tbody>';
+        searches.forEach((s, idx) => {
+            html += `<tr><td>${s.name || 'Sans nom'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>Voir</button></td></tr>`;
+        });
+        html += '</tbody></table>';
     }
-    searches.forEach((s, idx) => {
-        const li = document.createElement('li');
-        li.textContent = s.name + ' (' + (s.data.length) + ' entreprises)';
-        li.style.cursor = 'pointer';
-        li.onclick = () => {
-            // Affiche la liste sauvegardée dans le tableau
-            renderResultsTable(s.data);
-            showMsg('Recherche restaurée : ' + s.name, 'success');
+    mainContainer.innerHTML = html + '<div id="savedResults"></div>';
+    // Ajoute les listeners sur les boutons "Voir"
+    document.querySelectorAll('button[data-idx]').forEach(btn => {
+        btn.onclick = function() {
+            const idx = parseInt(this.getAttribute('data-idx'));
+            showSavedListDetails(idx);
         };
-        savedSearchesList.appendChild(li);
     });
+}
+
+// Affiche le tableau compact de toutes les entreprises d'une liste sauvegardée
+function showSavedListDetails(idx) {
+    const searches = window._allSavedSearches || [];
+    if (!searches[idx]) return;
+    const data = searches[idx].data;
+    let html = `<h3>${searches[idx].name} (${data.length} entreprises)</h3>`;
+    if (!data.length) {
+        html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
+    } else {
+        html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
+        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
+        data.forEach(item => {
+            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td><td>${item['contacts']||0}</td></tr>`;
+        });
+        html += '</tbody></table></div>';
+    }
+    document.getElementById('savedResults').innerHTML = html;
+}
+
+// Remplace l'affichage du menu sauvegardé par un simple bouton/section
+const menuSaved = document.getElementById('menu-saved');
+if (menuSaved) {
+    menuSaved.onclick = function() {
+        showSavedSearchesTable();
+    };
 }
 
 function saveCurrentSearch(results) {
@@ -421,14 +454,16 @@ function saveCurrentSearch(results) {
     try {
         searches = JSON.parse(localStorage.getItem(key)) || [];
     } catch {}
-    searches.push({ name, data: results });
+    const date = new Date().toLocaleString();
+    searches.push({ name, data: results, date });
     localStorage.setItem(key, JSON.stringify(searches));
-    renderSavedSearches(searches);
+    window._allSavedSearches = searches;
     showMsg('Recherche sauvegardée !', 'success');
 }
 
 function renderResultsTable(data) {
-    const resultsTable = document.getElementById('results');
+    // Stocke les résultats pour details.html
+    localStorage.setItem('searchResults', JSON.stringify(data));
     resultsTable.innerHTML = '';
     data.forEach(item => {
         const domain = item['Domain']
@@ -453,27 +488,12 @@ function renderResultsTable(data) {
         </tr>`;
         resultsTable.innerHTML += row;
     });
-    // Affiche le bouton sauvegarder si résultats
     saveSearchBtn.style.display = (data.length > 0) ? 'inline-block' : 'none';
-    // Stocke temporairement la dernière recherche affichée
     window._lastResults = data;
-}
-
-if (saveSearchBtn) {
-    saveSearchBtn.addEventListener('click', function() {
-        if (window._lastResults && Array.isArray(window._lastResults) && window._lastResults.length) {
-            saveCurrentSearch(window._lastResults);
-        } else {
-            showMsg('Aucun résultat à sauvegarder.', 'error');
-        }
-    });
 }
 
 // Remplace tous les appels à l'affichage du tableau par renderResultsTable
 // (dans les callbacks de recherche par prompt, filtre, nom, et restauration)
-
-// Après chaque recherche, remplacer l'affichage du tableau par :
-// renderResultsTable(data);
 
 // Au chargement, restaurer les recherches sauvegardées
 loadSavedSearches();
