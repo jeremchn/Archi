@@ -222,14 +222,19 @@ function showMsg(msg, type = 'success') {
 }
 
 // --- MENU LATERAL ---
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
+    // Log pour debug
+    console.log('[DEBUG] Initialisation du menu latéral');
     const menuPrompt = document.getElementById('menu-prompt');
     const menuFilter = document.getElementById('menu-filter');
     const menuName = document.getElementById('menu-name');
     const promptBar = document.getElementById('prompt-search-bar');
     const filterBar = document.getElementById('filter-search-bar');
     const nameBar = document.getElementById('name-search-bar');
-
+    if (!menuPrompt || !menuFilter || !menuName || !promptBar || !filterBar || !nameBar) {
+        console.error('[DEBUG] Un ou plusieurs éléments du menu latéral sont introuvables');
+        return;
+    }
     function setActiveMenu(menu) {
         [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
         menu.classList.add('active');
@@ -239,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuPrompt) promptBar.classList.add('active');
         if (menu === menuFilter) filterBar.classList.add('active');
         if (menu === menuName) nameBar.classList.add('active');
-        // Efface les résultats à chaque changement de mode
         document.getElementById('results').innerHTML = '';
     }
     menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
@@ -247,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     menuName.addEventListener('click', () => setActiveMenu(menuName));
     // Par défaut, promptBar est actif
     setActiveMenu(menuPrompt);
-});
+})();
 
 // --- RECHERCHE PAR FILTRE ---
 const filterIndustry = document.getElementById('filter-industry');
