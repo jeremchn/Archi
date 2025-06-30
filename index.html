@@ -36,6 +36,7 @@
             flex-direction: column;
             gap: 2em;
             min-width: 210px;
+            position: relative;
         }
         .menu h2 {
             font-size: 1.15em;
@@ -228,7 +229,7 @@
 </head>
 <body>
 <div class="layout">
-    <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;">
+    <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
         <nav>
             <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
                 <li id="menu-prompt" class="menu-item active" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
@@ -247,17 +248,9 @@
                     <span style="font-size:1.2em;">👤</span> <span>Contacts</span>
                 </li>
                 <li style="flex:1 1 auto;"></li>
-                <li id="menu-logout" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-bottom:0.5em;align-self:flex-end;justify-content:flex-start;">
-                    <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:100%;" onclick="window.location.href='auth.html'">Logout</button>
-                </li>
             </ul>
         </nav>
-        <div style="margin-top:auto;">
-            <h2 style="font-size:1.08em;color:#888;margin:0 0 0.7em 0;font-weight:500;">Contacts / Exports</h2>
-            <ul id="contacts-exports" style="list-style:none;padding:0;margin:0;">
-                <li style="color:#888;font-style:italic;">Aucun contact</li>
-            </ul>
-        </div>
+        <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
     </aside>
     <div class="container">
         <header style="display:flex;align-items:center;justify-content:center;margin-bottom:2em;">
@@ -265,9 +258,6 @@
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4bb.svg" alt="Logo" style="height:48px;width:48px;vertical-align:middle;margin-bottom:0.5em;">
                 <span id="dynamic-title" style="font-size:2.1em;font-weight:800;color:var(--primary);letter-spacing:1px;">Lydi search</span>
                 <div style="font-size:1.35em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">What's your search companies today?</div>
-            </div>
-            <div style="position:absolute;left:2em;bottom:1.5em;">
-                <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;" onclick="window.location.href='auth.html'">Logout</button>
             </div>
         </header>
         <div class="search-bar" id="prompt-search-bar">
