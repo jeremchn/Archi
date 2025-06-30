@@ -71,7 +71,11 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
 
 document.getElementById('resetBtn').addEventListener('click', function() {
     document.getElementById('search').value = '';
-    document.getElementById('results').innerHTML = '';
+    resultsTable.innerHTML = '';
+    if (window.location.hash === '#filter') {
+        localStorage.removeItem('searchResults');
+    }
+    // Ajoute ici d'autres sections si besoin (prompt, name...)
 });
 
 const loadDataBtn = document.getElementById('loadDataBtn');
@@ -695,5 +699,115 @@ function openSaveCompanyModal(company) {
         showSaveLeadModal(company, 'company');
     } else {
         alert('Save modal not implemented');
+    }
+}
+
+// Ajoute le handler pour le menu Contacts (navigation vers contacts.html)
+const menuContacts = document.getElementById('menu-contacts');
+if (menuContacts) {
+    menuContacts.onclick = function() {
+        window.location.href = 'contacts.html';
+    };
+}
+
+// Ajoute une version locale du mini-modal pour Save company si showSaveLeadModal n'existe pas
+function showSaveLeadModal(company, type) {
+    // type = 'company' ou 'lead'
+    let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
+    const listNames = Object.keys(leadsLists);
+    let modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.25)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '9999';
+    modal.innerHTML = `
+        <div style="background:#fff;padding:2em 2em 1.5em 2em;border-radius:14px;min-width:320px;box-shadow:0 4px 32px rgba(0,0,0,0.18);text-align:center;">
+            <div style="font-size:1.15em;font-weight:600;margin-bottom:1.2em;">Save company</div>
+            <button id="modal-new-list" style="background:#2ecc71;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0.7em 1em 0;cursor:pointer;">New list</button>
+            <button id="modal-add-list" style="background:#1a365d;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0 1em 0;cursor:pointer;">Add to a list</button>
+            <div id="modal-content"></div>
+            <button id="modal-cancel" style="margin-top:1.2em;background:#eee;color:#222;border:none;border-radius:7px;padding:0.5em 1.2em;font-size:1em;cursor:pointer;">Cancel</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.querySelector('#modal-cancel').onclick = () => modal.remove();
+    modal.querySelector('#modal-new-list').onclick = () => {
+        const content = modal.querySelector('#modal-content');
+        content.innerHTML = `<input id="modal-list-name" type="text" placeholder="List name..." style="width:90%;padding:0.6em 1em;font-size:1em;border-radius:7px;border:1px solid #e2e8f0;"> <button id="modal-create-list" style="background:#2ecc71;color:#fff;border:none;border-radius:7px;padding:0.5em 1.2em;font-size:1em;margin-left:0.5em;cursor:pointer;">Create</button>`;
+        content.querySelector('#modal-create-list').onclick = () => {
+            const name = content.querySelector('#modal-list-name').value.trim();
+            if (!name) return alert('Enter a list name');
+            if (!leadsLists[name]) leadsLists[name] = [];
+            if (!leadsLists[name].some(l => l.domain === company.Domain)) {
+                leadsLists[name].push({
+                    company: company['Company Name'] || '',
+                    domain: company['Domain'] || '',
+                    linkedin_url: company['Linkedin'] || '',
+                    industry: company['Industry'] || '',
+                    location: company['Location'] || '',
+                    headcount: company['Headcount'] || '',
+                    description: company['Description'] || ''
+                });
+                localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                alert('Company saved in list ' + name);
+            } else {
+                alert('Cette company est déjà dans la liste ' + name);
+            }
+            modal.remove();
+        };
+    };
+    modal.querySelector('#modal-add-list').onclick = () => {
+        const content = modal.querySelector('#modal-content');
+        if (listNames.length === 0) {
+            content.innerHTML = '<div style="color:#888;margin-top:1em;">No existing list.</div>';
+            return;
+        }
+        content.innerHTML = '<div style="margin-bottom:0.7em;">Choose a list:</div>' + listNames.map(n => `<button class="modal-list-btn" data-list="${n}" style="display:block;width:100%;margin:0.3em 0;padding:0.6em 0.7em;background:#f3f7fa;border:none;border-radius:7px;font-size:1em;cursor:pointer;text-align:left;">${n}</button>`).join('');
+        content.querySelectorAll('.modal-list-btn').forEach(b => {
+            b.onclick = () => {
+                const list = b.getAttribute('data-list');
+                if (!leadsLists[list].some(l => l.domain === company.Domain)) {
+                    leadsLists[list].push({
+                        company: company['Company Name'] || '',
+                        domain: company['Domain'] || '',
+                        linkedin_url: company['Linkedin'] || '',
+                        industry: company['Industry'] || '',
+                        location: company['Location'] || '',
+                        headcount: company['Headcount'] || '',
+                        description: company['Description'] || ''
+                    });
+                    localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
+                    alert('Company saved in list ' + list);
+                } else {
+                    alert('Cette company est déjà dans la liste ' + list);
+                }
+                modal.remove();
+            };
+        });
+    };
+}
+
+// Affiche les résultats stockés à l'ouverture de la section #filter
+window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#filter') {
+        const data = JSON.parse(localStorage.getItem('searchResults') || '[]');
+        if (Array.isArray(data) && data.length > 0) {
+            renderResultsTable(data);
+        } else {
+            resultsTable.innerHTML = '';
+        }
+    }
+});
+// Affiche aussi au chargement initial si #filter
+if (window.location.hash === '#filter') {
+    const data = JSON.parse(localStorage.getItem('searchResults') || '[]');
+    if (Array.isArray(data) && data.length > 0) {
+        renderResultsTable(data);
     }
 }
