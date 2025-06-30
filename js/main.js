@@ -5,7 +5,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
-    saveSearchBtn.style.display = 'none';
+    if (saveSearchBtn) saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
@@ -730,6 +730,7 @@ function renderResultsTable(data) {
     resultsTable.innerHTML = '';
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = (data.length > 0) ? '' : 'none';
+    if (saveSearchBtn) saveSearchBtn.style.display = (data.length > 0) ? 'inline-block' : 'none';
     data.forEach((item, idx) => {
         const domain = item['Domain']
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
@@ -767,8 +768,6 @@ function renderResultsTable(data) {
             };
         });
     }, 0);
-    saveSearchBtn.style.display = (data.length > 0) ? 'inline-block' : 'none';
-    window._lastResults = data;
 }
 
 // Fonction pour ouvrir le mini-modal UX pour sauvegarder une entreprise
@@ -891,3 +890,12 @@ if (window.location.hash === '#filter') {
         renderResultsTable(data);
     }
 }
+
+// Masquer le thead et le bouton "Save all companies" au chargement initial
+// (On ne fait ça qu'une seule fois, au tout début)
+document.addEventListener('DOMContentLoaded', function() {
+    var resultsThead = document.getElementById('results-thead');
+    var saveSearchBtn = document.getElementById('saveSearchBtn');
+    if (resultsThead) resultsThead.style.display = 'none';
+    if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+});
