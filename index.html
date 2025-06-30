@@ -29,13 +29,13 @@
             min-height: 100vh;
         }
         aside.menu {
-            width: 250px;
             background: #f3f7fa;
-            border-right: 1.5px solid var(--border);
-            padding: 2em 1.2em 2em 1.2em;
+            border-right: 1.5px solid #e2e8f0;
+            padding: 2em 1.2em;
             display: flex;
             flex-direction: column;
             gap: 2em;
+            min-width: 210px;
         }
         .menu h2 {
             font-size: 1.15em;
@@ -224,24 +224,26 @@
 </head>
 <body>
 <div class="layout">
-    <aside class="menu">
-        <div>
-            <h2>Type de recherche</h2>
-            <ul>
-                <li id="menu-prompt" class="active">Recherche par prompt</li>
-                <li id="menu-filter">Recherche par filtre</li>
-                <li id="menu-name">Recherche par nom</li>
+    <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;">
+        <nav>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
+                <li id="menu-prompt" class="menu-item active" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">🔎</span> <span>Recherche par prompt</span>
+                </li>
+                <li id="menu-filter" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">🧩</span> <span>Recherche par filtre</span>
+                </li>
+                <li id="menu-name" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">🏷️</span> <span>Recherche par nom</span>
+                </li>
+                <li id="menu-saved" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-top:1.5em;font-weight:600;color:#1a365d;">
+                    <span style="font-size:1.2em;">💾</span> <span>Recherches sauvegardées</span>
+                </li>
             </ul>
-        </div>
-        <div>
-            <h2>Recherches sauvegardées</h2>
-            <ul>
-                <li id="menu-saved" style="cursor:pointer;color:var(--primary);font-weight:500;">Recherches sauvegardées</li>
-            </ul>
-        </div>
-        <div>
-            <h2>Contacts / Exports</h2>
-            <ul id="contacts-exports">
+        </nav>
+        <div style="margin-top:auto;">
+            <h2 style="font-size:1.08em;color:#888;margin:0 0 0.7em 0;font-weight:500;">Contacts / Exports</h2>
+            <ul id="contacts-exports" style="list-style:none;padding:0;margin:0;">
                 <li style="color:#888;font-style:italic;">Aucun contact</li>
             </ul>
         </div>
