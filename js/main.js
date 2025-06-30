@@ -527,7 +527,7 @@ function showSavedListDetails(idx) {
 }
 
 // Remplace l'affichage du menu sauvegardé par un simple bouton/section
-const menuSaved = document.getElementById('menu-saved');
+let menuSaved = document.getElementById('menu-saved');
 if (menuSaved) {
     menuSaved.onclick = function() {
         window.location.href = 'saved.html';
@@ -600,7 +600,7 @@ function showSavedListDetails(idx) {
 }
 
 // Remplace l'affichage du menu sauvegardé par un simple bouton/section
-const menuSaved = document.getElementById('menu-saved');
+let menuSaved = document.getElementById('menu-saved');
 if (menuSaved) {
     menuSaved.onclick = function() {
         window.location.href = 'saved.html';
