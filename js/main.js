@@ -556,6 +556,8 @@ function renderResultsTable(data) {
     // Stocke les résultats pour details.html
     localStorage.setItem('searchResults', JSON.stringify(data));
     resultsTable.innerHTML = '';
+    const thead = document.getElementById('results-thead');
+    if (thead) thead.style.display = (data.length > 0) ? '' : 'none';
     data.forEach(item => {
         const domain = item['Domain']
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
