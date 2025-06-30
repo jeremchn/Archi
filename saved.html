@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherches sauvegardées</title>
+    <style>
+        body { background: #f7fafc; color: #222; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
+        .container { max-width: 900px; margin: 2em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(26,54,93,0.08); padding: 2em; }
+        h1 { color: #1a365d; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5em; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(26,54,93,0.04); }
+        th, td { border: 1px solid #e2e8f0; padding: 12px 10px; text-align: left; font-size: 1em; }
+        th { background: #1a365d; color: #fff; font-weight: 600; }
+        tr:hover td { background: #eaf6ff; cursor: pointer; }
+        .back-btn { background: #e2e8f0; color: #222; border: none; border-radius: 8px; padding: 0.5em 1.2em; font-size: 1em; cursor: pointer; margin-bottom: 1em; }
+        .back-btn:hover { background: #bfc9d1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="back-btn" onclick="window.location.href='index.html'">&larr; Retour</button>
+        <h1>Mes recherches sauvegardées</h1>
+        <div id="listsTable"></div>
+        <div id="listDetails"></div>
+    </div>
+    <script src="js/saved.js"></script>
+</body>
+</html>

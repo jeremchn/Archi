@@ -442,8 +442,17 @@ function showSavedListDetails(idx) {
 const menuSaved = document.getElementById('menu-saved');
 if (menuSaved) {
     menuSaved.onclick = function() {
-        showSavedSearchesTable();
+        window.location.href = 'saved.html';
     };
+}
+if (saveSearchBtn) {
+    saveSearchBtn.addEventListener('click', function() {
+        if (window._lastResults && Array.isArray(window._lastResults) && window._lastResults.length) {
+            saveCurrentSearch(window._lastResults);
+        } else {
+            showMsg('Aucun résultat à sauvegarder.', 'error');
+        }
+    });
 }
 
 function saveCurrentSearch(results) {
