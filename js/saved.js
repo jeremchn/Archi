@@ -22,18 +22,26 @@ function renderListsTable() {
         listsTable.innerHTML = '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
         return;
     }
-    let html = '<table><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th><th>Exporter</th><th>Supprimer</th></tr></thead><tbody>';
     searches.forEach((s, idx) => {
-        html += `<tr data-idx='${idx}'><td>${s.name || 'Sans nom'}</td><td>${s.data.length}</td><td>${s.date || ''}</td></tr>`;
+        html += `<tr data-idx='${idx}'>
+            <td>${s.name || 'Sans nom'}</td>
+            <td>${s.data.length}</td>
+            <td>${s.date || ''}</td>
+            <td><button class='btn btn-gray' data-action='voir' data-idx='${idx}'>Voir</button></td>
+            <td><button class='btn btn-gray' data-action='export' data-idx='${idx}'>CSV</button></td>
+            <td><button class='btn btn-gray' data-action='delete' data-idx='${idx}'>🗑️</button></td>
+        </tr>`;
     });
     html += '</tbody></table>';
     listsTable.innerHTML = html;
-    // Ajoute le click sur chaque ligne
-    listsTable.querySelectorAll('tr[data-idx]').forEach(tr => {
-        tr.onclick = function() {
-            const idx = parseInt(this.getAttribute('data-idx'));
-            showListDetails(idx);
-        };
+    // Ajoute les actions
+    listsTable.querySelectorAll('button[data-action]').forEach(btn => {
+        const idx = parseInt(btn.getAttribute('data-idx'));
+        const action = btn.getAttribute('data-action');
+        if (action === 'voir') btn.onclick = () => showListDetails(idx);
+        if (action === 'delete') btn.onclick = () => deleteList(idx);
+        if (action === 'export') btn.onclick = () => exportListCSV(idx);
     });
 }
 
@@ -53,6 +61,39 @@ function showListDetails(idx) {
         html += '</tbody></table></div>';
     }
     document.getElementById('listDetails').innerHTML = html;
+}
+
+function deleteList(idx) {
+    if (!confirm('Supprimer cette liste ?')) return;
+    const key = getSavedSearchesKey();
+    let searches = loadSavedSearches();
+    searches.splice(idx, 1);
+    localStorage.setItem(key, JSON.stringify(searches));
+    renderListsTable();
+    document.getElementById('listDetails').innerHTML = '';
+}
+
+function exportListCSV(idx) {
+    const searches = loadSavedSearches();
+    if (!searches[idx]) return;
+    const data = searches[idx].data;
+    if (!data.length) return;
+    // Génère le CSV
+    const headers = ['Company Name','Domain','Linkedin','Industry','Location','Headcount','Description','contacts'];
+    const csvRows = [headers.join(',')];
+    data.forEach(item => {
+        const row = headers.map(h => '"' + String(item[h]||'').replace(/"/g,'""') + '"').join(',');
+        csvRows.push(row);
+    });
+    const csvContent = csvRows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (searches[idx].name || 'liste') + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
 }
 
 // Redirection si non connecté
