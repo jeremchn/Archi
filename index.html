@@ -260,8 +260,8 @@
                 <div style="font-size:1.35em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">What's your search companies today?</div>
             </div>
         </header>
-        <!-- Prompt Finder (RAG) search bar placée juste sous le header -->
-        <div class="search-bar" id="prompt-search-bar" style="display:none;flex-direction:column;gap:0.7em;">
+        <!-- Prompt Finder (RAG) search bar placée juste sous le header, unique et cohérente -->
+        <div class="search-bar active" id="prompt-search-bar" style="flex-direction:column;gap:0.7em;">
             <label for="search" style="font-weight:600;margin-bottom:0.3em;">Prompt Finder (RAG)</label>
             <textarea id="search" placeholder="Décris ton besoin (ex : Je cherche des entreprises dans la robotique industrielle en France...)" rows="3" style="resize:vertical;width:100%;min-width:220px;max-width:100%;margin-bottom:0.7em;"></textarea>
             <div style="display:flex;flex-direction:row;gap:0.7em;align-items:center;">
@@ -296,6 +296,7 @@
                 Searching...
             </button>
         </div>
+        <!-- TABLEAU DE RÉSULTATS, THEAD MASQUÉ PAR DÉFAUT -->
         <table style="margin-top:1.5em;">
             <thead id="results-thead" style="display:none;">
                 <tr>
@@ -307,7 +308,7 @@
                     <th>Headcount</th>
                     <th>Description</th>
                     <th>Contacts</th>
-                    <th>Save</th> <!-- Nouvelle colonne Save -->
+                    <th>Save</th>
                 </tr>
             </thead>
             <tbody id="results"></tbody>
