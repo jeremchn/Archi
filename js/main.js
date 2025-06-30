@@ -223,16 +223,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuName) nameBar.classList.add('active');
         document.getElementById('results').innerHTML = '';
     }
-    // --- Ajout : activer la section selon le hash de l'URL ---
-    let hash = window.location.hash || '#prompt';
-    if (hash === '#prompt') setActiveMenu(menuPrompt);
-    else if (hash === '#domain') setActiveMenu(menuName);
-    else if (hash === '#filter') setActiveMenu(menuFilter);
-    else setActiveMenu(menuPrompt);
+    // --- Ajout : activer la section selon le hash de l'URL au chargement et lors d'un changement de hash ---
+    function activateFromHash() {
+        let hash = window.location.hash || '#prompt';
+        if (hash === '#prompt') setActiveMenu(menuPrompt);
+        else if (hash === '#domain') setActiveMenu(menuName);
+        else if (hash === '#filter') setActiveMenu(menuFilter);
+        else setActiveMenu(menuPrompt);
+    }
+    activateFromHash();
+    window.addEventListener('hashchange', activateFromHash);
     // ---
-    menuPrompt.addEventListener('click', () => setActiveMenu(menuPrompt));
-    menuFilter.addEventListener('click', () => setActiveMenu(menuFilter));
-    menuName.addEventListener('click', () => setActiveMenu(menuName));
+    menuPrompt.addEventListener('click', () => { setActiveMenu(menuPrompt); window.location.hash = '#prompt'; });
+    menuFilter.addEventListener('click', () => { setActiveMenu(menuFilter); window.location.hash = '#filter'; });
+    menuName.addEventListener('click', () => { setActiveMenu(menuName); window.location.hash = '#domain'; });
     // Par défaut, promptBar est actif
     setActiveMenu(menuPrompt);
 });
