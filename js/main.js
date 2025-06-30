@@ -180,26 +180,28 @@ if (localStorage.getItem('email')) {
 }
 
 // Load Data doit utiliser l'email pour charger les bonnes données
-loadDataBtn.addEventListener('click', async function() {
-    loadDataBtn.disabled = true;
-    dataStatus.textContent = 'Loading data...';
-    try {
-        const email = localStorage.getItem('email');
-        const res = await fetch(`/api/load-data/${email}`);
-        const result = await res.json();
-        if (Array.isArray(result) || result.success) {
-            dataStatus.textContent = `Data loaded`;
-            searchBtn.disabled = false;
-            resetBtn.disabled = false;
-        } else {
+if (loadDataBtn && dataStatus) {
+    loadDataBtn.addEventListener('click', async function() {
+        loadDataBtn.disabled = true;
+        dataStatus.textContent = 'Loading data...';
+        try {
+            const email = localStorage.getItem('email');
+            const res = await fetch(`/api/load-data/${email}`);
+            const result = await res.json();
+            if (Array.isArray(result) || result.success) {
+                dataStatus.textContent = `Data loaded`;
+                searchBtn.disabled = false;
+                resetBtn.disabled = false;
+            } else {
+                dataStatus.textContent = 'Failed to load data.';
+                loadDataBtn.disabled = false;
+            }
+        } catch {
             dataStatus.textContent = 'Failed to load data.';
             loadDataBtn.disabled = false;
         }
-    } catch {
-        dataStatus.textContent = 'Failed to load data.';
-        loadDataBtn.disabled = false;
-    }
-});
+    });
+}
 
 // Redirection automatique si non connecté
 if (!localStorage.getItem('email')) {
