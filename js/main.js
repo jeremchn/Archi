@@ -60,32 +60,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         // Stocke les résultats dans le localStorage pour accès depuis details.html
         localStorage.setItem('searchResults', JSON.stringify(data));
         // Affiche les résultats dans le tableau
-        const resultsTable = document.getElementById('results');
-        resultsTable.innerHTML = '';
-        data.forEach(item => {
-            const domain = item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
-                : '';
-            const linkedin = item['Linkedin']
-                ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
-                : '';
-            const companyName = item['Company Name'] && item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
-                : (item['Company Name'] || '');
-            // Affiche toujours un nombre (0 si aucun contact)
-            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
-            const row = `<tr>
-                <td>${companyName}</td>
-                <td>${domain}</td>
-                <td>${linkedin}</td>
-                <td>${item['Industry'] || ''}</td>
-                <td>${item['Location'] || ''}</td>
-                <td>${item['Headcount'] || ''}</td>
-                <td>${item['Description'] || ''}</td>
-                <td>${contactsCell}</td>
-            </tr>`;
-            resultsTable.innerHTML += row;
-        });
+        renderResultsTable(data);
         showMsg('Recherche terminée avec succès.', 'success');
         loadingBtn.style.display = 'none';
         loadingBtn.innerHTML = 'Rechercher';
@@ -312,32 +287,26 @@ filterSearchBtn.addEventListener('click', async function() {
             loadingBtn.innerHTML = 'Search';
             return;
         }
-        // Affiche les résultats dans le tableau (même logique que recherche par prompt)
-        const resultsTable = document.getElementById('results');
-        resultsTable.innerHTML = '';
-        data.forEach(item => {
-            const domain = item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
-                : '';
-            const linkedin = item['Linkedin']
-                ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
-                : '';
-            const companyName = item['Company Name'] && item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
-                : (item['Company Name'] || '');
-            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
-            const row = `<tr>
-                <td>${companyName}</td>
-                <td>${domain}</td>
-                <td>${linkedin}</td>
-                <td>${item['Industry'] || ''}</td>
-                <td>${item['Location'] || ''}</td>
-                <td>${item['Headcount'] || ''}</td>
-                <td>${item['Description'] || ''}</td>
-                <td>${contactsCell}</td>
-            </tr>`;
-            resultsTable.innerHTML += row;
-        });
+        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
+        for (let i = 0; i < data.length; i++) {
+            const domain = data[i]['Domain'];
+            if (domain) {
+                try {
+                    const res = await fetch('/api/hunter-contacts-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ domain })
+                    });
+                    const contactsArr = await res.json();
+                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
+                } catch (e) {
+                    data[i].contacts = 0;
+                }
+            } else {
+                data[i].contacts = 0;
+            }
+        }
+        renderResultsTable(data);
         showMsg('Recherche filtrée terminée.', 'success');
         loadingBtn.style.display = 'none';
         loadingBtn.innerHTML = 'Search';
@@ -378,32 +347,26 @@ nameSearchBtn.addEventListener('click', async function() {
             loadingBtn.innerHTML = 'Search';
             return;
         }
-        // Affiche les résultats dans le tableau (même logique que recherche par prompt)
-        const resultsTable = document.getElementById('results');
-        resultsTable.innerHTML = '';
-        data.forEach(item => {
-            const domain = item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
-                : '';
-            const linkedin = item['Linkedin']
-                ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
-                : '';
-            const companyName = item['Company Name'] && item['Domain']
-                ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
-                : (item['Company Name'] || '');
-            const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
-            const row = `<tr>
-                <td>${companyName}</td>
-                <td>${domain}</td>
-                <td>${linkedin}</td>
-                <td>${item['Industry'] || ''}</td>
-                <td>${item['Location'] || ''}</td>
-                <td>${item['Headcount'] || ''}</td>
-                <td>${item['Description'] || ''}</td>
-                <td>${contactsCell}</td>
-            </tr>`;
-            resultsTable.innerHTML += row;
-        });
+        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
+        for (let i = 0; i < data.length; i++) {
+            const domain = data[i]['Domain'];
+            if (domain) {
+                try {
+                    const res = await fetch('/api/hunter-contacts-details', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ domain })
+                    });
+                    const contactsArr = await res.json();
+                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
+                } catch (e) {
+                    data[i].contacts = 0;
+                }
+            } else {
+                data[i].contacts = 0;
+            }
+        }
+        renderResultsTable(data);
         showMsg('Recherche par nom terminée.', 'success');
         loadingBtn.style.display = 'none';
         loadingBtn.innerHTML = 'Search';
@@ -411,3 +374,106 @@ nameSearchBtn.addEventListener('click', async function() {
         loadingBtn.style.display = 'none';
     }
 });
+
+// --- SAUVEGARDE DE RECHERCHE ---
+const saveSearchBtn = document.getElementById('saveSearchBtn');
+const savedSearchesList = document.getElementById('saved-searches');
+
+function getSavedSearchesKey() {
+    const email = localStorage.getItem('email') || '';
+    return 'savedSearches_' + email;
+}
+
+function loadSavedSearches() {
+    const key = getSavedSearchesKey();
+    let searches = [];
+    try {
+        searches = JSON.parse(localStorage.getItem(key)) || [];
+    } catch {}
+    renderSavedSearches(searches);
+}
+
+function renderSavedSearches(searches) {
+    if (!savedSearchesList) return;
+    savedSearchesList.innerHTML = '';
+    if (!searches.length) {
+        savedSearchesList.innerHTML = '<li style="color:#888;font-style:italic;">Aucune recherche</li>';
+        return;
+    }
+    searches.forEach((s, idx) => {
+        const li = document.createElement('li');
+        li.textContent = s.name + ' (' + (s.data.length) + ' entreprises)';
+        li.style.cursor = 'pointer';
+        li.onclick = () => {
+            // Affiche la liste sauvegardée dans le tableau
+            renderResultsTable(s.data);
+            showMsg('Recherche restaurée : ' + s.name, 'success');
+        };
+        savedSearchesList.appendChild(li);
+    });
+}
+
+function saveCurrentSearch(results) {
+    const name = prompt('Nom de la recherche à sauvegarder ?');
+    if (!name) return;
+    const key = getSavedSearchesKey();
+    let searches = [];
+    try {
+        searches = JSON.parse(localStorage.getItem(key)) || [];
+    } catch {}
+    searches.push({ name, data: results });
+    localStorage.setItem(key, JSON.stringify(searches));
+    renderSavedSearches(searches);
+    showMsg('Recherche sauvegardée !', 'success');
+}
+
+function renderResultsTable(data) {
+    const resultsTable = document.getElementById('results');
+    resultsTable.innerHTML = '';
+    data.forEach(item => {
+        const domain = item['Domain']
+            ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link" target="_blank" rel="noopener noreferrer">${item['Domain']}</a>`
+            : '';
+        const linkedin = item['Linkedin']
+            ? `<a href="${item['Linkedin']}" class="clickable-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>`
+            : '';
+        const companyName = item['Company Name'] && item['Domain']
+            ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
+            : (item['Company Name'] || '');
+        const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
+        const row = `<tr>
+            <td>${companyName}</td>
+            <td>${domain}</td>
+            <td>${linkedin}</td>
+            <td>${item['Industry'] || ''}</td>
+            <td>${item['Location'] || ''}</td>
+            <td>${item['Headcount'] || ''}</td>
+            <td>${item['Description'] || ''}</td>
+            <td>${contactsCell}</td>
+        </tr>`;
+        resultsTable.innerHTML += row;
+    });
+    // Affiche le bouton sauvegarder si résultats
+    saveSearchBtn.style.display = (data.length > 0) ? 'inline-block' : 'none';
+    // Stocke temporairement la dernière recherche affichée
+    window._lastResults = data;
+}
+
+if (saveSearchBtn) {
+    saveSearchBtn.addEventListener('click', function() {
+        if (window._lastResults && Array.isArray(window._lastResults) && window._lastResults.length) {
+            saveCurrentSearch(window._lastResults);
+        } else {
+            showMsg('Aucun résultat à sauvegarder.', 'error');
+        }
+    });
+}
+
+// Remplace tous les appels à l'affichage du tableau par renderResultsTable
+// (dans les callbacks de recherche par prompt, filtre, nom, et restauration)
+
+// Après chaque recherche, remplacer l'affichage du tableau par :
+// renderResultsTable(data);
+
+// Au chargement, restaurer les recherches sauvegardées
+loadSavedSearches();
