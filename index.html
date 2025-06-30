@@ -266,11 +266,20 @@
                 <button id="resetBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
             </div>
         </div>
-        <div class="filter-bar" id="filter-search-bar">
-            <select id="filter-industry" class="btn btn-gray" style="min-width:140px;"><option value="">Industry</option></select>
-            <select id="filter-location" class="btn btn-gray" style="min-width:140px;"><option value="">Location</option></select>
-            <select id="filter-headcount" class="btn btn-gray" style="min-width:140px;"><option value="">Headcount</option></select>
-            <button id="filterSearchBtn" class="btn btn-search" style="min-width:120px;">Search</button>
+        <div class="filter-bar" id="filter-search-bar" style="flex-direction:column;align-items:flex-start;gap:1.2em;">
+            <div style="display:flex;flex-direction:column;gap:0.3em;">
+                <label style="font-weight:500;">Industry</label>
+                <div id="filter-industry-group"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.3em;">
+                <label style="font-weight:500;">Location</label>
+                <div id="filter-location-group"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.3em;">
+                <label style="font-weight:500;">Headcount</label>
+                <div id="filter-headcount-group"></div>
+            </div>
+            <button id="filterSearchBtn" class="btn btn-search" style="min-width:120px;align-self:flex-start;">Search</button>
         </div>
         <div class="name-bar" id="name-search-bar">
             <input id="companyNameInput" class="btn btn-gray" style="flex:1;min-width:220px;max-width:100%;" placeholder="Entrer le nom de la société..." />

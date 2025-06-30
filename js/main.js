@@ -230,40 +230,81 @@ document.addEventListener('DOMContentLoaded', function() {
     setActiveMenu(menuPrompt);
 });
 
-// --- RECHERCHE PAR FILTRE ---
-const filterIndustry = document.getElementById('filter-industry');
-const filterLocation = document.getElementById('filter-location');
-const filterHeadcount = document.getElementById('filter-headcount');
-const filterSearchBtn = document.getElementById('filterSearchBtn');
+// --- RECHERCHE PAR FILTRE MULTI-CHOIX ---
+const filterIndustryGroup = document.getElementById('filter-industry-group');
+const filterLocationGroup = document.getElementById('filter-location-group');
+const filterHeadcountGroup = document.getElementById('filter-headcount-group');
 
-// Remplir dynamiquement les options de filtres (à partir d'un endpoint ou d'un fichier de données)
 async function populateFilters() {
     try {
         const email = localStorage.getItem('email');
         const res = await fetch(`/api/filters?email=${encodeURIComponent(email)}`);
         if (!res.ok) return;
         const data = await res.json();
-        if (Array.isArray(data.industries)) {
-            filterIndustry.innerHTML = '<option value="">Industry</option>' + data.industries.map(i => `<option value="${i}">${i}</option>`).join('');
+        // Helper pour générer les cases à cocher avec ALL
+        function renderCheckboxGroup(container, values, name) {
+            if (!container) return;
+            container.innerHTML = '';
+            const allId = `${name}-all`;
+            const allBox = document.createElement('input');
+            allBox.type = 'checkbox';
+            allBox.id = allId;
+            allBox.checked = true;
+            const allLabel = document.createElement('label');
+            allLabel.htmlFor = allId;
+            allLabel.textContent = 'ALL';
+            container.appendChild(allBox);
+            container.appendChild(allLabel);
+            container.appendChild(document.createElement('br'));
+            values.forEach((val, idx) => {
+                const id = `${name}-${idx}`;
+                const box = document.createElement('input');
+                box.type = 'checkbox';
+                box.id = id;
+                box.value = val;
+                box.name = name;
+                box.checked = false;
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.textContent = val;
+                container.appendChild(box);
+                container.appendChild(label);
+                container.appendChild(document.createElement('br'));
+            });
+            // Gestion ALL
+            allBox.addEventListener('change', function() {
+                const checkboxes = container.querySelectorAll(`input[type=checkbox][name=${name}]`);
+                checkboxes.forEach(cb => { cb.checked = false; });
+            });
+            container.querySelectorAll(`input[type=checkbox][name=${name}]`).forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (this.checked) allBox.checked = false;
+                    if (![...container.querySelectorAll(`input[type=checkbox][name=${name}]`)].some(cb => cb.checked)) {
+                        allBox.checked = true;
+                    }
+                });
+            });
         }
-        if (Array.isArray(data.locations)) {
-            filterLocation.innerHTML = '<option value="">Location</option>' + data.locations.map(l => `<option value="${l}">${l}</option>`).join('');
-        }
-        if (Array.isArray(data.headcounts)) {
-            filterHeadcount.innerHTML = '<option value="">Headcount</option>' + data.headcounts.map(h => `<option value="${h}">${h}</option>`).join('');
-        }
-    } catch (e) {}
+        renderCheckboxGroup(filterIndustryGroup, data.industries || [], 'industry');
+        renderCheckboxGroup(filterLocationGroup, data.locations || [], 'location');
+        renderCheckboxGroup(filterHeadcountGroup, data.headcounts || [], 'headcount');
+    } catch {}
 }
 // Remplit les filtres au chargement
 populateFilters();
 
 filterSearchBtn.addEventListener('click', async function() {
-    const industry = filterIndustry.value;
-    const location = filterLocation.value;
-    const headcount = filterHeadcount.value;
+    // Récupère les valeurs cochées (ou ALL)
+    function getCheckedValues(container, name) {
+        const allBox = container.querySelector(`#${name}-all`);
+        if (allBox && allBox.checked) return [];
+        return [...container.querySelectorAll(`input[type=checkbox][name=${name}]`)].filter(cb => cb.checked).map(cb => cb.value);
+    }
+    const industries = getCheckedValues(filterIndustryGroup, 'industry');
+    const locations = getCheckedValues(filterLocationGroup, 'location');
+    const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
     const email = localStorage.getItem('email');
     if (!email) return showMsg('Veuillez vous connecter.', 'error');
-    // Appel au backend pour la recherche filtrée
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
@@ -271,7 +312,7 @@ filterSearchBtn.addEventListener('click', async function() {
         const response = await fetch('/api/filter-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, industry, location, headcount })
+            body: JSON.stringify({ email, industries, locations, headcounts })
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
