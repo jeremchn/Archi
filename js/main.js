@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
     menuFilter.addEventListener('click', () => { setActiveMenu(menuFilter); window.location.hash = '#filter'; });
     menuName.addEventListener('click', () => { setActiveMenu(menuName); window.location.hash = '#domain'; });
     // Par défaut, promptBar est actif
-    setActiveMenu(menuPrompt);
+    // setActiveMenu(menuPrompt); // <-- supprimé car activateFromHash() gère déjà l'état initial
 });
 
 // --- RECHERCHE PAR FILTRE MULTI-CHOIX ---

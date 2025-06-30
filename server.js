@@ -591,6 +591,11 @@ app.get('/welcome.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'welcome.html'));
 });
 
+// Sert auth.html à la racine
+app.get('/auth.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'auth.html'));
+});
+
 // Endpoint to fetch the ideal client row for a user by email (case-insensitive, trimmed)
 app.get('/api/client-ideal/:email', async (req, res) => {
   const { email } = req.params;
