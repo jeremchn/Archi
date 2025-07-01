@@ -2,148 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Leads Lists</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes listes de leads</title>
     <style>
         body { background: #f7fafc; color: #222; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; }
-        .container { max-width: 800px; margin: 2em auto; padding: 2em; background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(26,54,93,0.08); }
-        h1 { color: #1a365d; }
-        table { width: 100%; border-collapse: collapse; margin-top: 2em; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(26,54,93,0.04); }
-        th, td { border: 1px solid #e2e8f0; padding: 13px 10px; text-align: left; font-size: 1em; }
+        .container { max-width: 900px; margin: 2em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(26,54,93,0.08); padding: 2em; }
+        h1 { color: #1a365d; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5em; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(26,54,93,0.04); }
+        th, td { border: 1px solid #e2e8f0; padding: 12px 10px; text-align: left; font-size: 1em; }
         th { background: #1a365d; color: #fff; font-weight: 600; }
-        tr:hover td { background: #eaf6ff; transition: background 0.2s; cursor: pointer; }
-        .btn { background: #1a365d; color: #fff; border: none; border-radius: 8px; padding: 0.5em 1.2em; font-size: 1.05em; font-weight: 500; cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; box-shadow: 0 1px 4px rgba(26,54,93,0.08); }
-        .btn:hover, .btn:focus { background: #2ecc71; color: #fff; transform: translateY(-2px) scale(1.03); }
+        tr:hover td { background: #eaf6ff; cursor: pointer; }
+        .back-btn { background: #e2e8f0; color: #222; border: none; border-radius: 8px; padding: 0.5em 1.2em; font-size: 1em; cursor: pointer; margin-bottom: 1em; }
+        .back-btn:hover { background: #bfc9d1; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Leads Lists</h1>
-        <table id="leads-table">
-            <thead>
-                <tr><th>List Name</th><th>Number of Leads</th><th>Actions</th></tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <div id="leads-details" style="margin-top:2em;"></div>
+        <button class="back-btn" onclick="window.location.href='index.html'">&larr; Retour</button>
+        <h1>Mes listes de leads</h1>
+        <div id="listsTable"></div>
+        <div id="listDetails"></div>
     </div>
-    <script>
-    function renderLeadsTable() {
-        const leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
-        const tbody = document.querySelector('#leads-table tbody');
-        tbody.innerHTML = '';
-        Object.entries(leadsLists).forEach(([name, leads]) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${name}</td><td>${leads.length}</td><td style='display:flex;gap:0.5em;'>
-                <button class='btn btn-view' data-list='${name}'>Voir</button>
-                <button class='btn btn-csv' data-list='${name}'>Download CSV</button>
-                <button class='btn btn-delete-list' data-list='${name}' style='background:#e74c3c;'>Supprimer</button>
-            </td>`;
-            tbody.appendChild(tr);
-        });
-        // Actions
-        tbody.querySelectorAll('.btn-view').forEach(btn => {
-            btn.onclick = e => {
-                e.stopPropagation();
-                const name = btn.getAttribute('data-list');
-                const leads = JSON.parse(localStorage.getItem('leadsLists') || '{}')[name] || [];
-                renderLeadsDetails(name, leads);
-            };
-        });
-        tbody.querySelectorAll('.btn-csv').forEach(btn => {
-            btn.onclick = e => {
-                e.stopPropagation();
-                const name = btn.getAttribute('data-list');
-                const leads = JSON.parse(localStorage.getItem('leadsLists') || '{}')[name] || [];
-                if (!leads.length) return alert('Liste vide');
-                const csv = [Object.keys(leads[0]).join(',')].concat(leads.map(l => Object.values(l).map(v => '"'+(v||'').toString().replace(/"/g,'""')+'"').join(','))).join('\n');
-                const blob = new Blob([csv], {type:'text/csv'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = name+'.csv';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(()=>{URL.revokeObjectURL(url);a.remove();}, 100);
-            };
-        });
-        tbody.querySelectorAll('.btn-delete-list').forEach(btn => {
-            btn.onclick = e => {
-                e.stopPropagation();
-                const name = btn.getAttribute('data-list');
-                if (!confirm('Supprimer la liste '+name+' ?')) return;
-                let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
-                delete leadsLists[name];
-                localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
-                renderLeadsTable();
-                document.getElementById('leads-details').innerHTML = '';
-            };
-        });
-    }
-    function renderLeadsDetails(name, leads) {
-        const div = document.getElementById('leads-details');
-        if (!leads || leads.length === 0) {
-            div.innerHTML = `<h2>${name}</h2><p>No leads in this list.</p>`;
-            return;
-        }
-        let html = `<h2>${name}</h2><table style='margin-top:1em;'><thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th><th>Ice breaker</th><th>Delete</th></tr></thead><tbody>`;
-        leads.forEach((l, idx) => {
-            html += `<tr><td>${l.email||''}</td><td>${l.first_name||''}</td><td>${l.last_name||''}</td><td>${l.position||''}</td><td>${l.company||''}</td><td>${l.linkedin_url?`<a href='${l.linkedin_url}' target='_blank'>LinkedIn</a>`:''}</td>`;
-            html += `<td>`;
-            if (l.icebreaker) {
-                html += l.icebreaker;
-            } else if (l.linkedin_url) {
-                html += `<button class='btn-generate-ice' data-list='${name}' data-idx='${idx}'>Generate</button>`;
-            } else {
-                html += '';
-            }
-            html += `</td><td><button class='btn btn-delete-contact' data-list='${name}' data-idx='${idx}' style='background:#e74c3c;'>Delete</button></td></tr>`;
-        });
-        html += '</tbody></table>';
-        div.innerHTML = html;
-        // Delete contact
-        div.querySelectorAll('.btn-delete-contact').forEach(btn => {
-            btn.onclick = function() {
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                const list = btn.getAttribute('data-list');
-                let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
-                leadsLists[list].splice(idx, 1);
-                localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
-                renderLeadsDetails(list, leadsLists[list]);
-                renderLeadsTable();
-            };
-        });
-        // Ajout des listeners sur les boutons Generate
-        div.querySelectorAll('.btn-generate-ice').forEach(btn => {
-            btn.onclick = async function() {
-                const idx = parseInt(btn.getAttribute('data-idx'));
-                const list = btn.getAttribute('data-list');
-                let leadsLists = JSON.parse(localStorage.getItem('leadsLists') || '{}');
-                let contact = leadsLists[list][idx];
-                btn.disabled = true;
-                btn.textContent = 'Generating...';
-                try {
-                    const res = await fetch('/api/icebreaker', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contact })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        contact.icebreaker = data.icebreaker;
-                        leadsLists[list][idx] = contact;
-                        localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
-                        renderLeadsDetails(list, leadsLists[list]);
-                    } else {
-                        btn.textContent = 'Error';
-                    }
-                } catch {
-                    btn.textContent = 'Error';
-                }
-            };
-        });
-    }
-    renderLeadsTable();
-    </script>
+    <script src="js/contacts_savedstyle.js"></script>
 </body>
 </html>

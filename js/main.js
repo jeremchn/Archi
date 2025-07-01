@@ -354,6 +354,7 @@ async function populateFilters() {
 populateFilters();
 
 filterSearchBtn.addEventListener('click', function() {
+    console.log('[DEBUG] filterSearchBtn clicked');
     function getCheckedValues(container, name) {
         const allBox = container.querySelector(`#${name}-all`);
         if (allBox && allBox.checked) return [];
@@ -372,8 +373,10 @@ filterSearchBtn.addEventListener('click', function() {
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
+    console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
     // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
     requestAnimationFrame(async () => {
+        console.log('[DEBUG] Entered requestAnimationFrame for filterSearchBtn');
         try {
             const response = await fetch('/api/filter-search', {
                 method: 'POST',
@@ -420,6 +423,7 @@ filterSearchBtn.addEventListener('click', function() {
             loadingBtn.innerHTML = 'Search';
         } finally {
             loadingBtn.style.display = 'none';
+            console.log('[DEBUG] loadingBtn hidden after filterSearchBtn');
         }
     });
 });
@@ -429,6 +433,7 @@ const companyNameInput = document.getElementById('companyNameInput');
 const nameSearchBtn = document.getElementById('nameSearchBtn');
 
 nameSearchBtn.addEventListener('click', function() {
+    console.log('[DEBUG] nameSearchBtn clicked');
     const name = companyNameInput.value.trim();
     const email = localStorage.getItem('email');
     if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
@@ -441,8 +446,10 @@ nameSearchBtn.addEventListener('click', function() {
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
+    console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
     // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
     requestAnimationFrame(async () => {
+        console.log('[DEBUG] Entered requestAnimationFrame for nameSearchBtn');
         try {
             const response = await fetch('/api/company-name-search', {
                 method: 'POST',
@@ -489,6 +496,7 @@ nameSearchBtn.addEventListener('click', function() {
             loadingBtn.innerHTML = 'Search';
         } finally {
             loadingBtn.style.display = 'none';
+            console.log('[DEBUG] loadingBtn hidden after nameSearchBtn');
         }
     });
 });
