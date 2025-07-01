@@ -52,6 +52,7 @@ app.get('/api/profile/:email', async (req, res) => {
 // Charger dynamiquement les données de l'entreprise via l'email
 app.get('/api/load-data/:email', async (req, res) => {
   const { email } = req.params;
+  let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
@@ -61,22 +62,27 @@ app.get('/api/load-data/:email', async (req, res) => {
       if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
         dataUrl = dataUrl.slice(1, -1);
       }
+      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+    } else if (Array.isArray(dataUrl)) {
+      dataUrls = dataUrl;
     }
-    console.log('Tentative de chargement de données depuis:', dataUrl); // LOG
-    try {
-      const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
-      const data = response.data;
-      let count = 0;
-      if (Array.isArray(data)) {
-        count = data.length;
-      } else if (typeof data === 'object' && data !== null) {
-        count = Object.keys(data).length;
+    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
+        const data = response.data;
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else if (typeof data === 'object' && data !== null) {
+          allData.push(data);
+        }
+      } catch (err) {
+        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
       }
-      res.json({ success: true, count });
-    } catch (err) {
-      console.error('Erreur lors du téléchargement du fichier:', err.message);
-      res.status(502).json({ error: 'Erreur lors du téléchargement du fichier distant.', details: err.message });
     }
+    let count = allData.length;
+    res.json({ success: true, count });
   } catch (e) {
     res.status(500).json({ error: 'Erreur lors du chargement des données.' });
   }
@@ -97,6 +103,7 @@ function cosineSimilarity(a, b) {
 app.post('/api/semantic-search', async (req, res) => {
   const { email, query } = req.body;
   if (!email || !query) return res.status(400).json({ error: 'Email et requête requis.' });
+  let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
@@ -106,37 +113,44 @@ app.post('/api/semantic-search', async (req, res) => {
       if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
         dataUrl = dataUrl.slice(1, -1);
       }
+      // Découpage multi-liens (séparateurs: , ; espace)
+      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+    } else if (Array.isArray(dataUrl)) {
+      dataUrls = dataUrl;
     }
-    console.log('[semantic-search] data_url:', dataUrl); // DEBUG
-    const response = await axios.get(dataUrl, { responseType: 'text' });
-    const contentType = response.headers['content-type'];
-    const rawData = response.data;
-    console.log('[semantic-search] Content-Type:', contentType);
-    console.log('[semantic-search] Data length:', rawData.length);
-    console.log('[semantic-search] Data start:', rawData.slice(0, 300));
-    console.log('[semantic-search] Data end:', rawData.slice(-300));
-    if (rawData.trim().startsWith('<')) {
-      console.error('[semantic-search] ATTENTION: Le contenu commence par <, probable HTML !');
+    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    console.log('[semantic-search] data_urls:', dataUrls); // DEBUG
+    // Téléchargement et fusion de tous les fichiers
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        const response = await axios.get(url, { responseType: 'text' });
+        const rawData = response.data;
+        let data;
+        try {
+          data = JSON.parse(rawData);
+        } catch (parseErr) {
+          console.error('[semantic-search] Erreur de parsing JSON:', parseErr.message, '| data_url utilisé :', url);
+          continue;
+        }
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else {
+          console.error('[semantic-search] Le fichier JSON n\'est pas un tableau. data_url utilisé :', url);
+        }
+      } catch (err) {
+        console.error('[semantic-search] Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
+      }
     }
-    let data;
-    try {
-      data = JSON.parse(rawData);
-      console.log('[semantic-search] Type après parsing:', typeof data, '| Array.isArray:', Array.isArray(data));
-    } catch (parseErr) {
-      console.error('[semantic-search] Erreur de parsing JSON:', parseErr.message, '| data_url utilisé :', dataUrl);
-      return res.status(500).json({ error: 'Erreur de parsing JSON', details: parseErr.message, data_url: dataUrl, data_start: rawData.slice(0, 300) });
-    }
-    if (!Array.isArray(data)) {
-      console.error('[semantic-search] Le fichier JSON n\'est pas un tableau. data_url utilisé :', dataUrl);
-      return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.', data_url: dataUrl, data_start: rawData.slice(0, 300) });
-    }
+    if (!allData.length) return res.status(500).json({ error: 'Aucune donnée exploitable dans les fichiers JSON.' });
+    // Embedding et scoring comme avant
     const embeddingResponse = await axios.post(
       'https://api.openai.com/v1/embeddings',
       { input: query, model: 'text-embedding-3-small' },
       { headers: { 'Authorization': `Bearer ${process.env.OPENAIKEY}`, 'Content-Type': 'application/json' } }
     );
     const userEmbedding = embeddingResponse.data.data[0].embedding;
-    const scored = data.map(item => {
+    const scored = allData.map(item => {
       if (!Array.isArray(item.embedding)) {
         console.error('[semantic-search] Entreprise sans embedding:', item);
       }
@@ -146,8 +160,7 @@ app.post('/api/semantic-search', async (req, res) => {
     const top50 = scored.slice(0, 50).map(({ embedding, ...rest }) => rest);
     res.json(top50);
   } catch (e) {
-    // Correction ReferenceError: dataUrl is not defined
-    let dataUrlSafe = typeof dataUrl !== 'undefined' ? dataUrl : null;
+    let dataUrlSafe = typeof dataUrls !== 'undefined' ? dataUrls : null;
     console.error('Erreur recherche sémantique:', e, '| data_url utilisé :', dataUrlSafe);
     res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message, data_url: dataUrlSafe });
   }
@@ -620,6 +633,7 @@ app.get('/api/client-ideal/:email', async (req, res) => {
 app.get('/api/filters', async (req, res) => {
   const email = req.query.email;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
+  let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
@@ -629,13 +643,29 @@ app.get('/api/filters', async (req, res) => {
       if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
         dataUrl = dataUrl.slice(1, -1);
       }
+      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+    } else if (Array.isArray(dataUrl)) {
+      dataUrls = dataUrl;
     }
-    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
-    const data = response.data;
-    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
-    const industries = [...new Set(data.map(e => e.Industry).filter(Boolean))].sort();
-    const locations = [...new Set(data.map(e => e.Location).filter(Boolean))].sort();
-    const headcounts = [...new Set(data.map(e => e.Headcount).filter(Boolean))].sort();
+    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
+        const data = response.data;
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else if (typeof data === 'object' && data !== null) {
+          allData.push(data);
+        }
+      } catch (err) {
+        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
+      }
+    }
+    if (!allData.length) return res.status(500).json({ error: 'Aucune donnée exploitable dans les fichiers JSON.' });
+    const industries = [...new Set(allData.map(e => e.Industry).filter(Boolean))].sort();
+    const locations = [...new Set(allData.map(e => e.Location).filter(Boolean))].sort();
+    const headcounts = [...new Set(allData.map(e => e.Headcount).filter(Boolean))].sort();
     res.json({ industries, locations, headcounts });
   } catch (e) {
     res.status(500).json({ error: 'Erreur lors de la récupération des filtres.' });
@@ -646,6 +676,7 @@ app.get('/api/filters', async (req, res) => {
 app.post('/api/filter-search', async (req, res) => {
   const { email, industry, location, headcount } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
+  let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
@@ -655,9 +686,26 @@ app.post('/api/filter-search', async (req, res) => {
       if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
         dataUrl = dataUrl.slice(1, -1);
       }
+      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+    } else if (Array.isArray(dataUrl)) {
+      dataUrls = dataUrl;
     }
-    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
-    let data = response.data;
+    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
+        const data = response.data;
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else if (typeof data === 'object' && data !== null) {
+          allData.push(data);
+        }
+      } catch (err) {
+        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
+      }
+    }
+    let data = allData;
     if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
     // Filtrage
     if (industry) data = data.filter(e => e.Industry === industry);
@@ -675,6 +723,7 @@ app.post('/api/filter-search', async (req, res) => {
 app.post('/api/company-name-search', async (req, res) => {
   const { email, name } = req.body;
   if (!email || !name) return res.status(400).json({ error: 'Email et nom requis.' });
+  let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
     if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
@@ -684,9 +733,26 @@ app.post('/api/company-name-search', async (req, res) => {
       if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
         dataUrl = dataUrl.slice(1, -1);
       }
+      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+    } else if (Array.isArray(dataUrl)) {
+      dataUrls = dataUrl;
     }
-    const response = await axios.get(dataUrl, { responseType: 'json', timeout: 20000 });
-    let data = response.data;
+    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
+        const data = response.data;
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else if (typeof data === 'object' && data !== null) {
+          allData.push(data);
+        }
+      } catch (err) {
+        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
+      }
+    }
+    let data = allData;
     if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
     // Recherche fuzzy (insensible à la casse, inclut les noms très proches)
     const search = name.trim().toLowerCase();
@@ -714,7 +780,7 @@ app.post('/api/company-name-search', async (req, res) => {
         }
         return matrix[b.length][a.length];
       }
-      data = response.data.filter(e => {
+      data = allData.filter(e => {
         if (!e['Company Name']) return false;
         return levenshtein(e['Company Name'].toLowerCase(), search) <= 2;
       });
