@@ -821,7 +821,7 @@ function showSaveLeadModal(company, type) {
         <div style="background:#fff;padding:2em 2em 1.5em 2em;border-radius:14px;min-width:320px;box-shadow:0 4px 32px rgba(0,0,0,0.18);text-align:center;">
             <div style="font-size:1.15em;font-weight:600;margin-bottom:1.2em;">Save company</div>
             <button id="modal-new-list" style="background:#2ecc71;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0.7em 1em 0;cursor:pointer;">New list</button>
-            <button id="modal-add-list" style="background:#1a365d;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;font-size:1em;margin:0 0 1em 0;cursor:pointer;">Add to a list</button>
+            <button id="modal-add-list" style="background:#1a365d;color:#fff;border:none;border-radius:7px;padding:0.6em 1.2em;fontSize:1em;margin:0 0 1em 0;cursor:pointer;">Add to a list</button>
             <div id="modal-content"></div>
             <button id="modal-cancel" style="margin-top:1.2em;background:#eee;color:#222;border:none;border-radius:7px;padding:0.5em 1.2em;font-size:1em;cursor:pointer;">Cancel</button>
         </div>
@@ -923,50 +923,78 @@ function getCurrentMenuKey() {
     return MENU_KEYS[hash] || MENU_KEYS['#prompt'];
 }
 
-// --- Modification de chaque recherche pour stocker dans le bon menu ---
-document.getElementById('searchBtn').addEventListener('click', async function() {
-    // ...existing code...
-    // Stocke les résultats dans le localStorage pour accès depuis details.html
-    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-    // ...existing code...
-    renderResultsTable(data);
-    // ...existing code...
+// --- Gestion des boutons search et reset selon la section active ---
+// Handler pour le bouton search (prompt/filter)
+searchBtn.addEventListener('click', function(e) {
+    const hash = window.location.hash || '#prompt';
+    if (hash === '#prompt') {
+        // Déclenche la recherche prompt (déjà gérée plus haut)
+        // Rien à faire ici, la logique existe déjà
+    } else if (hash === '#filter') {
+        // Déclenche la recherche filter
+        filterSearchBtn.click();
+        e.preventDefault();
+    }
 });
 
-filterSearchBtn.addEventListener('click', async function() {
-    // ...existing code...
-    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-    renderResultsTable(data);
-    // ...existing code...
-});
-
-nameSearchBtn.addEventListener('click', async function() {
-    // ...existing code...
-    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-    renderResultsTable(data);
-    // ...existing code...
-});
-
-// --- Affichage conditionnel du tableau lors du changement de menu ---
-function setActiveMenu(menu) {
-    [menuPrompt, menuFilter, menuName].forEach(m => m.classList.remove('active'));
-    menu.classList.add('active');
-    promptBar.classList.remove('active');
-    filterBar.classList.remove('active');
-    nameBar.classList.remove('active');
-    if (menu === menuPrompt) promptBar.classList.add('active');
-    if (menu === menuFilter) filterBar.classList.add('active');
-    if (menu === menuName) nameBar.classList.add('active');
-    // Affiche les résultats du menu courant, sinon masque tout
-    const key = getCurrentMenuKey();
-    const data = JSON.parse(localStorage.getItem(key) || '[]');
-    if (Array.isArray(data) && data.length > 0) {
-        renderResultsTable(data);
-    } else {
-        document.getElementById('results').innerHTML = '';
+// Handler pour le bouton reset (prompt/filter)
+resetBtn.addEventListener('click', function(e) {
+    const hash = window.location.hash || '#prompt';
+    if (hash === '#prompt') {
+        document.getElementById('search').value = '';
+        resultsTable.innerHTML = '';
+        localStorage.removeItem('searchResults_prompt');
+        const thead = document.getElementById('results-thead');
+        if (thead) thead.style.display = 'none';
+        if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+    } else if (hash === '#filter') {
+        // Réinitialise les filtres
+        document.querySelectorAll('#filter-search-bar input[type=checkbox]').forEach(cb => cb.checked = false);
+        const allIndustry = document.getElementById('industry-all');
+        const allLocation = document.getElementById('location-all');
+        const allHeadcount = document.getElementById('headcount-all');
+        if (allIndustry) allIndustry.checked = true;
+        if (allLocation) allLocation.checked = true;
+        if (allHeadcount) allHeadcount.checked = true;
+        resultsTable.innerHTML = '';
+        localStorage.removeItem('searchResults_filter');
         const thead = document.getElementById('results-thead');
         if (thead) thead.style.display = 'none';
         if (saveSearchBtn) saveSearchBtn.style.display = 'none';
     }
+    e.preventDefault();
+});
+
+// --- RESET FILTER SECTION ---
+const filterResetBtn = document.getElementById('filterResetBtn');
+if (filterResetBtn) {
+    filterResetBtn.addEventListener('click', function(e) {
+        // Réinitialise tous les filtres
+        document.querySelectorAll('#filter-search-bar input[type=checkbox]').forEach(cb => cb.checked = false);
+        const allIndustry = document.getElementById('industry-all');
+        const allLocation = document.getElementById('location-all');
+        const allHeadcount = document.getElementById('headcount-all');
+        if (allIndustry) allIndustry.checked = true;
+        if (allLocation) allLocation.checked = true;
+        if (allHeadcount) allHeadcount.checked = true;
+        resultsTable.innerHTML = '';
+        localStorage.removeItem('searchResults_filter');
+        const thead = document.getElementById('results-thead');
+        if (thead) thead.style.display = 'none';
+        if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+        e.preventDefault();
+    });
 }
-// ...existing code...
+// --- RESET DOMAIN SECTION ---
+const nameResetBtn = document.getElementById('resetNameBtn');
+if (nameResetBtn && companyNameInput) {
+    nameResetBtn.addEventListener('click', function(e) {
+        companyNameInput.value = '';
+        resultsTable.innerHTML = '';
+        localStorage.removeItem('searchResults_domain');
+        const thead = document.getElementById('results-thead');
+        if (thead) thead.style.display = 'none';
+        if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+        e.preventDefault();
+    });
+}
