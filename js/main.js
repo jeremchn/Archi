@@ -969,4 +969,3 @@ function setActiveMenu(menu) {
         if (saveSearchBtn) saveSearchBtn.style.display = 'none';
     }
 }
-// ...existing code...
