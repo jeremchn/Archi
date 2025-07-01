@@ -353,8 +353,7 @@ async function populateFilters() {
 // Remplit les filtres au chargement
 populateFilters();
 
-filterSearchBtn.addEventListener('click', async function() {
-    // Récupère les valeurs cochées (ou ALL)
+filterSearchBtn.addEventListener('click', function() {
     function getCheckedValues(container, name) {
         const allBox = container.querySelector(`#${name}-all`);
         if (allBox && allBox.checked) return [];
@@ -373,60 +372,63 @@ filterSearchBtn.addEventListener('click', async function() {
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    try {
-        const response = await fetch('/api/filter-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, industries, locations, headcounts })
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        let data = await response.json();
-        if (!Array.isArray(data)) {
-            showMsg(data.error || "Erreur côté serveur.", 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-        for (let i = 0; i < data.length; i++) {
-            const domain = data[i]['Domain'];
-            if (domain) {
-                try {
-                    const res = await fetch('/api/hunter-contacts-details', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ domain })
-                    });
-                    const contactsArr = await res.json();
-                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                } catch (e) {
+    // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
+    requestAnimationFrame(async () => {
+        try {
+            const response = await fetch('/api/filter-search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, industries, locations, headcounts })
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
+                loadingBtn.style.display = 'none';
+                loadingBtn.innerHTML = 'Search';
+                return;
+            }
+            let data = await response.json();
+            if (!Array.isArray(data)) {
+                showMsg(data.error || "Erreur côté serveur.", 'error');
+                loadingBtn.style.display = 'none';
+                loadingBtn.innerHTML = 'Search';
+                return;
+            }
+            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
+            for (let i = 0; i < data.length; i++) {
+                const domain = data[i]['Domain'];
+                if (domain) {
+                    try {
+                        const res = await fetch('/api/hunter-contacts-details', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ domain })
+                        });
+                        const contactsArr = await res.json();
+                        data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
+                    } catch (e) {
+                        data[i].contacts = 0;
+                    }
+                } else {
                     data[i].contacts = 0;
                 }
-            } else {
-                data[i].contacts = 0;
             }
+            localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+            renderResultsTable(data);
+            showMsg('Recherche filtrée terminée.', 'success');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+        } finally {
+            loadingBtn.style.display = 'none';
         }
-        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        renderResultsTable(data);
-        showMsg('Recherche filtrée terminée.', 'success');
-        loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Search';
-    } finally {
-        loadingBtn.style.display = 'none';
-    }
+    });
 });
 
 // --- RECHERCHE PAR NOM DE SOCIETE ---
 const companyNameInput = document.getElementById('companyNameInput');
 const nameSearchBtn = document.getElementById('nameSearchBtn');
 
-nameSearchBtn.addEventListener('click', async function() {
+nameSearchBtn.addEventListener('click', function() {
     const name = companyNameInput.value.trim();
     const email = localStorage.getItem('email');
     if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
@@ -439,53 +441,56 @@ nameSearchBtn.addEventListener('click', async function() {
     const loadingBtn = document.getElementById('loadingBtn');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    try {
-        const response = await fetch('/api/company-name-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, name })
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        let data = await response.json();
-        if (!Array.isArray(data)) {
-            showMsg(data.error || "Erreur côté serveur.", 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-        for (let i = 0; i < data.length; i++) {
-            const domain = data[i]['Domain'];
-            if (domain) {
-                try {
-                    const res = await fetch('/api/hunter-contacts-details', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ domain })
-                    });
-                    const contactsArr = await res.json();
-                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                } catch (e) {
+    // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
+    requestAnimationFrame(async () => {
+        try {
+            const response = await fetch('/api/company-name-search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name })
+            });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
+                loadingBtn.style.display = 'none';
+                loadingBtn.innerHTML = 'Search';
+                return;
+            }
+            let data = await response.json();
+            if (!Array.isArray(data)) {
+                showMsg(data.error || "Erreur côté serveur.", 'error');
+                loadingBtn.style.display = 'none';
+                loadingBtn.innerHTML = 'Search';
+                return;
+            }
+            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
+            for (let i = 0; i < data.length; i++) {
+                const domain = data[i]['Domain'];
+                if (domain) {
+                    try {
+                        const res = await fetch('/api/hunter-contacts-details', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ domain })
+                        });
+                        const contactsArr = await res.json();
+                        data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
+                    } catch (e) {
+                        data[i].contacts = 0;
+                    }
+                } else {
                     data[i].contacts = 0;
                 }
-            } else {
-                data[i].contacts = 0;
             }
+            localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+            renderResultsTable(data);
+            showMsg('Recherche par nom terminée.', 'success');
+            loadingBtn.style.display = 'none';
+            loadingBtn.innerHTML = 'Search';
+        } finally {
+            loadingBtn.style.display = 'none';
         }
-        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        renderResultsTable(data);
-        showMsg('Recherche par nom terminée.', 'success');
-        loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Search';
-    } finally {
-        loadingBtn.style.display = 'none';
-    }
+    });
 });
 
 // --- SAUVEGARDE DE RECHERCHE ---
