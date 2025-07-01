@@ -374,9 +374,9 @@ filterSearchBtn.addEventListener('click', function() {
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
-    // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
-    requestAnimationFrame(async () => {
-        console.log('[DEBUG] Entered requestAnimationFrame for filterSearchBtn');
+    // Utilise setTimeout pour forcer l'affichage du bouton de chargement
+    setTimeout(async () => {
+        console.log('[DEBUG] Entered setTimeout for filterSearchBtn');
         try {
             const response = await fetch('/api/filter-search', {
                 method: 'POST',
@@ -425,7 +425,7 @@ filterSearchBtn.addEventListener('click', function() {
             loadingBtn.style.display = 'none';
             console.log('[DEBUG] loadingBtn hidden after filterSearchBtn');
         }
-    });
+    }, 0);
 });
 
 // --- RECHERCHE PAR NOM DE SOCIETE ---
@@ -447,9 +447,9 @@ nameSearchBtn.addEventListener('click', function() {
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
-    // Utilise requestAnimationFrame pour forcer l'affichage du bouton de chargement
-    requestAnimationFrame(async () => {
-        console.log('[DEBUG] Entered requestAnimationFrame for nameSearchBtn');
+    // Utilise setTimeout pour forcer l'affichage du bouton de chargement
+    setTimeout(async () => {
+        console.log('[DEBUG] Entered setTimeout for nameSearchBtn');
         try {
             const response = await fetch('/api/company-name-search', {
                 method: 'POST',
@@ -498,7 +498,7 @@ nameSearchBtn.addEventListener('click', function() {
             loadingBtn.style.display = 'none';
             console.log('[DEBUG] loadingBtn hidden after nameSearchBtn');
         }
-    });
+    }, 0);
 });
 
 // --- SAUVEGARDE DE RECHERCHE ---
