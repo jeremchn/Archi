@@ -72,46 +72,137 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     }
 });
 
-// --- RESET BUTTONS ---
-function clearSectionResults(section) {
-    let key;
-    if (section === 'prompt') key = 'searchResults_prompt';
-    else if (section === 'filter') key = 'searchResults_filter';
-    else if (section === 'domain') key = 'searchResults_domain';
-    if (key) localStorage.removeItem(key);
+document.getElementById('resetBtn').addEventListener('click', function() {
+    document.getElementById('search').value = '';
     resultsTable.innerHTML = '';
-    const thead = document.getElementById('results-thead');
-    if (thead) thead.style.display = 'none';
-    if (saveSearchBtn) saveSearchBtn.style.display = 'none';
-    if (filterSaveBtn) filterSaveBtn.style.display = 'none';
-    if (nameSaveBtn) nameSaveBtn.style.display = 'none';
+    if (window.location.hash === '#filter') {
+        localStorage.removeItem('searchResults');
+    }
+    // Ajoute ici d'autres sections si besoin (prompt, name...)
+});
+
+const loadDataBtn = document.getElementById('loadDataBtn');
+const searchBtn = document.getElementById('searchBtn');
+const resetBtn = document.getElementById('resetBtn');
+const dataStatus = document.getElementById('dataStatus');
+
+// Affichage du logo et du nom d'entreprise sur la page index.html
+window.addEventListener('DOMContentLoaded', async () => {
+    // Le header est toujours 'Lydi search' pour toutes les entreprises
+    let headerTitle = document.getElementById('dynamic-title');
+    if (headerTitle) headerTitle.textContent = 'Lydi search';
+
+    const email = localStorage.getItem('email');
+    if (!email) return;
+    try {
+        const res = await fetch(`/api/profile/${email}`);
+        if (!res.ok) return;
+        const profile = await res.json();
+        // Affiche le header et le footer uniquement si l'utilisateur est "alruqee"
+        const isAlruqee = (profile.company_name && profile.company_name.toLowerCase().includes('alruqee')) ||
+            (email && email.toLowerCase().includes('alruqee'));
+        let header = document.querySelector('header');
+        let footer = document.querySelector('footer');
+        if (isAlruqee) {
+            // Logo
+            let logo = header.querySelector('.company-logo');
+            if (!logo) {
+                logo = document.createElement('img');
+                logo.className = 'company-logo';
+                logo.style.height = '38px';
+                logo.style.width = '38px';
+                logo.style.verticalAlign = 'middle';
+                header.querySelector('div').prepend(logo);
+            }
+            logo.src = profile.logo_url;
+            // Nom
+            let name = header.querySelector('.company-title');
+            if (!name) {
+                name = document.createElement('span');
+                name.className = 'company-title';
+                name.style.fontSize = '1.5em';
+                name.style.fontWeight = '700';
+                name.style.color = 'var(--primary)';
+                name.style.letterSpacing = '1px';
+                header.querySelector('div').appendChild(name);
+            }
+            name.textContent = profile.company_name;
+            if (footer) {
+                footer.innerHTML = `&copy; 2025 ${profile.company_name}. All rights reserved.`;
+            }
+        } else {
+            // Si ce n'est pas alruqee, masquer le nom/logo Alruqee
+            if (header) {
+                let logo = header.querySelector('.company-logo');
+                if (logo) logo.remove();
+                let name = header.querySelector('.company-title');
+                if (name) name.remove();
+            }
+            if (footer) {
+                footer.innerHTML = '&copy; 2025. All rights reserved.';
+            }
+        }
+        // Bloc principal (pour fallback)
+        let logo = document.getElementById('company-logo');
+        if (logo) logo.remove();
+        let name = document.getElementById('company-title');
+        if (name) name.remove();
+    } catch {}
+});
+
+// Utilisateur connecté (email)
+let email = null;
+if (localStorage.getItem('email')) {
+    email = localStorage.getItem('email');
+    searchBtn.disabled = false;
+    resetBtn.disabled = false;
+} else {
+    searchBtn.disabled = true;
+    resetBtn.disabled = true;
 }
 
-// Prompt reset
-const resetBtn = document.getElementById('resetBtn');
-if (resetBtn) {
-    resetBtn.addEventListener('click', function() {
-        document.getElementById('search').value = '';
-        clearSectionResults('prompt');
+// Load Data doit utiliser l'email pour charger les bonnes données
+if (loadDataBtn && dataStatus) {
+    loadDataBtn.addEventListener('click', async function() {
+        loadDataBtn.disabled = true;
+        dataStatus.textContent = 'Loading data...';
+        try {
+            const email = localStorage.getItem('email');
+            const res = await fetch(`/api/load-data/${email}`);
+            const result = await res.json();
+            if (Array.isArray(result) || result.success) {
+                dataStatus.textContent = `Data loaded`;
+                searchBtn.disabled = false;
+                resetBtn.disabled = false;
+            } else {
+                dataStatus.textContent = 'Failed to load data.';
+                loadDataBtn.disabled = false;
+            }
+        } catch {
+            dataStatus.textContent = 'Failed to load data.';
+            loadDataBtn.disabled = false;
+        }
     });
 }
-// Filter reset
-const filterResetBtn = document.getElementById('filterResetBtn');
-if (filterResetBtn) {
-    filterResetBtn.addEventListener('click', function() {
-        // Décoche tous les filtres et remet ALL
-        document.querySelectorAll('#filter-search-bar input[type=checkbox]').forEach(cb => cb.checked = false);
-        document.querySelectorAll('#filter-search-bar [id$="-all"]').forEach(cb => cb.checked = true);
-        clearSectionResults('filter');
-    });
+
+// Redirection automatique si non connecté
+if (!localStorage.getItem('email')) {
+    window.location.href = '/auth.html';
 }
-// Domain reset
-const resetNameBtn = document.getElementById('resetNameBtn');
-if (resetNameBtn) {
-    resetNameBtn.addEventListener('click', function() {
-        document.getElementById('companyNameInput').value = '';
-        clearSectionResults('domain');
-    });
+
+// Ajoute une fonction de feedback visuel
+function showMsg(msg, type = 'success') {
+    let el = document.getElementById('main-msg');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'main-msg';
+        el.className = 'msg';
+        document.querySelector('.container').prepend(el);
+    }
+    el.className = 'msg ' + type;
+    el.innerHTML = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3500);
 }
 
 // --- MENU LATERAL ---
@@ -137,18 +228,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuPrompt) promptBar.classList.add('active');
         if (menu === menuFilter) filterBar.classList.add('active');
         if (menu === menuName) nameBar.classList.add('active');
-        // Affiche les résultats du menu courant uniquement
+        // Affiche les résultats du menu courant, sinon masque tout
         const key = getCurrentMenuKey();
         const data = JSON.parse(localStorage.getItem(key) || '[]');
         if (Array.isArray(data) && data.length > 0) {
             renderResultsTable(data);
         } else {
-            resultsTable.innerHTML = '';
+            document.getElementById('results').innerHTML = '';
             const thead = document.getElementById('results-thead');
             if (thead) thead.style.display = 'none';
             if (saveSearchBtn) saveSearchBtn.style.display = 'none';
-            if (filterSaveBtn) filterSaveBtn.style.display = 'none';
-            if (nameSaveBtn) nameSaveBtn.style.display = 'none';
         }
     }
     // --- Ajout : activer la section selon le hash de l'URL au chargement et lors d'un changement de hash ---
@@ -836,208 +925,26 @@ function getCurrentMenuKey() {
 
 // --- Modification de chaque recherche pour stocker dans le bon menu ---
 document.getElementById('searchBtn').addEventListener('click', async function() {
-    const query = document.getElementById('search').value;
-    if (!query) return alert("Please enter your need in the search bar.");
-    if (!email) return alert("Veuillez vous connecter.");
-    // Masque l'en-tête et le bouton save avant la recherche
-    const thead = document.getElementById('results-thead');
-    if (thead) thead.style.display = 'none';
-    if (saveSearchBtn) saveSearchBtn.style.display = 'none';
-    resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
-    loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    try {
-        // Appel au backend pour la recherche sémantique
-        const response = await fetch('/api/semantic-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, query })
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Rechercher';
-            return;
-        }
-        let data = await response.json();
-
-        // Vérifie si la réponse est bien un tableau
-        if (!Array.isArray(data)) {
-            showMsg(data.error || "Erreur côté serveur.", 'error');
-            console.error(data);
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Rechercher';
-            return;
-        }
-
-        // Récupère le nombre réel de contacts pour chaque entreprise via /api/hunter-contacts-details
-        for (let i = 0; i < data.length; i++) {
-            const domain = data[i]['Domain'];
-            if (domain) {
-                try {
-                    const res = await fetch('/api/hunter-contacts-details', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ domain })
-                    });
-                    const contactsArr = await res.json();
-                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                } catch (e) {
-                    data[i].contacts = 0;
-                }
-            } else {
-                data[i].contacts = 0;
-            }
-        }
-        // Trie les résultats par nombre de contacts décroissant (valeurs vides/nulles = 0)
-        data.sort((a, b) => {
-            const contactsA = (typeof a.contacts === 'number' && !isNaN(a.contacts)) ? a.contacts : 0;
-            const contactsB = (typeof b.contacts === 'number' && !isNaN(b.contacts)) ? b.contacts : 0;
-            return contactsB - contactsA;
-        });
-        // Stocke les résultats dans le localStorage pour accès depuis details.html
-        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        // Affiche les résultats dans le tableau
-        renderResultsTable(data);
-        showMsg('Recherche terminée avec succès.', 'success');
-        loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Rechercher';
-    } finally {
-        loadingBtn.style.display = 'none';
-    }
+    // ...existing code...
+    // Stocke les résultats dans le localStorage pour accès depuis details.html
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    // ...existing code...
+    renderResultsTable(data);
+    // ...existing code...
 });
 
 filterSearchBtn.addEventListener('click', async function() {
-    // Récupère les valeurs cochées (ou ALL)
-    function getCheckedValues(container, name) {
-        const allBox = container.querySelector(`#${name}-all`);
-        if (allBox && allBox.checked) return [];
-        return [...container.querySelectorAll(`input[type=checkbox][name=${name}]`)].filter(cb => cb.checked).map(cb => cb.value);
-    }
-    const industries = getCheckedValues(filterIndustryGroup, 'industry');
-    const locations = getCheckedValues(filterLocationGroup, 'location');
-    const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
-    const email = localStorage.getItem('email');
-    if (!email) return showMsg('Veuillez vous connecter.', 'error');
-    // Masque l'en-tête et le bouton save avant la recherche
-    const thead = document.getElementById('results-thead');
-    if (thead) thead.style.display = 'none';
-    saveSearchBtn.style.display = 'none';
-    resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
-    loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    try {
-        const response = await fetch('/api/filter-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, industries, locations, headcounts })
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        let data = await response.json();
-        if (!Array.isArray(data)) {
-            showMsg(data.error || "Erreur côté serveur.", 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-        for (let i = 0; i < data.length; i++) {
-            const domain = data[i]['Domain'];
-            if (domain) {
-                try {
-                    const res = await fetch('/api/hunter-contacts-details', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ domain })
-                    });
-                    const contactsArr = await res.json();
-                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                } catch (e) {
-                    data[i].contacts = 0;
-                }
-            } else {
-                data[i].contacts = 0;
-            }
-        }
-        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        renderResultsTable(data);
-        showMsg('Recherche filtrée terminée.', 'success');
-        loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Search';
-    } finally {
-        loadingBtn.style.display = 'none';
-    }
+    // ...existing code...
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    renderResultsTable(data);
+    // ...existing code...
 });
 
 nameSearchBtn.addEventListener('click', async function() {
-    const name = companyNameInput.value.trim();
-    const email = localStorage.getItem('email');
-    if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
-    if (!email) return showMsg('Veuillez vous connecter.', 'error');
-    // Masque l'en-tête et le bouton save avant la recherche
-    const thead = document.getElementById('results-thead');
-    if (thead) thead.style.display = 'none';
-    saveSearchBtn.style.display = 'none';
-    resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
-    loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    try {
-        const response = await fetch('/api/company-name-search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, name })
-        });
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        let data = await response.json();
-        if (!Array.isArray(data)) {
-            showMsg(data.error || "Erreur côté serveur.", 'error');
-            loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
-            return;
-        }
-        // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-        for (let i = 0; i < data.length; i++) {
-            const domain = data[i]['Domain'];
-            if (domain) {
-                try {
-                    const res = await fetch('/api/hunter-contacts-details', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ domain })
-                    });
-                    const contactsArr = await res.json();
-                    data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                } catch (e) {
-                    data[i].contacts = 0;
-                }
-            } else {
-                data[i].contacts = 0;
-            }
-        }
-        localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        renderResultsTable(data);
-        showMsg('Recherche par nom terminée.', 'success');
-        loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Search';
-    } finally {
-        loadingBtn.style.display = 'none';
-    }
+    // ...existing code...
+    localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
+    renderResultsTable(data);
+    // ...existing code...
 });
 
 // --- Affichage conditionnel du tableau lors du changement de menu ---
@@ -1050,17 +957,16 @@ function setActiveMenu(menu) {
     if (menu === menuPrompt) promptBar.classList.add('active');
     if (menu === menuFilter) filterBar.classList.add('active');
     if (menu === menuName) nameBar.classList.add('active');
-    // Affiche les résultats du menu courant uniquement
+    // Affiche les résultats du menu courant, sinon masque tout
     const key = getCurrentMenuKey();
     const data = JSON.parse(localStorage.getItem(key) || '[]');
     if (Array.isArray(data) && data.length > 0) {
         renderResultsTable(data);
     } else {
-        resultsTable.innerHTML = '';
+        document.getElementById('results').innerHTML = '';
         const thead = document.getElementById('results-thead');
         if (thead) thead.style.display = 'none';
         if (saveSearchBtn) saveSearchBtn.style.display = 'none';
-        if (filterSaveBtn) filterSaveBtn.style.display = 'none';
-        if (nameSaveBtn) nameSaveBtn.style.display = 'none';
     }
 }
+// ...existing code...
