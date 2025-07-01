@@ -7,7 +7,7 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
     if (thead) thead.style.display = 'none';
     if (saveSearchBtn) saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
+    const loadingBtn = document.getElementById('loadingBtnPrompt');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     try {
@@ -370,7 +370,7 @@ filterSearchBtn.addEventListener('click', function() {
     if (thead) thead.style.display = 'none';
     saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
+    const loadingBtn = document.getElementById('loadingBtnFilter');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
@@ -443,7 +443,7 @@ nameSearchBtn.addEventListener('click', function() {
     if (thead) thead.style.display = 'none';
     saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
-    const loadingBtn = document.getElementById('loadingBtn');
+    const loadingBtn = document.getElementById('loadingBtnDomain');
     loadingBtn.style.display = 'inline-block';
     loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);

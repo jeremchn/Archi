@@ -268,7 +268,7 @@
                 <button id="searchBtn" class="btn btn-search" style="min-width:120px;background:var(--primary);color:#fff;">Rechercher</button>
                 <button id="resetBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
                 <button id="saveSearchBtn" class="btn btn-success" style="min-width:160px;display:none;">Save research</button>
-                <span id="loadingBtn" style="display:none;margin-left:1em;"></span>
+                <span id="loadingBtnPrompt" style="display:none;margin-left:1em;"></span>
             </div>
         </div>
         <div class="filter-bar" id="filter-search-bar" style="flex-direction:column;align-items:flex-start;gap:1.2em;">
@@ -288,12 +288,14 @@
                 <button id="filterSearchBtn" class="btn btn-search" style="min-width:120px;align-self:flex-start;">Search</button>
                 <button id="filterResetBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
                 <button id="saveSearchBtnFilter" class="btn btn-success" style="min-width:160px;display:none;">Save research</button>
+                <span id="loadingBtnFilter" style="display:none;margin-left:1em;"></span>
             </div>
         </div>
         <div class="name-bar" id="name-search-bar">
             <input id="companyNameInput" class="btn btn-gray" style="flex:1;min-width:220px;max-width:100%;" placeholder="Entrer le nom de la société..." />
             <button id="nameSearchBtn" class="btn btn-search" style="min-width:120px;">Search</button>
             <button id="resetNameBtn" class="btn btn-gray" style="min-width:120px;">Reset</button>
+            <span id="loadingBtnDomain" style="display:none;margin-left:1em;"></span>
         </div>
         <div style="text-align:center;margin-bottom:1em;">
             <button id="loadingBtn" class="btn btn-search" style="display:none;pointer-events:none;min-width:140px;">
