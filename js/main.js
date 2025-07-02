@@ -448,11 +448,10 @@ const companyNameInput = document.getElementById('companyNameInput');
 const nameSearchBtn = document.getElementById('nameSearchBtn');
 
 nameSearchBtn.addEventListener('click', function() {
-    console.log('[DEBUG] nameSearchBtn clicked');
-    const name = companyNameInput.value.trim();
+    const input = companyNameInput.value.trim();
     const email = localStorage.getItem('email');
-    if (!name) return showMsg('Veuillez entrer un nom de société.', 'error');
-    if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    if (!input) return showMsg('Please enter a company name or domain.', 'error');
+    if (!email) return showMsg('Please log in.', 'error');
     // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
@@ -460,27 +459,24 @@ nameSearchBtn.addEventListener('click', function() {
     resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtnDomain');
     loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
-    console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
-    // Utilise setTimeout pour forcer l'affichage du bouton de chargement
+    loadingBtn.innerHTML = '<span class="loader"></span> Searching...';
     setTimeout(async () => {
-        console.log('[DEBUG] Entered setTimeout for nameSearchBtn');
         try {
             const response = await fetch('/api/company-name-search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, name })
+                body: JSON.stringify({ email, nameOrDomain: input })
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
+                showMsg("Server error: " + (err.error || response.statusText), 'error');
                 loadingBtn.style.display = 'none';
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
             let data = await response.json();
             if (!Array.isArray(data)) {
-                showMsg(data.error || "Erreur côté serveur.", 'error');
+                showMsg(data.error || "Server error.", 'error');
                 loadingBtn.style.display = 'none';
                 loadingBtn.innerHTML = 'Search';
                 return;
@@ -506,12 +502,11 @@ nameSearchBtn.addEventListener('click', function() {
             }
             localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
             renderResultsTable(data);
-            showMsg('Recherche par nom terminée.', 'success');
+            showMsg('Search completed.', 'success');
             loadingBtn.style.display = 'none';
             loadingBtn.innerHTML = 'Search';
         } finally {
             loadingBtn.style.display = 'none';
-            console.log('[DEBUG] loadingBtn hidden after nameSearchBtn');
         }
     }, 0);
 });
