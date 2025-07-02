@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fiche Score</title>
+    <title>Score Sheet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -58,11 +58,14 @@
 </head>
 <body>
     <div class="container">
-        <button class="btn" onclick="history.back()">&larr; Retour</button>
-        <h1>Fiche Score</h1>
+        <button class="btn" onclick="history.back()">&larr; Back</button>
+        <h1>Score Sheet</h1>
         <div id="contact-info"></div>
         <canvas id="radarChart" width="400" height="400"></canvas>
     </div>
+    <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
+        &copy; 2025 Lydi. All rights reserved.
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/fiche.js"></script>
 </body>
