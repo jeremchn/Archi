@@ -294,11 +294,29 @@ function extractCountry(location) {
 
 async function populateFilters() {
     try {
-        const email = localStorage.getItem('email');
-        const res = await fetch(`/api/filters?email=${encodeURIComponent(email)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        // Pour Industry et Headcount, valeurs brutes
+        // Restrict filter options as per requirements
+        const industryOptions = [
+            "Biotechnology",
+            "Cosmetics",
+            "Personal Care Services",
+            "Pharmaceutical Manufacturing"
+        ];
+        const locationOptions = [
+            "United States",
+            "Canada",
+            "France"
+        ];
+        // Headcount sorted ascending
+        const headcountOptions = [
+            "1-10",
+            "11-50",
+            "51-200",
+            "201-500",
+            "501-1000",
+            "1001-5000",
+            "5001-10,000",
+            "10,001+"
+        ];
         function renderCheckboxGroup(container, values, name) {
             if (!container) return;
             container.innerHTML = '';
@@ -342,19 +360,15 @@ async function populateFilters() {
                 });
             });
         }
-        renderCheckboxGroup(filterIndustryGroup, data.industries || [], 'industry');
-        renderCheckboxGroup(filterHeadcountGroup, data.headcounts || [], 'headcount');
-        // Pour Location, extraire uniquement les pays distincts
-        const allCountries = (data.locations || []).map(extractCountry);
-        const uniqueCountries = [...new Set(allCountries)].filter(Boolean).sort();
-        renderCheckboxGroup(filterLocationGroup, uniqueCountries, 'location');
+        renderCheckboxGroup(filterIndustryGroup, industryOptions, 'industry');
+        renderCheckboxGroup(filterHeadcountGroup, headcountOptions, 'headcount');
+        renderCheckboxGroup(filterLocationGroup, locationOptions, 'location');
     } catch {}
 }
 // Remplit les filtres au chargement
 populateFilters();
 
 filterSearchBtn.addEventListener('click', function() {
-    console.log('[DEBUG] filterSearchBtn clicked');
     function getCheckedValues(container, name) {
         const allBox = container.querySelector(`#${name}-all`);
         if (allBox && allBox.checked) return [];
@@ -364,7 +378,7 @@ filterSearchBtn.addEventListener('click', function() {
     const locations = getCheckedValues(filterLocationGroup, 'location');
     const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
     const email = localStorage.getItem('email');
-    if (!email) return showMsg('Veuillez vous connecter.', 'error');
+    if (!email) return showMsg('Please log in.', 'error');
     // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
@@ -381,7 +395,7 @@ filterSearchBtn.addEventListener('click', function() {
             const response = await fetch('/api/filter-search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, industries, locations, headcounts })
+                body: JSON.stringify({ email, industries, locations, headcounts, partialMatch: true })
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
