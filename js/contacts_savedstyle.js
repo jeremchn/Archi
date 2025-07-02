@@ -1,4 +1,4 @@
-// Affiche le tableau de toutes les listes de leads (même UX que saved.js, mais pour leadsLists)
+// Shows the table of all lead lists (same UX as saved.js, but for leadsLists)
 function getLeadsLists() {
     return JSON.parse(localStorage.getItem('leadsLists') || '{}');
 }
@@ -10,16 +10,16 @@ function renderListsTable() {
     const leadsLists = getLeadsLists();
     const names = Object.keys(leadsLists);
     if (!names.length) {
-        listsTable.innerHTML = '<div style="color:#888;font-style:italic;">Aucune liste de leads.</div>';
+        listsTable.innerHTML = '<div style="color:#888;font-style:italic;">No lead lists.</div>';
         return;
     }
-    let html = '<table><thead><tr><th>Nom</th><th>Nb leads</th><th>Voir</th><th>Exporter</th><th>Supprimer</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Name</th><th>Leads</th><th>View</th><th>Export</th><th>Delete</th></tr></thead><tbody>';
     names.forEach((name, idx) => {
         const leads = leadsLists[name];
         html += `<tr data-name='${name}'>
             <td>${name}</td>
             <td>${leads.length}</td>
-            <td><button class='btn btn-gray' data-action='voir' data-name='${name}'>Voir</button></td>
+            <td><button class='btn btn-gray' data-action='voir' data-name='${name}'>View</button></td>
             <td><button class='btn btn-gray' data-action='export' data-name='${name}'>CSV</button></td>
             <td><button class='btn btn-gray' data-action='delete' data-name='${name}'>🗑️</button></td>
         </tr>`;
@@ -42,10 +42,10 @@ function showListDetails(name) {
     const listDetails = document.getElementById('listDetails');
     let html = `<h3>${name} (${leads.length} leads)</h3>`;
     if (!leads.length) {
-        html += '<div style="color:#888;">Aucun lead dans cette liste.</div>';
+        html += '<div style="color:#888;">No leads in this list.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
-        html += '<th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th><th>Ice breaker</th><th>Supprimer</th></tr></thead><tbody>';
+        html += '<th>Email</th><th>First Name</th><th>Last Name</th><th>Position</th><th>Company</th><th>LinkedIn</th><th>Ice breaker</th><th>Delete</th></tr></thead><tbody>';
         leads.forEach((l, idx) => {
             html += `<tr><td>${l.email||''}</td><td>${l.first_name||''}</td><td>${l.last_name||''}</td><td>${l.position||''}</td><td>${l.company||''}</td><td>${l.linkedin_url?`<a href='${l.linkedin_url}' target='_blank'>LinkedIn</a>`:''}</td>`;
             html += `<td>`;
@@ -105,7 +105,7 @@ function showListDetails(name) {
 }
 
 function deleteLeadsList(name) {
-    if (!confirm('Supprimer la liste "' + name + '" ?')) return;
+    if (!confirm('Delete the list "' + name + '"?')) return;
     const leadsLists = getLeadsLists();
     delete leadsLists[name];
     localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
@@ -116,7 +116,7 @@ function deleteLeadsList(name) {
 function exportLeadsCSV(name) {
     const leadsLists = getLeadsLists();
     const leads = leadsLists[name] || [];
-    if (!leads.length) return alert('Liste vide');
+    if (!leads.length) return alert('Empty list');
     const csv = [Object.keys(leads[0]).join(',')].concat(leads.map(l => Object.values(l).map(v => '"'+(v||'').toString().replace(/"/g,'""')+'"').join(','))).join('\n');
     const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
