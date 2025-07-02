@@ -299,7 +299,8 @@ async function populateFilters() {
             "Biotechnology",
             "Cosmetics",
             "Personal Care Services",
-            "Pharmaceutical Manufacturing"
+            "Pharmaceutical Manufacturing",
+            "Medical Devices"
         ];
         const locationOptions = [
             "United States",
@@ -314,8 +315,8 @@ async function populateFilters() {
             "201-500",
             "501-1000",
             "1001-5000",
-            "5001-10,000",
-            "10,001+"
+            "5001-10000",
+            "10001+"
         ];
         function renderCheckboxGroup(container, values, name) {
             if (!container) return;
@@ -395,7 +396,7 @@ filterSearchBtn.addEventListener('click', function() {
             const response = await fetch('/api/filter-search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, industries, locations, headcounts, partialMatch: true })
+                body: JSON.stringify({ email, industries, locations, headcounts, partialMatch: true, intersection: true })
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
