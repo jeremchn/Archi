@@ -117,7 +117,13 @@ function exportLeadsCSV(name) {
     const leadsLists = getLeadsLists();
     const leads = leadsLists[name] || [];
     if (!leads.length) return alert('Empty list');
-    const csv = [Object.keys(leads[0]).join(',')].concat(leads.map(l => Object.values(l).map(v => '"'+(v||'').toString().replace(/"/g,'""')+'"').join(','))).join('\n');
+    // Always include 'icebreaker' as the last column
+    const headers = [
+        'email', 'first_name', 'last_name', 'position', 'company', 'linkedin_url', 'icebreaker'
+    ];
+    const csv = [headers.join(',')].concat(
+        leads.map(l => headers.map(h => '"'+((l[h]!==undefined && l[h]!==null) ? l[h] : '').toString().replace(/"/g,'""')+'"').join(','))
+    ).join('\n');
     const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
