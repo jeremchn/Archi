@@ -1,17 +1,17 @@
 document.getElementById('searchBtn').addEventListener('click', async function() {
     const query = document.getElementById('search').value;
     if (!query) return alert("Please enter your need in the search bar.");
-    if (!email) return alert("Please log in.");
-    // Hide header and save button before search
+    if (!email) return alert("Veuillez vous connecter.");
+    // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
     if (saveSearchBtn) saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtnPrompt');
     loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Searching...';
+    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     try {
-        // Call to backend for semantic search
+        // Appel au backend pour la recherche sémantique
         const response = await fetch('/api/semantic-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -19,23 +19,23 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
         });
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            showMsg("Server error: " + (err.error || response.statusText), 'error');
+            showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
             loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
+            loadingBtn.innerHTML = 'Rechercher';
             return;
         }
         let data = await response.json();
 
-        // Check if the response is an array
+        // Vérifie si la réponse est bien un tableau
         if (!Array.isArray(data)) {
-            showMsg(data.error || "Server error.", 'error');
+            showMsg(data.error || "Erreur côté serveur.", 'error');
             console.error(data);
             loadingBtn.style.display = 'none';
-            loadingBtn.innerHTML = 'Search';
+            loadingBtn.innerHTML = 'Rechercher';
             return;
         }
 
-        // Get the actual number of contacts for each company via /api/hunter-contacts-details
+        // Récupère le nombre réel de contacts pour chaque entreprise via /api/hunter-contacts-details
         for (let i = 0; i < data.length; i++) {
             const domain = data[i]['Domain'];
             if (domain) {
@@ -54,19 +54,19 @@ document.getElementById('searchBtn').addEventListener('click', async function() 
                 data[i].contacts = 0;
             }
         }
-        // Sort results by number of contacts descending (empty/null values = 0)
+        // Trie les résultats par nombre de contacts décroissant (valeurs vides/nulles = 0)
         data.sort((a, b) => {
             const contactsA = (typeof a.contacts === 'number' && !isNaN(a.contacts)) ? a.contacts : 0;
             const contactsB = (typeof b.contacts === 'number' && !isNaN(b.contacts)) ? b.contacts : 0;
             return contactsB - contactsA;
         });
-        // Store results in localStorage for access from details.html
+        // Stocke les résultats dans le localStorage pour accès depuis details.html
         localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
-        // Display results in the table
+        // Affiche les résultats dans le tableau
         renderResultsTable(data);
-        showMsg('Search completed successfully.', 'success');
+        showMsg('Recherche terminée avec succès.', 'success');
         loadingBtn.style.display = 'none';
-        loadingBtn.innerHTML = 'Search';
+        loadingBtn.innerHTML = 'Rechercher';
     } finally {
         loadingBtn.style.display = 'none';
     }
@@ -78,7 +78,7 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     if (window.location.hash === '#filter') {
         localStorage.removeItem('searchResults');
     }
-    // Add other sections here if needed (prompt, name...)
+    // Ajoute ici d'autres sections si besoin (prompt, name...)
 });
 
 const loadDataBtn = document.getElementById('loadDataBtn');
@@ -86,9 +86,9 @@ const searchBtn = document.getElementById('searchBtn');
 const resetBtn = document.getElementById('resetBtn');
 const dataStatus = document.getElementById('dataStatus');
 
-// Display logo and company name on index.html
+// Affichage du logo et du nom d'entreprise sur la page index.html
 window.addEventListener('DOMContentLoaded', async () => {
-    // The header is always 'Lydi search' for all companies
+    // Le header est toujours 'Lydi search' pour toutes les entreprises
     let headerTitle = document.getElementById('dynamic-title');
     if (headerTitle) headerTitle.textContent = 'Lydi search';
 
@@ -98,7 +98,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch(`/api/profile/${email}`);
         if (!res.ok) return;
         const profile = await res.json();
-        // Display header and footer only if the user is "alruqee"
+        // Affiche le header et le footer uniquement si l'utilisateur est "alruqee"
         const isAlruqee = (profile.company_name && profile.company_name.toLowerCase().includes('alruqee')) ||
             (email && email.toLowerCase().includes('alruqee'));
         let header = document.querySelector('header');
@@ -115,7 +115,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 header.querySelector('div').prepend(logo);
             }
             logo.src = profile.logo_url;
-            // Name
+            // Nom
             let name = header.querySelector('.company-title');
             if (!name) {
                 name = document.createElement('span');
@@ -131,7 +131,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 footer.innerHTML = `&copy; 2025 ${profile.company_name}. All rights reserved.`;
             }
         } else {
-            // If not alruqee, hide the Alruqee name/logo
+            // Si ce n'est pas alruqee, masquer le nom/logo Alruqee
             if (header) {
                 let logo = header.querySelector('.company-logo');
                 if (logo) logo.remove();
@@ -142,7 +142,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                 footer.innerHTML = '&copy; 2025. All rights reserved.';
             }
         }
-        // Main block (for fallback)
+        // Bloc principal (pour fallback)
         let logo = document.getElementById('company-logo');
         if (logo) logo.remove();
         let name = document.getElementById('company-title');
@@ -150,7 +150,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     } catch {}
 });
 
-// Connected user (email)
+// Utilisateur connecté (email)
 let email = null;
 if (localStorage.getItem('email')) {
     email = localStorage.getItem('email');
@@ -161,7 +161,7 @@ if (localStorage.getItem('email')) {
     resetBtn.disabled = true;
 }
 
-// Load Data must use email to load the correct data
+// Load Data doit utiliser l'email pour charger les bonnes données
 if (loadDataBtn && dataStatus) {
     loadDataBtn.addEventListener('click', async function() {
         loadDataBtn.disabled = true;
@@ -185,12 +185,12 @@ if (loadDataBtn && dataStatus) {
     });
 }
 
-// Automatic redirection if not connected
+// Redirection automatique si non connecté
 if (!localStorage.getItem('email')) {
     window.location.href = '/auth.html';
 }
 
-// Adds a visual feedback function
+// Ajoute une fonction de feedback visuel
 function showMsg(msg, type = 'success') {
     let el = document.getElementById('main-msg');
     if (!el) {
@@ -207,7 +207,7 @@ function showMsg(msg, type = 'success') {
 
 // --- MENU LATERAL ---
 document.addEventListener('DOMContentLoaded', function() {
-    // Log for debug
+    // Log pour debug
     console.log('[DEBUG] Initialisation du menu latéral');
     const menuPrompt = document.getElementById('menu-prompt');
     const menuFilter = document.getElementById('menu-filter');
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (menu === menuPrompt) promptBar.classList.add('active');
         if (menu === menuFilter) filterBar.classList.add('active');
         if (menu === menuName) nameBar.classList.add('active');
-        // Show results of the current menu, otherwise hide all
+        // Affiche les résultats du menu courant, sinon masque tout
         const key = getCurrentMenuKey();
         const data = JSON.parse(localStorage.getItem(key) || '[]');
         if (Array.isArray(data) && data.length > 0) {
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (saveSearchBtn) saveSearchBtn.style.display = 'none';
         }
     }
-    // --- Addition: activate section according to URL hash on load and when hash changes ---
+    // --- Ajout : activer la section selon le hash de l'URL au chargement et lors d'un changement de hash ---
     function activateFromHash() {
         let hash = window.location.hash || '#prompt';
         if (hash === '#prompt') setActiveMenu(menuPrompt);
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (hash === '#filter') setActiveMenu(menuFilter);
         else setActiveMenu(menuPrompt);
     }
-    // Remove any call to setActiveMenu(menuPrompt) before activateFromHash()
+    // Supprimer tout appel à setActiveMenu(menuPrompt) avant activateFromHash()
     activateFromHash();
     window.addEventListener('hashchange', activateFromHash);
     menuPrompt.addEventListener('click', () => { setActiveMenu(menuPrompt); window.location.hash = '#prompt'; });
@@ -380,14 +380,14 @@ filterSearchBtn.addEventListener('click', function() {
     const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
     const email = localStorage.getItem('email');
     if (!email) return showMsg('Please log in.', 'error');
-    // Hide header and save button before search
+    // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
     saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtnFilter');
     loadingBtn.style.display = 'inline-block';
-    loadingBtn.innerHTML = '<span class="loader"></span> Searching...';
+    loadingBtn.innerHTML = '<span class="loader"></span> Recherche...';
     console.log('[DEBUG] loadingBtn should be visible', loadingBtn, loadingBtn.style.display, loadingBtn.innerHTML);
     // Utilise setTimeout pour forcer l'affichage du bouton de chargement
     setTimeout(async () => {
@@ -400,19 +400,19 @@ filterSearchBtn.addEventListener('click', function() {
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
-                showMsg("Server error: " + (err.error || response.statusText), 'error');
+                showMsg("Erreur serveur: " + (err.error || response.statusText), 'error');
                 loadingBtn.style.display = 'none';
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
             let data = await response.json();
             if (!Array.isArray(data)) {
-                showMsg(data.error || "Server error.", 'error');
+                showMsg(data.error || "Erreur côté serveur.", 'error');
                 loadingBtn.style.display = 'none';
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
-            // Add the number of contacts for each company (like prompt)
+            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
             for (let i = 0; i < data.length; i++) {
                 const domain = data[i]['Domain'];
                 if (domain) {
@@ -433,7 +433,7 @@ filterSearchBtn.addEventListener('click', function() {
             }
             localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
             renderResultsTable(data);
-            showMsg('Filtered search completed.', 'success');
+            showMsg('Recherche filtrée terminée.', 'success');
             loadingBtn.style.display = 'none';
             loadingBtn.innerHTML = 'Search';
         } finally {
@@ -452,10 +452,10 @@ nameSearchBtn.addEventListener('click', function() {
     const email = localStorage.getItem('email');
     if (!input) return showMsg('Please enter a company name or domain.', 'error');
     if (!email) return showMsg('Please log in.', 'error');
-    // Hide the header and save button before search
+    // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
     if (thead) thead.style.display = 'none';
-    if (saveSearchBtn) saveSearchBtn.style.display = 'none';
+    saveSearchBtn.style.display = 'none';
     resultsTable.innerHTML = '';
     const loadingBtn = document.getElementById('loadingBtnDomain');
     loadingBtn.style.display = 'inline-block';
@@ -481,7 +481,7 @@ nameSearchBtn.addEventListener('click', function() {
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
-            // Add the number of contacts for each company (like prompt)
+            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
             for (let i = 0; i < data.length; i++) {
                 const domain = data[i]['Domain'];
                 if (domain) {
@@ -535,13 +535,13 @@ function loadSavedSearches() {
 function showSavedSearchesTable() {
     loadSavedSearches();
     const searches = window._allSavedSearches || [];
-    let html = '<h2>My Saved Searches</h2>';
+    let html = '<h2>Mes recherches sauvegardées</h2>';
     if (!searches.length) {
-        html += '<div style="color:#888;font-style:italic;">No saved searches.</div>';
+        html += '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
     } else {
-        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Name</th><th>Nb Companies</th><th>Date</th><th>View</th></tr></thead><tbody>';
+        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th></tr></thead><tbody>';
         searches.forEach((s, idx) => {
-            html += `<tr><td>${s.name || 'Unnamed'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>View</button></td></tr>`;
+            html += `<tr><td>${s.name || 'Sans nom'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>Voir</button></td></tr>`;
         });
         html += '</tbody></table>';
     }
@@ -560,9 +560,9 @@ function showSavedListDetails(idx) {
     const searches = window._allSavedSearches || [];
     if (!searches[idx]) return;
     const data = searches[idx].data;
-    let html = `<h3>${searches[idx].name} (${data.length} companies)</h3>`;
+    let html = `<h3>${searches[idx].name} (${data.length} entreprises)</h3>`;
     if (!data.length) {
-        html += '<div style="color:#888;">No companies in this list.</div>';
+        html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
         html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
@@ -579,7 +579,7 @@ function showSavedListDetails(idx) {
 if (saveSearchBtn) {
     saveSearchBtn.onclick = function() {
         const results = window._lastResults || [];
-        if (!results || !results.length) return alert('No results to save.');
+        if (!results || !results.length) return alert('Aucun résultat à sauvegarder.');
         saveCurrentSearch(results);
     };
 }
@@ -602,13 +602,13 @@ function loadSavedSearches() {
 function showSavedSearchesTable() {
     loadSavedSearches();
     const searches = window._allSavedSearches || [];
-    let html = '<h2>My Saved Searches</h2>';
+    let html = '<h2>Mes recherches sauvegardées</h2>';
     if (!searches.length) {
-        html += '<div style="color:#888;font-style:italic;">No saved searches.</div>';
+        html += '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
     } else {
-        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Name</th><th>Nb Companies</th><th>Date</th><th>View</th></tr></thead><tbody>';
+        html += '<table style="width:100%;margin-top:1em;"><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th></tr></thead><tbody>';
         searches.forEach((s, idx) => {
-            html += `<tr><td>${s.name || 'Unnamed'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>View</button></td></tr>`;
+            html += `<tr><td>${s.name || 'Sans nom'}</td><td>${s.data.length}</td><td>${s.date || ''}</td><td><button class='btn btn-gray' data-idx='${idx}'>Voir</button></td></tr>`;
         });
         html += '</tbody></table>';
     }
@@ -627,9 +627,9 @@ function showSavedListDetails(idx) {
     const searches = window._allSavedSearches || [];
     if (!searches[idx]) return;
     const data = searches[idx].data;
-    let html = `<h3>${searches[idx].name} (${data.length} companies)</h3>`;
+    let html = `<h3>${searches[idx].name} (${data.length} entreprises)</h3>`;
     if (!data.length) {
-        html += '<div style="color:#888;">No companies in this list.</div>';
+        html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
         html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
@@ -745,7 +745,7 @@ if (saveSearchBtn) {
 }
 
 function saveCurrentSearch(results) {
-    const name = prompt('Name of the search to save?');
+    const name = prompt('Nom de la recherche à sauvegarder ?');
     if (!name) return;
     const key = getSavedSearchesKey();
     let searches = [];
@@ -756,7 +756,7 @@ function saveCurrentSearch(results) {
     searches.push({ name, data: results, date });
     localStorage.setItem(key, JSON.stringify(searches));
     window._allSavedSearches = searches;
-    showMsg('Search saved!', 'success');
+    showMsg('Recherche sauvegardée !', 'success');
 }
 
 function renderResultsTable(data) {
@@ -807,12 +807,28 @@ function renderResultsTable(data) {
 
 // Fonction pour ouvrir le mini-modal UX pour sauvegarder une entreprise
 function openSaveCompanyModal(company) {
-    // Réutilise le mini-modal existant pour Save lead/Save all
-    // On suppose qu'une fonction showSaveLeadModal existe déjà, sinon à adapter
-    if (typeof showSaveLeadModal === 'function') {
-        showSaveLeadModal(company, 'company');
+    // Save directly to saved companies (not contacts/leadsLists)
+    const key = getSavedSearchesKey();
+    let searches = [];
+    try {
+        searches = JSON.parse(localStorage.getItem(key)) || [];
+    } catch {}
+    // Ask for a list name (or use a default)
+    let name = prompt('Enter a name for your saved company list:', 'Saved companies');
+    if (!name) return;
+    // Find or create the list
+    let list = searches.find(s => s.name === name);
+    if (!list) {
+        list = { name, data: [], date: new Date().toLocaleString() };
+        searches.push(list);
+    }
+    // Avoid duplicates by domain
+    if (!list.data.some(item => item['Domain'] === company['Domain'])) {
+        list.data.push(company);
+        localStorage.setItem(key, JSON.stringify(searches));
+        showMsg('Company saved to "' + name + '"!', 'success');
     } else {
-        alert('Save modal not implemented');
+        showMsg('This company is already in the list "' + name + '".', 'error');
     }
 }
 
@@ -871,7 +887,7 @@ function showSaveLeadModal(company, type) {
                 localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
                 alert('Company saved in list ' + name);
             } else {
-                alert('This company is already in the list ' + name);
+                alert('Cette company est déjà dans la liste ' + name);
             }
             modal.remove();
         };
@@ -899,7 +915,7 @@ function showSaveLeadModal(company, type) {
                     localStorage.setItem('leadsLists', JSON.stringify(leadsLists));
                     alert('Company saved in list ' + list);
                 } else {
-                    alert('This company is already in the list ' + list);
+                    alert('Cette company est déjà dans la liste ' + list);
                 }
                 modal.remove();
             };
