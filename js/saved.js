@@ -19,16 +19,16 @@ function renderListsTable() {
     listDetails.innerHTML = '';
     const searches = loadSavedSearches();
     if (!searches.length) {
-        listsTable.innerHTML = '<div style="color:#888;font-style:italic;">Aucune recherche sauvegardée.</div>';
+        listsTable.innerHTML = '<div style="color:#888;font-style:italic;">No saved searches.</div>';
         return;
     }
-    let html = '<table><thead><tr><th>Nom</th><th>Nb entreprises</th><th>Date</th><th>Voir</th><th>Exporter</th><th>Supprimer</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Name</th><th>Companies</th><th>Date</th><th>View</th><th>Export</th><th>Delete</th></tr></thead><tbody>';
     searches.forEach((s, idx) => {
         html += `<tr data-idx='${idx}'>
-            <td>${s.name || 'Sans nom'}</td>
+            <td>${s.name || 'No name'}</td>
             <td>${s.data.length}</td>
             <td>${s.date || ''}</td>
-            <td><button class='btn btn-gray' data-action='voir' data-idx='${idx}'>Voir</button></td>
+            <td><button class='btn btn-gray' data-action='voir' data-idx='${idx}'>View</button></td>
             <td><button class='btn btn-gray' data-action='export' data-idx='${idx}'>CSV</button></td>
             <td><button class='btn btn-gray' data-action='delete' data-idx='${idx}'>🗑️</button></td>
         </tr>`;
@@ -49,9 +49,9 @@ function showListDetails(idx) {
     const searches = loadSavedSearches();
     if (!searches[idx]) return;
     const data = searches[idx].data;
-    let html = `<h3>${searches[idx].name} (${data.length} entreprises)</h3>`;
+    let html = `<h3>${searches[idx].name} (${data.length} companies)</h3>`;
     if (!data.length) {
-        html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
+        html += '<div style="color:#888;">No companies in this list.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
         html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
