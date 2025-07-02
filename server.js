@@ -176,7 +176,7 @@ app.post('/api/hunter-contacts', async (req, res) => {
   const results = await Promise.all(companies.map(async (domain) => {
     try {
       const response = await axios.get(
-        `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=100`
+        `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=30`
       );
       const emails = response.data.data.emails || [];
       return emails.length;
@@ -196,7 +196,7 @@ app.post('/api/hunter-contacts-details', async (req, res) => {
   const HUNTER_API_KEY = process.env.HUNTERKEY;
   try {
     const response = await axios.get(
-      `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=100`
+      `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=30`
     );
     const emails = response.data.data.emails || [];
     const contacts = emails.map(e => ({
