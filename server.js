@@ -721,12 +721,12 @@ app.post('/api/filter-search', async (req, res) => {
 
 // Endpoint pour recherche par nom de société (fuzzy)
 app.post('/api/company-name-search', async (req, res) => {
-  const { email, name } = req.body;
-  if (!email || !name) return res.status(400).json({ error: 'Email et nom requis.' });
+  const { email, name, domain } = req.body;
+  if (!email || (!name && !domain)) return res.status(400).json({ error: 'Email and at least one search field required.' });
   let dataUrls = [];
   try {
     const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
-    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
+    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profile not found.' });
     let dataUrl = profileRes.rows[0].data_url;
     if (typeof dataUrl === 'string') {
       dataUrl = dataUrl.trim();
@@ -737,7 +737,7 @@ app.post('/api/company-name-search', async (req, res) => {
     } else if (Array.isArray(dataUrl)) {
       dataUrls = dataUrl;
     }
-    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
+    if (!dataUrls.length) return res.status(400).json({ error: 'No valid data_url.' });
     let allData = [];
     for (const url of dataUrls) {
       try {
@@ -749,16 +749,24 @@ app.post('/api/company-name-search', async (req, res) => {
           allData.push(data);
         }
       } catch (err) {
-        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
+        console.error('Error downloading file:', err.message, '| data_url used:', url);
       }
     }
     let data = allData;
-    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
-    // Recherche fuzzy (insensible à la casse, inclut les noms très proches)
-    const search = name.trim().toLowerCase();
-    data = data.filter(e => e['Company Name'] && e['Company Name'].toLowerCase().includes(search));
-    // Si aucun résultat, on tente une correspondance plus souple (distance de Levenshtein <= 2)
-    if (data.length === 0) {
+    if (!Array.isArray(data)) return res.status(500).json({ error: 'JSON file is not an array.' });
+    // Fuzzy search (case-insensitive, includes close names/domains)
+    const searchName = name ? name.trim().toLowerCase() : null;
+    const searchDomain = domain ? domain.trim().toLowerCase() : null;
+    data = data.filter(e => {
+      const companyName = e['Company Name'] ? e['Company Name'].toLowerCase() : '';
+      const companyDomain = e['Domain'] ? e['Domain'].toLowerCase() : '';
+      let match = false;
+      if (searchName && companyName.includes(searchName)) match = true;
+      if (searchDomain && companyDomain.includes(searchDomain)) match = true;
+      return match;
+    });
+    // If no result, try Levenshtein <= 2 on both fields
+    if (data.length === 0 && (searchName || searchDomain)) {
       function levenshtein(a, b) {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
@@ -781,14 +789,18 @@ app.post('/api/company-name-search', async (req, res) => {
         return matrix[b.length][a.length];
       }
       data = allData.filter(e => {
-        if (!e['Company Name']) return false;
-        return levenshtein(e['Company Name'].toLowerCase(), search) <= 2;
+        const companyName = e['Company Name'] ? e['Company Name'].toLowerCase() : '';
+        const companyDomain = e['Domain'] ? e['Domain'].toLowerCase() : '';
+        let match = false;
+        if (searchName && companyName && levenshtein(companyName, searchName) <= 2) match = true;
+        if (searchDomain && companyDomain && levenshtein(companyDomain, searchDomain) <= 2) match = true;
+        return match;
       });
     }
     data = data.slice(0, 50);
     res.json(data);
   } catch (e) {
-    res.status(500).json({ error: 'Erreur lors de la recherche par nom.' });
+    res.status(500).json({ error: 'Error during company/domain search.' });
   }
 });
 
