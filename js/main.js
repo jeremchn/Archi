@@ -1001,3 +1001,11 @@ if (nameResetBtn && companyNameInput) {
         e.preventDefault();
     });
 }
+
+// Handler for the Contacts menu (navigation to contacts.html)
+const menuContacts = document.getElementById('menu-contacts');
+if (menuContacts) {
+    menuContacts.onclick = function() {
+        window.location.href = 'contacts.html';
+    };
+}
