@@ -103,9 +103,9 @@ function renderRadarChart(scores) {
     radarChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Pays', 'Headcount', 'Industry', 'Company Type', 'Description'],
+            labels: ['Location', 'Headcount', 'Industry', 'Company Type', 'Description'],
             datasets: [{
-                label: 'Score de correspondance',
+                label: 'Match Score',
                 data: scores,
                 backgroundColor: 'rgba(46,204,113,0.2)',
                 borderColor: '#2ecc71',
