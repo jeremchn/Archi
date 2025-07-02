@@ -465,7 +465,7 @@ nameSearchBtn.addEventListener('click', function() {
             const response = await fetch('/api/company-name-search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, nameOrDomain: input })
+                body: JSON.stringify({ email, name: input, domain: input })
             });
             if (!response.ok) {
                 const err = await response.json().catch(() => ({}));
