@@ -1,6 +1,6 @@
 // Affiche le tableau de toutes les listes sauvegardées
 function getSavedSearchesKey() {
-    const email = localStorage.getItem('mail') || '';
+    const email = localStorage.getItem('email') || '';
     return 'savedSearches_' + email;
 }
 
@@ -97,7 +97,7 @@ function exportListCSV(idx) {
 }
 
 // Redirection si non connecté
-if (!localStorage.getItem('mail')) {
+if (!localStorage.getItem('email')) {
     window.location.href = 'auth.html';
 }
 

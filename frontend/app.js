@@ -1,6 +1,6 @@
 document.getElementById('loginForm').onsubmit = async (e) => {
   e.preventDefault();
-  const mail = document.getElementById('identifiant').value;
+  const email = document.getElementById('identifiant').value;
   const password = document.getElementById('motdepasse').value;
   const loginBtn = document.querySelector('button[type="submit"]');
   loginBtn.disabled = true;
@@ -9,7 +9,7 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   const res = await fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mail, password })
+    body: JSON.stringify({ email, password })
   });
   if (!res.ok) {
     loginBtn.disabled = false;
@@ -17,8 +17,8 @@ document.getElementById('loginForm').onsubmit = async (e) => {
     showMsg('Identifiants incorrects', 'error');
     return;
   }
-  // Stocke le mail pour la session
-  localStorage.setItem('mail', mail);
+  // Stocke l'email pour la session
+  localStorage.setItem('email', email);
   loginBtn.innerHTML = 'Connexion réussie';
   showMsg('Connexion réussie !', 'success');
   setTimeout(() => { window.location.href = '/index.html'; }, 900);

@@ -152,8 +152,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // Utilisateur connecté (email)
 let email = null;
-if (localStorage.getItem('mail')) {
-    email = localStorage.getItem('mail');
+if (localStorage.getItem('email')) {
+    email = localStorage.getItem('email');
     searchBtn.disabled = false;
     resetBtn.disabled = false;
 } else {
@@ -169,7 +169,7 @@ if (loadDataBtn && dataStatus) {
         searchBtn.disabled = true;
         resetBtn.disabled = true;
         try {
-            const email = localStorage.getItem('mail');
+            const email = localStorage.getItem('email');
             if (!email) {
                 dataStatus.textContent = 'Please log in.';
                 loadDataBtn.disabled = false;
@@ -197,7 +197,7 @@ if (loadDataBtn && dataStatus) {
 }
 
 // Redirection automatique si non connecté
-if (!localStorage.getItem('mail')) {
+if (!localStorage.getItem('email')) {
     window.location.href = '/auth.html';
 }
 
@@ -389,7 +389,7 @@ filterSearchBtn.addEventListener('click', function() {
     const industries = getCheckedValues(filterIndustryGroup, 'industry');
     const locations = getCheckedValues(filterLocationGroup, 'location');
     const headcounts = getCheckedValues(filterHeadcountGroup, 'headcount');
-    const email = localStorage.getItem('mail');
+    const email = localStorage.getItem('email');
     if (!email) return showMsg('Please log in.', 'error');
     // Masque l'en-tête et le bouton save avant la recherche
     const thead = document.getElementById('results-thead');
@@ -460,7 +460,7 @@ const nameSearchBtn = document.getElementById('nameSearchBtn');
 
 nameSearchBtn.addEventListener('click', function() {
     const input = companyNameInput.value.trim();
-    const email = localStorage.getItem('mail');
+    const email = localStorage.getItem('email');
     if (!input) return showMsg('Please enter a company name or domain.', 'error');
     if (!email) return showMsg('Please log in.', 'error');
     // Masque l'en-tête et le bouton save avant la recherche
@@ -529,7 +529,7 @@ const mainContainer = document.querySelector('.container');
 const resultsTable = document.getElementById('results');
 
 function getSavedSearchesKey() {
-    const email = localStorage.getItem('mail') || '';
+    const email = localStorage.getItem('email') || '';
     return 'savedSearches_' + email;
 }
 
@@ -596,7 +596,7 @@ if (saveSearchBtn) {
 }
 
 function getSavedSearchesKey() {
-    const email = localStorage.getItem('mail') || '';
+    const email = localStorage.getItem('email') || '';
     return 'savedSearches_' + email;
 }
 
