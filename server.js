@@ -674,7 +674,7 @@ app.get('/api/filters', async (req, res) => {
 
 // Endpoint pour recherche par filtres
 app.post('/api/filter-search', async (req, res) => {
-  const { email, industry, location, headcount } = req.body;
+  const { email, industries, locations, headcounts, partialMatch, intersection } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
   let dataUrls = [];
   try {
@@ -707,10 +707,29 @@ app.post('/api/filter-search', async (req, res) => {
     }
     let data = allData;
     if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
-    // Filtrage
-    if (industry) data = data.filter(e => e.Industry === industry);
-    if (location) data = data.filter(e => e.Location === location);
-    if (headcount) data = data.filter(e => e.Headcount === headcount);
+    // Filtrage multi-choix/intersection/union/partialMatch
+    function matchAny(val, arr) {
+      if (!arr || !arr.length) return true;
+      if (!val) return false;
+      if (partialMatch) {
+        return arr.some(f => val.toLowerCase().includes(f.toLowerCase()));
+      } else {
+        return arr.includes(val);
+      }
+    }
+    data = data.filter(e => {
+      const checks = [];
+      if (industries && industries.length) checks.push(matchAny(e.Industry, industries));
+      if (locations && locations.length) checks.push(matchAny(e.Location, locations));
+      if (headcounts && headcounts.length) checks.push(matchAny(e.Headcount, headcounts));
+      if (intersection) {
+        // Tous les filtres doivent matcher
+        return checks.every(Boolean);
+      } else {
+        // Au moins un filtre doit matcher
+        return checks.length === 0 || checks.some(Boolean);
+      }
+    });
     // Limite à 50 résultats
     data = data.slice(0, 50);
     res.json(data);
