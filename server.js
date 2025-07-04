@@ -103,11 +103,12 @@ function cosineSimilarity(a, b) {
 app.post('/api/semantic-search', async (req, res) => {
   const { email, query } = req.body;
   if (!email || !query) return res.status(400).json({ error: 'Email et requête requis.' });
-  const allData = userDataCache[email];
-  if (!allData) {
+  const cache = userDataCache[email];
+  if (!cache || !cache.full) {
     console.log(`[CACHE][PROMPT] Aucune donnée trouvée pour ${email}`);
     return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
   }
+  const allData = cache.full;
   console.log(`[CACHE][PROMPT] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
     // Embedding et scoring comme avant
@@ -707,11 +708,12 @@ app.get('/api/filters', async (req, res) => {
 app.post('/api/filter-search', async (req, res) => {
   const { email, industries, locations, headcounts, partialMatch, intersection } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
-  const allData = userDataCache[email];
-  if (!allData) {
+  const cache = userDataCache[email];
+  if (!cache || !cache.light) {
     console.log(`[CACHE][FILTER] Aucune donnée trouvée pour ${email}`);
     return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
   }
+  const allData = cache.light;
   console.log(`[CACHE][FILTER] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
     function matchAny(val, arr) {
@@ -746,11 +748,12 @@ app.post('/api/company-name-search', async (req, res) => {
   const { email, name, domain } = req.body;
   console.log('[API][company-name-search] email reçu:', email, '| clés cache:', Object.keys(userDataCache));
   if (!email || (!name && !domain)) return res.status(400).json({ error: 'Email and at least one search field required.' });
-  const allData = userDataCache[email];
-  if (!allData) {
+  const cache = userDataCache[email];
+  if (!cache || !cache.light) {
     console.log(`[CACHE][NAME] Aucune donnée trouvée pour ${email}`);
     return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
   }
+  const allData = cache.light;
   console.log(`[CACHE][NAME] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
     let data = allData;
