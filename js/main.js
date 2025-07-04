@@ -165,21 +165,32 @@ if (localStorage.getItem('email')) {
 if (loadDataBtn && dataStatus) {
     loadDataBtn.addEventListener('click', async function() {
         loadDataBtn.disabled = true;
-        dataStatus.textContent = 'Loading data...';
+        dataStatus.innerHTML = '<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #1a365d;border-top:3px solid #2ecc71;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span> Chargement...';
+        searchBtn.disabled = true;
+        resetBtn.disabled = true;
         try {
             const email = localStorage.getItem('email');
-            const res = await fetch(`/api/load-data/${email}`);
+            if (!email) {
+                dataStatus.textContent = 'Please log in.';
+                loadDataBtn.disabled = false;
+                return;
+            }
+            const res = await fetch('/api/load-session-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
             const result = await res.json();
-            if (Array.isArray(result) || result.success) {
-                dataStatus.textContent = `Data loaded`;
+            if (res.ok && (result.success || result.loaded)) {
+                dataStatus.innerHTML = `<span style='color:var(--success);font-weight:600;'>${result.count || 0} entreprises ont été chargées !</span>`;
                 searchBtn.disabled = false;
                 resetBtn.disabled = false;
             } else {
-                dataStatus.textContent = 'Failed to load data.';
+                dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>${result.error || 'Failed to load data.'}</span>`;
                 loadDataBtn.disabled = false;
             }
-        } catch {
-            dataStatus.textContent = 'Failed to load data.';
+        } catch (e) {
+            dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>Failed to load data.</span>`;
             loadDataBtn.disabled = false;
         }
     });
