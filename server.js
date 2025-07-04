@@ -744,6 +744,7 @@ app.post('/api/filter-search', async (req, res) => {
 // Endpoint pour recherche par nom de société (fuzzy, utilise le cache)
 app.post('/api/company-name-search', async (req, res) => {
   const { email, name, domain } = req.body;
+  console.log('[API][company-name-search] email reçu:', email, '| clés cache:', Object.keys(userDataCache));
   if (!email || (!name && !domain)) return res.status(400).json({ error: 'Email and at least one search field required.' });
   const allData = userDataCache[email];
   if (!allData) {

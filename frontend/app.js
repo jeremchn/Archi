@@ -1,6 +1,6 @@
 document.getElementById('loginForm').onsubmit = async (e) => {
   e.preventDefault();
-  const email = document.getElementById('identifiant').value;
+  let email = document.getElementById('identifiant').value.trim().toLowerCase();
   const password = document.getElementById('motdepasse').value;
   const loginBtn = document.querySelector('button[type="submit"]');
   loginBtn.disabled = true;
