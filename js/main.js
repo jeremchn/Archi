@@ -423,25 +423,7 @@ filterSearchBtn.addEventListener('click', function() {
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
-            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-            for (let i = 0; i < data.length; i++) {
-                const domain = data[i]['Domain'];
-                if (domain) {
-                    try {
-                        const res = await fetch('/api/hunter-contacts-details', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ domain })
-                        });
-                        const contactsArr = await res.json();
-                        data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                    } catch (e) {
-                        data[i].contacts = 0;
-                    }
-                } else {
-                    data[i].contacts = 0;
-                }
-            }
+            // Suppression de l'appel à l'API Hunter et du tri par contacts
             localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
             renderResultsTable(data);
             showMsg('Recherche filtrée terminée.', 'success');
@@ -492,25 +474,7 @@ nameSearchBtn.addEventListener('click', function() {
                 loadingBtn.innerHTML = 'Search';
                 return;
             }
-            // Ajoute le nombre de contacts pour chaque entreprise (comme pour prompt)
-            for (let i = 0; i < data.length; i++) {
-                const domain = data[i]['Domain'];
-                if (domain) {
-                    try {
-                        const res = await fetch('/api/hunter-contacts-details', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ domain })
-                        });
-                        const contactsArr = await res.json();
-                        data[i].contacts = Array.isArray(contactsArr) ? contactsArr.length : 0;
-                    } catch (e) {
-                        data[i].contacts = 0;
-                    }
-                } else {
-                    data[i].contacts = 0;
-                }
-            }
+            // Suppression de l'appel à l'API Hunter et du tri par contacts
             localStorage.setItem(getCurrentMenuKey(), JSON.stringify(data));
             renderResultsTable(data);
             showMsg('Search completed.', 'success');
@@ -576,9 +540,9 @@ function showSavedListDetails(idx) {
         html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
-        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
+        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th></tr></thead><tbody>';
         data.forEach(item => {
-            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td><td>${item['contacts']||0}</td></tr>`;
+            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td></tr>`;
         });
         html += '</tbody></table></div>';
     }
@@ -643,9 +607,9 @@ function showSavedListDetails(idx) {
         html += '<div style="color:#888;">Aucune entreprise dans cette liste.</div>';
     } else {
         html += '<div style="overflow-x:auto;"><table style="font-size:0.95em;width:100%;margin-top:1em;"><thead><tr>';
-        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th><th>Contacts</th></tr></thead><tbody>';
+        html += '<th>Company Name</th><th>Domain</th><th>LinkedIn</th><th>Industry</th><th>Location</th><th>Headcount</th><th>Description</th></tr></thead><tbody>';
         data.forEach(item => {
-            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td><td>${item['contacts']||0}</td></tr>`;
+            html += `<tr><td>${item['Company Name']||''}</td><td>${item['Domain']||''}</td><td>${item['Linkedin']||''}</td><td>${item['Industry']||''}</td><td>${item['Location']||''}</td><td>${item['Headcount']||''}</td><td>${item['Description']||''}</td></tr>`;
         });
         html += '</tbody></table></div>';
     }
@@ -787,8 +751,7 @@ function renderResultsTable(data) {
         const companyName = item['Company Name'] && item['Domain']
             ? `<a href="details.html?domain=${encodeURIComponent(item['Domain'])}" class="clickable-link">${item['Company Name']}</a>`
             : (item['Company Name'] || '');
-        const contactsCell = (typeof item['contacts'] === 'number' && !isNaN(item['contacts'])) ? item['contacts'] : 0;
-        // Ajout du bouton Save company
+        // Suppression de la colonne contacts
         const saveBtn = `<button class="btn btn-save-company" data-idx="${idx}" style="background:var(--success);color:#fff;">Save company</button>`;
         const row = `<tr>
             <td>${companyName}</td>
@@ -798,7 +761,6 @@ function renderResultsTable(data) {
             <td>${item['Location'] || ''}</td>
             <td>${item['Headcount'] || ''}</td>
             <td>${item['Description'] || ''}</td>
-            <td>${contactsCell}</td>
             <td style="text-align:center;">${saveBtn}</td>
         </tr>`;
         resultsTable.innerHTML += row;
