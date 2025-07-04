@@ -99,50 +99,17 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// Recherche sémantique sur les données de l'entreprise via l'email
+// Recherche sémantique sur les données de l'entreprise via l'email (utilise le cache)
 app.post('/api/semantic-search', async (req, res) => {
   const { email, query } = req.body;
   if (!email || !query) return res.status(400).json({ error: 'Email et requête requis.' });
-  let dataUrls = [];
+  const allData = userDataCache[email];
+  if (!allData) {
+    console.log(`[CACHE][PROMPT] Aucune donnée trouvée pour ${email}`);
+    return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
+  }
+  console.log(`[CACHE][PROMPT] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
-    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
-    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
-    let dataUrl = profileRes.rows[0].data_url;
-    if (typeof dataUrl === 'string') {
-      dataUrl = dataUrl.trim();
-      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
-        dataUrl = dataUrl.slice(1, -1);
-      }
-      // Découpage multi-liens (séparateurs: , ; espace)
-      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
-    } else if (Array.isArray(dataUrl)) {
-      dataUrls = dataUrl;
-    }
-    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
-    console.log('[semantic-search] data_urls:', dataUrls); // DEBUG
-    // Téléchargement et fusion de tous les fichiers
-    let allData = [];
-    for (const url of dataUrls) {
-      try {
-        const response = await axios.get(url, { responseType: 'text' });
-        const rawData = response.data;
-        let data;
-        try {
-          data = JSON.parse(rawData);
-        } catch (parseErr) {
-          console.error('[semantic-search] Erreur de parsing JSON:', parseErr.message, '| data_url utilisé :', url);
-          continue;
-        }
-        if (Array.isArray(data)) {
-          allData = allData.concat(data);
-        } else {
-          console.error('[semantic-search] Le fichier JSON n\'est pas un tableau. data_url utilisé :', url);
-        }
-      } catch (err) {
-        console.error('[semantic-search] Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
-      }
-    }
-    if (!allData.length) return res.status(500).json({ error: 'Aucune donnée exploitable dans les fichiers JSON.' });
     // Embedding et scoring comme avant
     const embeddingResponse = await axios.post(
       'https://api.openai.com/v1/embeddings',
@@ -160,9 +127,8 @@ app.post('/api/semantic-search', async (req, res) => {
     const top50 = scored.slice(0, 50).map(({ embedding, ...rest }) => rest);
     res.json(top50);
   } catch (e) {
-    let dataUrlSafe = typeof dataUrls !== 'undefined' ? dataUrls : null;
-    console.error('Erreur recherche sémantique:', e, '| data_url utilisé :', dataUrlSafe);
-    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message, data_url: dataUrlSafe });
+    console.error(`[PROMPT][ERROR] ${email} - Erreur recherche sémantique:`, e.message);
+    res.status(500).json({ error: 'Erreur recherche sémantique.', details: e.message });
   }
 });
 
@@ -569,6 +535,65 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
   }
 });
 
+// === CACHE EN MEMOIRE DES DONNEES UTILISATEUR ===
+const userDataCache = {};
+
+// Endpoint pour charger les données dans le cache de session (manuel)
+app.post('/api/load-session-data', async (req, res) => {
+  const { email } = req.body;
+  console.log('[API][load-session-data] Reçu pour', email);
+  if (!email) return res.status(400).json({ error: 'Email requis.' });
+  try {
+    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
+    let dataUrls = [];
+    if (profileRes.rows.length > 0) {
+      let dataUrl = profileRes.rows[0].data_url;
+      if (typeof dataUrl === 'string') {
+        dataUrl = dataUrl.trim();
+        if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
+          dataUrl = dataUrl.slice(1, -1);
+        }
+        dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
+      } else if (Array.isArray(dataUrl)) {
+        dataUrls = dataUrl;
+      }
+    }
+    console.log('[API][load-session-data] dataUrls:', dataUrls);
+    let allData = [];
+    for (const url of dataUrls) {
+      try {
+        console.log('[API][load-session-data] Téléchargement:', url);
+        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
+        let data = response.data;
+        if (Array.isArray(data)) {
+          allData = allData.concat(data);
+        } else if (typeof data === 'object' && data !== null) {
+          allData.push(data);
+        }
+        console.log(`[API][load-session-data] Fichier chargé (${url}) : ${Array.isArray(data) ? data.length : 1} entrées`);
+      } catch (err) {
+        console.error('[API][load-session-data] Erreur téléchargement:', err.message, '| data_url utilisé :', url);
+      }
+    }
+    userDataCache[email] = allData;
+    console.log(`[CACHE] Données chargées pour ${email} : ${userDataCache[email].length} entrées`);
+    res.json({ success: true, count: allData.length });
+  } catch (e) {
+    console.error('[API][load-session-data] Erreur générale:', e.message);
+    res.status(500).json({ error: 'Erreur lors du chargement des données.' });
+  }
+});
+
+// Endpoint de logout pour vider le cache utilisateur
+app.post('/api/logout', (req, res) => {
+  const { email } = req.body;
+  if (email && userDataCache[email]) {
+    delete userDataCache[email];
+    console.log(`[CACHE] Cache vidé pour ${email}`);
+  }
+  res.json({ success: true });
+});
+
 // Sert index.html à la racine
 app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -672,42 +697,17 @@ app.get('/api/filters', async (req, res) => {
   }
 });
 
-// Endpoint pour recherche par filtres
+// Endpoint pour recherche par filtres (utilise le cache)
 app.post('/api/filter-search', async (req, res) => {
   const { email, industries, locations, headcounts, partialMatch, intersection } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requis.' });
-  let dataUrls = [];
+  const allData = userDataCache[email];
+  if (!allData) {
+    console.log(`[CACHE][FILTER] Aucune donnée trouvée pour ${email}`);
+    return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
+  }
+  console.log(`[CACHE][FILTER] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
-    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
-    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profil non trouvé.' });
-    let dataUrl = profileRes.rows[0].data_url;
-    if (typeof dataUrl === 'string') {
-      dataUrl = dataUrl.trim();
-      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
-        dataUrl = dataUrl.slice(1, -1);
-      }
-      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
-    } else if (Array.isArray(dataUrl)) {
-      dataUrls = dataUrl;
-    }
-    if (!dataUrls.length) return res.status(400).json({ error: 'Aucun lien data_url valide.' });
-    let allData = [];
-    for (const url of dataUrls) {
-      try {
-        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
-        const data = response.data;
-        if (Array.isArray(data)) {
-          allData = allData.concat(data);
-        } else if (typeof data === 'object' && data !== null) {
-          allData.push(data);
-        }
-      } catch (err) {
-        console.error('Erreur lors du téléchargement du fichier:', err.message, '| data_url utilisé :', url);
-      }
-    }
-    let data = allData;
-    if (!Array.isArray(data)) return res.status(500).json({ error: 'Le fichier JSON n\'est pas un tableau.' });
-    // Filtrage multi-choix/intersection/union/partialMatch
     function matchAny(val, arr) {
       if (!arr || !arr.length) return true;
       if (!val) return false;
@@ -717,20 +717,17 @@ app.post('/api/filter-search', async (req, res) => {
         return arr.includes(val);
       }
     }
-    data = data.filter(e => {
+    let data = allData.filter(e => {
       const checks = [];
       if (industries && industries.length) checks.push(matchAny(e.Industry, industries));
       if (locations && locations.length) checks.push(matchAny(e.Location, locations));
       if (headcounts && headcounts.length) checks.push(matchAny(e.Headcount, headcounts));
       if (intersection) {
-        // Tous les filtres doivent matcher
         return checks.every(Boolean);
       } else {
-        // Au moins un filtre doit matcher
         return checks.length === 0 || checks.some(Boolean);
       }
     });
-    // Limite à 50 résultats
     data = data.slice(0, 50);
     res.json(data);
   } catch (e) {
@@ -738,42 +735,18 @@ app.post('/api/filter-search', async (req, res) => {
   }
 });
 
-// Endpoint pour recherche par nom de société (fuzzy)
+// Endpoint pour recherche par nom de société (fuzzy, utilise le cache)
 app.post('/api/company-name-search', async (req, res) => {
   const { email, name, domain } = req.body;
   if (!email || (!name && !domain)) return res.status(400).json({ error: 'Email and at least one search field required.' });
-  let dataUrls = [];
+  const allData = userDataCache[email];
+  if (!allData) {
+    console.log(`[CACHE][NAME] Aucune donnée trouvée pour ${email}`);
+    return res.status(400).json({ error: 'Données non chargées pour cet utilisateur. Cliquez sur Load Data.' });
+  }
+  console.log(`[CACHE][NAME] Utilisation du cache pour ${email} : ${allData.length} entreprises`);
   try {
-    const profileRes = await pool.query('SELECT data_url FROM profile WHERE email = $1', [email]);
-    if (profileRes.rows.length === 0) return res.status(404).json({ error: 'Profile not found.' });
-    let dataUrl = profileRes.rows[0].data_url;
-    if (typeof dataUrl === 'string') {
-      dataUrl = dataUrl.trim();
-      if (dataUrl.startsWith('"') && dataUrl.endsWith('"')) {
-        dataUrl = dataUrl.slice(1, -1);
-      }
-      dataUrls = dataUrl.split(/[,;\s]+/).map(u => u.trim()).filter(Boolean);
-    } else if (Array.isArray(dataUrl)) {
-      dataUrls = dataUrl;
-    }
-    if (!dataUrls.length) return res.status(400).json({ error: 'No valid data_url.' });
-    let allData = [];
-    for (const url of dataUrls) {
-      try {
-        const response = await axios.get(url, { responseType: 'json', timeout: 20000 });
-        const data = response.data;
-        if (Array.isArray(data)) {
-          allData = allData.concat(data);
-        } else if (typeof data === 'object' && data !== null) {
-          allData.push(data);
-        }
-      } catch (err) {
-        console.error('Error downloading file:', err.message, '| data_url used:', url);
-      }
-    }
     let data = allData;
-    if (!Array.isArray(data)) return res.status(500).json({ error: 'JSON file is not an array.' });
-    // Fuzzy search (case-insensitive, includes close names/domains)
     const searchName = name ? name.trim().toLowerCase() : null;
     const searchDomain = domain ? domain.trim().toLowerCase() : null;
     data = data.filter(e => {
