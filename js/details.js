@@ -366,7 +366,7 @@ document.getElementById('fiche-score-btn').onclick = async function() {
 // Récupère l'email de l'utilisateur connecté depuis le localStorage
 function getUserEmail() {
     // Doit correspondre à la clé utilisée lors du login (voir auth.js)
-    return localStorage.getItem('email') || '';
+    return localStorage.getItem('mail') || '';
 }
 
 // Get the ideal client for the logged-in user from the backend

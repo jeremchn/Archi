@@ -538,7 +538,7 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
 // === CACHE EN MEMOIRE DES DONNEES UTILISATEUR ===
 const userDataCache = {};
 
-// Endpoint pour charger les données dans le cache de session (manuel)
+// Endpoint pour charger les données dans le cache de session (manuel, version full+light)
 app.post('/api/load-session-data', async (req, res) => {
   const { email } = req.body;
   console.log('[API][load-session-data] Reçu pour', email);
@@ -575,8 +575,14 @@ app.post('/api/load-session-data', async (req, res) => {
         console.error('[API][load-session-data] Erreur téléchargement:', err.message, '| data_url utilisé :', url);
       }
     }
-    userDataCache[email] = allData;
-    console.log(`[CACHE] Données chargées pour ${email} : ${userDataCache[email].length} entrées`);
+    userDataCache[email] = {
+      full: allData,
+      light: allData.map(e => {
+        const { embedding, ...rest } = e;
+        return rest;
+      })
+    };
+    console.log(`[CACHE] Données chargées pour ${email} : full=${userDataCache[email].full.length}, light=${userDataCache[email].light.length}`);
     res.json({ success: true, count: allData.length });
   } catch (e) {
     console.error('[API][load-session-data] Erreur générale:', e.message);
