@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sales - Lydi</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2ecc71;
+            --background: #f7fafc;
+            --card-bg: #fff;
+            --text: #222;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(26,54,93,0.08);
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --gray: #e2e8f0;
+        }
+        html, body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        aside.menu {
+            background: #f3f7fa;
+            border-right: 1.5px solid #e2e8f0;
+            padding: 2em 1.2em;
+            display: flex;
+            flex-direction: column;
+            gap: 2em;
+            min-width: 210px;
+            position: relative;
+        }
+        .menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2em;
+        }
+        .menu li {
+            margin-bottom: 0.7em;
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: 500;
+            padding: 0.3em 0.5em;
+            border-radius: 6px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.7em;
+        }
+        .menu li.active, .menu li:hover {
+            background: var(--secondary);
+            color: #fff;
+        }
+        .menu .bottom-btns {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5em 1.2em;
+            font-size: 1.05em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
+            min-width: 120px;
+        }
+        .btn:hover, .btn:focus {
+            background: var(--secondary);
+            color: #fff;
+            transform: translateY(-2px) scale(1.03);
+        }
+        .btn:active {
+            background: #145;
+        }
+        .btn[disabled] {
+            background: #bfc9d1;
+            color: #fff;
+            cursor: not-allowed;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2em auto;
+            padding: 2em;
+            background: var(--card-bg);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.7s;
+            flex: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: none; }
+        }
+        h1 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 1.5em;
+            letter-spacing: 1px;
+            font-size: 2.2em;
+        }
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            aside.menu { width: 100%; border-right: none; border-bottom: 1.5px solid var(--border); flex-direction: row; gap: 1em; }
+            .container { max-width: 100vw; margin: 0; border-radius: 0; }
+        }
+        @media (max-width: 700px) {
+            .container { padding: 1em; }
+            .menu ul { gap: 0.5em; }
+            .menu li { font-size: 0.98em; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <aside class="menu">
+        <ul>
+            <li id="menu-custom" class="menu-item active"><span style="font-size:1.2em;">🛠️</span> <span>Custom Module</span></li>
+            <li id="menu-chatbot" class="menu-item"><span style="font-size:1.2em;">💬</span> <span>Chatbot</span></li>
+        </ul>
+        <div class="bottom-btns">
+            <button id="btn-search-companies" class="btn btn-gray" style="width:90%;" onclick="window.location.href='index.html'">Search Companies</button>
+            <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='auth.html'">Logout</button>
+        </div>
+    </aside>
+    <div class="container">
+        <header style="display:flex;align-items:center;justify-content:center;margin-bottom:2em;">
+            <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f916.svg" alt="AI Sales" style="height:48px;width:48px;vertical-align:middle;margin-bottom:0.5em;">
+                <span style="font-size:2.1em;font-weight:800;color:var(--primary);letter-spacing:1px;">AI Sales</span>
+                <div style="font-size:1.25em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">Your AI-powered sales assistant</div>
+            </div>
+        </header>
+        <div id="module-content">
+            <div id="custom-module" style="display:block;">
+                <h2>Custom Module</h2>
+                <p>Bienvenue dans le module custom. Ajoutez ici vos outils ou widgets personnalisés.</p>
+            </div>
+            <div id="chatbot-module" style="display:none;">
+                <h2>Chatbot</h2>
+                <p>Discutez avec votre assistant AI pour booster vos ventes ! (Démo visuelle)</p>
+                <div style="background:#f3f7fa;padding:1em 1.5em;border-radius:10px;max-width:500px;margin:auto;">
+                    <div style="color:#888;font-style:italic;">[Zone de chat à intégrer]</div>
+                </div>
+            </div>
+        </div>
+        <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
+            &copy; 2025 Lydi. All rights reserved.
+        </footer>
+    </div>
+</div>
+<script>
+// Navigation entre modules
+const customBtn = document.getElementById('menu-custom');
+const chatbotBtn = document.getElementById('menu-chatbot');
+const customModule = document.getElementById('custom-module');
+const chatbotModule = document.getElementById('chatbot-module');
+
+customBtn.onclick = function() {
+    customBtn.classList.add('active');
+    chatbotBtn.classList.remove('active');
+    customModule.style.display = 'block';
+    chatbotModule.style.display = 'none';
+};
+chatbotBtn.onclick = function() {
+    chatbotBtn.classList.add('active');
+    customBtn.classList.remove('active');
+    chatbotModule.style.display = 'block';
+    customModule.style.display = 'none';
+};
+</script>
+</body>
+</html>
