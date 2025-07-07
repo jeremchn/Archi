@@ -606,6 +606,11 @@ app.get('/index.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Sert aussi index2.html à la racine
+app.get('/index2.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index2.html'));
+});
+
 // Redirige la racine vers la page de login (auth.html)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'auth.html'));
