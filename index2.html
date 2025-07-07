@@ -147,9 +147,58 @@
             </div>
         </header>
         <div id="module-content">
-            <div id="custom-module" style="display:block;">
-                <h2>Custom Module</h2>
-                <p>Bienvenue dans le module custom. Ajoutez ici vos outils ou widgets personnalisés.</p>
+            <div id="custom-module" style="display:block;max-width:600px;margin:auto;">
+                <h2>Profil Entreprise</h2>
+                <form id="company-profile-form" style="display:flex;flex-direction:column;gap:1.2em;">
+                    <div>
+                        <label><b>Secteur d'activité</b></label><br>
+                        <input type="text" name="secteur" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Business Model</b></label><br>
+                        <input type="text" name="businessModel" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Taille d’équipe / Sales</b></label><br>
+                        <input type="text" name="tailleEquipe" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Marchés cibles</b></label><br>
+                        <input type="text" name="marchesCibles" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Cycle de vente moyen</b></label><br>
+                        <input type="text" name="cycleVente" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Outils utilisés</b></label><br>
+                        <input type="text" name="outilsUtilises" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Objectifs 12 mois</b></label><br>
+                        <input type="text" name="objectifs12mois" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Champs Libre, données entreprises</b></label><br>
+                        <textarea name="champsLibre" rows="3" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;"></textarea>
+                    </div>
+                    <div>
+                        <label><b>CA annuel estimé</b></label><br>
+                        <input type="text" name="caAnnuel" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>3 Dream Clients</b></label><br>
+                        <input type="text" name="dreamClient1" placeholder="Dream Client 1" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:0.5em;">
+                        <input type="text" name="dreamClient2" placeholder="Dream Client 2" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:0.5em;">
+                        <input type="text" name="dreamClient3" placeholder="Dream Client 3" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <div>
+                        <label><b>Unique Value Proposition</b></label><br>
+                        <input type="text" name="uvp" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
+                    </div>
+                    <button type="submit" class="btn btn-search" style="width:180px;align-self:center;">Enregistrer le profil</button>
+                </form>
+                <div id="profile-feedback" style="margin-top:1em;text-align:center;"></div>
             </div>
         </div>
         <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
@@ -166,6 +215,19 @@ customBtn.onclick = function() {
     customBtn.classList.add('active');
     customModule.style.display = 'block';
 };
+
+// Navigation entre modules (un seul module custom ici)
+const form = document.getElementById('company-profile-form');
+const feedback = document.getElementById('profile-feedback');
+if (form) {
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    localStorage.setItem('companyProfile', JSON.stringify(data));
+    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
+    setTimeout(() => { feedback.innerHTML = ''; }, 3000);
+  };
+}
 </script>
 </body>
 </html>
