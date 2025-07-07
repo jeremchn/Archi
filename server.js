@@ -863,3 +863,8 @@ app.post('/api/sales-chatbot', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+// Sert aussi chatbot.html à la racine
+app.get('/chatbot.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'chatbot.html'));
+});

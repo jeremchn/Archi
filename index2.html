@@ -229,6 +229,13 @@ if (form) {
     feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
     setTimeout(() => { feedback.innerHTML = ''; }, 3000);
   };
+  // Pré-remplit le formulaire si un profil existe déjà
+  const existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+  if (existing && Object.keys(existing).length > 0) {
+    for (const [k, v] of Object.entries(existing)) {
+      if (form.elements[k]) form.elements[k].value = v;
+    }
+  }
 }
 </script>
 </body>
