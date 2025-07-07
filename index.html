@@ -247,10 +247,10 @@
                 <li id="menu-contacts" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
                     <span style="font-size:1.2em;">👤</span> <span>Leads</span>
                 </li>
-                <li id="menu-aisales" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;font-weight:600;color:#1a365d;background:#eaf6ff;">
+                <li style="flex:1 1 auto;"></li>
+                <li id="menu-aisales" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;font-weight:600;color:#1a365d;background:#eaf6ff;margin-bottom:1.2em;">
                     <span style="font-size:1.2em;">🤖</span> <span>AI Sales</span>
                 </li>
-                <li style="flex:1 1 auto;"></li>
             </ul>
         </nav>
         <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
@@ -333,5 +333,14 @@
     </div>
 </div>
 <script src="js/main.js"></script>
+<script>
+// Redirige vers index2.html quand on clique sur AI Sales
+const aiSalesBtn = document.getElementById('menu-aisales');
+if (aiSalesBtn) {
+  aiSalesBtn.addEventListener('click', function() {
+    window.location.href = 'index2.html';
+  });
+}
+</script>
 </body>
 </html>
