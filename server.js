@@ -811,6 +811,55 @@ app.post('/api/company-name-search', async (req, res) => {
   }
 });
 
+// Endpoint pour le chatbot sales (OpenAI)
+app.post('/api/sales-chatbot', async (req, res) => {
+  const { messages, profile } = req.body;
+  if (!Array.isArray(messages) || !profile) {
+    return res.status(400).json({ error: 'Messages et profil requis.' });
+  }
+  // Construit le contexte à partir du profil
+  let context = `Profil entreprise:\n`;
+  context += `Secteur: ${profile.secteur || '-'}\n`;
+  context += `Business Model: ${profile.businessModel || '-'}\n`;
+  context += `Taille équipe: ${profile.tailleEquipe || '-'}\n`;
+  context += `Marchés cibles: ${profile.marchesCibles || '-'}\n`;
+  context += `Cycle de vente: ${profile.cycleVente || '-'}\n`;
+  context += `Outils: ${profile.outilsUtilises || '-'}\n`;
+  context += `Objectifs 12 mois: ${profile.objectifs12mois || '-'}\n`;
+  context += `CA annuel estimé: ${profile.caAnnuel || '-'}\n`;
+  context += `Dream Clients: ${(profile.dreamClient1||'') + (profile.dreamClient2?', '+profile.dreamClient2:'') + (profile.dreamClient3?', '+profile.dreamClient3:'')}\n`;
+  context += `Unique Value Proposition: ${profile.uvp || '-'}\n`;
+  context += `Champs libre: ${profile.champsLibre || '-'}\n`;
+
+  // Prépare le prompt pour OpenAI
+  const openaiMessages = [
+    { role: 'system', content: `Tu es un assistant commercial pour une équipe sales B2B. Utilise le contexte suivant pour donner des réponses utiles, concrètes et actionnables pour la vente. Sois synthétique, pertinent, et donne des conseils adaptés au profil.\n${context}` },
+    ...messages.map(m => ({ role: m.role, content: m.content }))
+  ];
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: openaiMessages,
+        max_tokens: 350,
+        temperature: 0.7
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAIKEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    const aiMsg = response.data.choices[0].message.content;
+    res.json({ answer: aiMsg });
+  } catch (e) {
+    console.error('Erreur OpenAI:', e.response?.data || e.message);
+    res.status(500).json({ error: 'Erreur lors de la génération de la réponse AI.' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

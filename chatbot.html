@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Companion - Sales Chatbot</title>
+    <style>
+        body { background: #f7fafc; font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; }
+        .chat-container { max-width: 600px; margin: 3em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(26,54,93,0.10); padding: 2em 2em 1.5em 2em; }
+        h2 { color: #1a365d; text-align: center; margin-bottom: 1.2em; }
+        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; }
+        .msg { margin-bottom: 1em; }
+        .msg.user { text-align: right; }
+        .msg.ai { text-align: left; }
+        .msg .bubble { display: inline-block; padding: 0.7em 1.1em; border-radius: 16px; max-width: 80%; font-size: 1.08em; }
+        .msg.user .bubble { background: #eaf6ff; color: #1a365d; }
+        .msg.ai .bubble { background: #eafaf1; color: #222; }
+        .chat-input { display: flex; gap: 0.7em; }
+        .chat-input input { flex: 1; padding: 0.8em 1em; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1.05em; }
+        .chat-input button { background: #1a365d; color: #fff; border: none; border-radius: 8px; padding: 0.7em 1.5em; font-size: 1.05em; cursor: pointer; transition: background 0.2s; }
+        .chat-input button:hover { background: #2ecc71; }
+        .profile-summary { background: #f3f7fa; border-radius: 10px; padding: 1em 1.5em; margin-bottom: 1.5em; font-size: 1em; color: #1a365d; }
+        @media (max-width: 700px) { .chat-container { padding: 1em; } }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <h2>AI Companion - Sales Chatbot</h2>
+    <div class="profile-summary" id="profile-summary"></div>
+    <div class="chat-history" id="chat-history"></div>
+    <form class="chat-input" id="chat-form" autocomplete="off">
+        <input type="text" id="chat-input" placeholder="Posez votre question commerciale..." required />
+        <button type="submit">Envoyer</button>
+    </form>
+</div>
+<script>
+// Affiche le résumé du profil entreprise (si dispo)
+function renderProfileSummary() {
+    const data = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+    if (!data || Object.keys(data).length === 0) {
+        document.getElementById('profile-summary').innerHTML = '<i>Aucun profil entreprise renseigné. <a href=\'index2.html\'>Complétez votre profil</a> pour de meilleures réponses.</i>';
+        return data;
+    }
+    let html = `<b>Secteur :</b> ${data.secteur || '-'}<br>`;
+    html += `<b>Business Model :</b> ${data.businessModel || '-'}<br>`;
+    html += `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>`;
+    html += `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>`;
+    html += `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>`;
+    html += `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>`;
+    html += `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>`;
+    html += `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
+    html += `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>`;
+    html += `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>`;
+    html += `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>`;
+    document.getElementById('profile-summary').innerHTML = html;
+    return data;
+}
+
+const chatHistory = document.getElementById('chat-history');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+
+function addMessage(text, sender) {
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + sender;
+    msg.innerHTML = `<span class="bubble">${text}</span>`;
+    chatHistory.appendChild(msg);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+let chatHistoryArr = [];
+chatForm.onsubmit = async function(e) {
+    e.preventDefault();
+    const question = chatInput.value.trim();
+    if (!question) return;
+    addMessage(question, 'user');
+    chatInput.value = '';
+    const profile = renderProfileSummary();
+    chatHistoryArr.push({ role: 'user', content: question });
+    addMessage('<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #e2e8f0;border-top:3px solid #1a365d;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;"></span> Réflexion AI...', 'ai');
+    try {
+        const res = await fetch('/api/sales-chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: chatHistoryArr, profile })
+        });
+        const data = await res.json();
+        // Supprime le loader
+        const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
+        if (lastMsg) lastMsg.remove();
+        if (res.ok && data.answer) {
+            addMessage(data.answer, 'ai');
+            chatHistoryArr.push({ role: 'assistant', content: data.answer });
+        } else {
+            addMessage('Erreur lors de la génération de la réponse AI.', 'ai');
+        }
+    } catch (e) {
+        const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
+        if (lastMsg) lastMsg.remove();
+        addMessage('Erreur réseau ou serveur.', 'ai');
+    }
+};
+
+// Affiche le profil au chargement
+renderProfileSummary();
+</script>
+</body>
+</html>
