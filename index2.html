@@ -132,7 +132,6 @@
     <aside class="menu">
         <ul>
             <li id="menu-custom" class="menu-item active"><span style="font-size:1.2em;">🛠️</span> <span>Custom Module</span></li>
-            <li id="menu-chatbot" class="menu-item"><span style="font-size:1.2em;">💬</span> <span>Chatbot</span></li>
         </ul>
         <div class="bottom-btns">
             <button id="btn-search-companies" class="btn btn-gray" style="width:90%;" onclick="window.location.href='index.html'">Search Companies</button>
@@ -152,13 +151,6 @@
                 <h2>Custom Module</h2>
                 <p>Bienvenue dans le module custom. Ajoutez ici vos outils ou widgets personnalisés.</p>
             </div>
-            <div id="chatbot-module" style="display:none;">
-                <h2>Chatbot</h2>
-                <p>Discutez avec votre assistant AI pour booster vos ventes ! (Démo visuelle)</p>
-                <div style="background:#f3f7fa;padding:1em 1.5em;border-radius:10px;max-width:500px;margin:auto;">
-                    <div style="color:#888;font-style:italic;">[Zone de chat à intégrer]</div>
-                </div>
-            </div>
         </div>
         <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
             &copy; 2025 Lydi. All rights reserved.
@@ -168,21 +160,11 @@
 <script>
 // Navigation entre modules
 const customBtn = document.getElementById('menu-custom');
-const chatbotBtn = document.getElementById('menu-chatbot');
 const customModule = document.getElementById('custom-module');
-const chatbotModule = document.getElementById('chatbot-module');
 
 customBtn.onclick = function() {
     customBtn.classList.add('active');
-    chatbotBtn.classList.remove('active');
     customModule.style.display = 'block';
-    chatbotModule.style.display = 'none';
-};
-chatbotBtn.onclick = function() {
-    chatbotBtn.classList.add('active');
-    customBtn.classList.remove('active');
-    chatbotModule.style.display = 'block';
-    customModule.style.display = 'none';
 };
 </script>
 </body>
