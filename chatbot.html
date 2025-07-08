@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
         body { background: #f7fafc; font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; }
         .chat-container { max-width: 600px; margin: 3em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(26,54,93,0.10); padding: 2em 2em 1.5em 2em; }
         h2 { color: #1a365d; text-align: center; margin-bottom: 1.2em; }
-        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; display:none; }
+        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; }
         .msg { margin-bottom: 1em; }
         .msg.user { text-align: right; }
         .msg.ai { text-align: left; }
@@ -29,7 +29,7 @@
         <input type="text" id="chat-input" placeholder="Posez votre question commerciale..." required />
         <button type="submit">Envoyer</button>
     </form>
-    <div class="chat-history" id="chat-history" style="display:none;"></div>
+    <div class="chat-history" id="chat-history"></div>
 </div>
 <script>
 const chatHistory = document.getElementById('chat-history');
@@ -40,17 +40,14 @@ function addMessage(text, sender) {
     const msg = document.createElement('div');
     msg.className = 'msg ' + sender;
     if (sender === 'ai') {
-        // Affiche les retours à la ligne de l'IA
         let safe = (typeof text === 'string') ? text.replace(/[&<>]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[tag])).replace(/\n/g, '<br>') : '';
         safe = safe.replace(/&lt;br&gt;/g, '<br>');
         msg.innerHTML = `<span class="bubble">${safe}</span>`;
     } else {
-        // Pour l'utilisateur, pas de HTML
         msg.innerHTML = `<span class="bubble"></span>`;
         msg.querySelector('.bubble').textContent = text;
     }
     chatHistory.appendChild(msg);
-    chatHistory.style.display = '';
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
@@ -65,14 +62,14 @@ chatForm.onsubmit = async function(e) {
     addMessage(question, 'user');
     chatInput.value = '';
     chatHistoryArr.push({ role: 'user', content: question });
-    chatHistory.style.display = '';
     addMessage('<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #e2e8f0;border-top:3px solid #1a365d;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;"></span> Réflexion AI...', 'ai');
     try {
         if (!chatHistoryArr.length) throw new Error('Aucun message à envoyer.');
-        // Récupère le profil depuis le localStorage
+        // Récupère le profil depuis le localStorage (rempli via index2.html)
         const profile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
         if (!profile || Object.keys(profile).length === 0) {
-            throw new Error('Profil entreprise manquant.');
+            addMessage('Profil entreprise manquant. Veuillez compléter votre profil dans AI Sales.', 'ai');
+            return;
         }
         const res = await fetch('/api/sales-chatbot', {
             method: 'POST',
@@ -81,7 +78,6 @@ chatForm.onsubmit = async function(e) {
         });
         let data = null;
         try { data = await res.json(); } catch { data = {}; }
-        console.log('Réponse backend chatbot:', data); // LOG DEBUG
         // Supprime le loader
         const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
         if (lastMsg) lastMsg.remove();
