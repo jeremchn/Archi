@@ -225,62 +225,74 @@ customBtn.onclick = function() {
 };
 
 // Navigation entre modules (un seul module custom ici)
+function getUrlParams() {
+  const params = {};
+  window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+    params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\+/g, ' '));
+  });
+  return params;
+}
 const form = document.getElementById('company-profile-form');
 const feedback = document.getElementById('profile-feedback');
 const resumeDiv = document.getElementById('profile-resume');
+const fileInput = document.getElementById('fileUpload');
+const fileList = document.getElementById('fileList');
+
+function showResume(data) {
+  let html = `<h2 style='text-align:center;margin-bottom:1.2em;'>Résumé du profil</h2>`;
+  html += `<b>Secteur :</b> ${data.secteur || '-'}<br>`;
+  html += `<b>Business Model :</b> ${data.businessModel || '-'}<br>`;
+  html += `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>`;
+  html += `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>`;
+  html += `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>`;
+  html += `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>`;
+  html += `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>`;
+  html += `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
+  html += `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>`;
+  html += `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>`;
+  html += `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>`;
+  html += `<b>Fichiers importés :</b> <ul style='margin-top:0.5em;'>`;
+  if(data.uploadedFiles && data.uploadedFiles.length) data.uploadedFiles.forEach(f => html += `<li>${f}</li>`);
+  else html += '<li><i>Aucun fichier</i></li>';
+  html += `</ul>`;
+  html += `<button id='editProfileBtn' class='btn btn-gray' style='margin-top:1.5em;'>Modifier</button>`;
+  resumeDiv.innerHTML = html;
+  form.style.display = 'none';
+  resumeDiv.style.display = '';
+  document.getElementById('editProfileBtn').onclick = function() {
+    form.style.display = '';
+    resumeDiv.style.display = 'none';
+  };
+}
+
 if (form) {
-  function showResume(data) {
-    let html = `<h2 style='text-align:center;margin-bottom:1.2em;'>Résumé du profil</h2>`;
-    html += `<b>Secteur :</b> ${data.secteur || '-'}<br>`;
-    html += `<b>Business Model :</b> ${data.businessModel || '-'}<br>`;
-    html += `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>`;
-    html += `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>`;
-    html += `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>`;
-    html += `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>`;
-    html += `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>`;
-    html += `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
-    html += `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>`;
-    html += `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>`;
-    html += `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>`;
-    html += `<b>Fichiers importés :</b> <ul style='margin-top:0.5em;'>`;
-    if(data.uploadedFiles && data.uploadedFiles.length) data.uploadedFiles.forEach(f => html += `<li>${f}</li>`);
-    else html += '<li><i>Aucun fichier</i></li>';
-    html += `</ul>`;
-    html += `<button id='editProfileBtn' class='btn btn-gray' style='margin-top:1.5em;'>Modifier</button>`;
-    resumeDiv.innerHTML = html;
-    form.style.display = 'none';
-    resumeDiv.style.display = '';
-    document.getElementById('editProfileBtn').onclick = function() {
-      form.style.display = '';
-      resumeDiv.style.display = 'none';
-    };
-  }
-  form.onsubmit = function(e) {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    if (fileInput && fileInput.files.length > 0) {
-      data.uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+  // 1. Si paramètres dans l'URL, pré-remplit et enregistre
+  const urlParams = getUrlParams();
+  let hasUrlParams = false;
+  for (const k in urlParams) {
+    if (form.elements[k]) {
+      form.elements[k].value = urlParams[k];
+      hasUrlParams = true;
     }
+  }
+  if (hasUrlParams) {
+    const data = Object.fromEntries(new FormData(form).entries());
     localStorage.setItem('companyProfile', JSON.stringify(data));
     showResume(data);
-    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
-    setTimeout(() => { feedback.innerHTML = ''; }, 2000);
-    existing = data;
-  };
-  // Pré-remplit le formulaire si un profil existe déjà
-  let existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
-  if (existing && Object.keys(existing).length > 0) {
-    for (const [k, v] of Object.entries(existing)) {
-      if (form.elements[k]) form.elements[k].value = v;
+  } else {
+    // 2. Sinon, comportement normal (localStorage)
+    let existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+    if (existing && Object.keys(existing).length > 0) {
+      for (const [k, v] of Object.entries(existing)) {
+        if (form.elements[k]) form.elements[k].value = v;
+      }
+      if(existing.uploadedFiles) {
+        fileList.textContent = 'Fichiers sélectionnés : ' + existing.uploadedFiles.join(', ');
+      }
+      showResume(existing);
     }
-    if(existing.uploadedFiles) {
-      fileList.textContent = 'Fichiers sélectionnés : ' + existing.uploadedFiles.join(', ');
-    }
-    showResume(existing);
   }
   // Affiche la liste des fichiers sélectionnés
-  const fileInput = document.getElementById('fileUpload');
-  const fileList = document.getElementById('fileList');
   if (fileInput && fileList) {
     fileInput.addEventListener('change', function() {
       if (fileInput.files.length === 0) {
@@ -291,4 +303,16 @@ if (form) {
       fileList.textContent = 'Fichiers sélectionnés : ' + names;
     });
   }
+  // Sauvegarde le nom des fichiers dans le profil (pas le contenu)
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    if (fileInput && fileInput.files.length > 0) {
+      data.uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+    }
+    localStorage.setItem('companyProfile', JSON.stringify(data));
+    showResume(data);
+    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
+    setTimeout(() => { feedback.innerHTML = ''; }, 2000);
+  };
 }
