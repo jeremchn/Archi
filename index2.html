@@ -282,7 +282,8 @@ if (form) {
   } else {
     // 2. Sinon, comportement normal (localStorage)
     let existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
-    if (existing && Object.keys(existing).length > 0) {
+    // Affiche le résumé si au moins un champ est rempli
+    if (existing && Object.values(existing).some(v => v && v !== '')) {
       for (const [k, v] of Object.entries(existing)) {
         if (form.elements[k]) form.elements[k].value = v;
       }
@@ -316,3 +317,6 @@ if (form) {
     setTimeout(() => { feedback.innerHTML = ''; }, 2000);
   };
 }
+</script>
+</body>
+</html>

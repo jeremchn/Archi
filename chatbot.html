@@ -49,12 +49,17 @@ let chatHistoryArr = [];
 chatForm.onsubmit = async function(e) {
     e.preventDefault();
     const question = chatInput.value.trim();
-    if (!question) return;
+    if (!question) {
+        alert('Veuillez saisir une question.');
+        return;
+    }
     addMessage(question, 'user');
     chatInput.value = '';
     chatHistoryArr.push({ role: 'user', content: question });
+    chatHistory.style.display = '';
     addMessage('<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #e2e8f0;border-top:3px solid #1a365d;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;"></span> Réflexion AI...', 'ai');
     try {
+        if (!chatHistoryArr.length) throw new Error('Aucun message à envoyer.');
         const res = await fetch('/api/sales-chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
