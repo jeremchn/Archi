@@ -22,57 +22,10 @@
         <h1>Saved companies</h1>
         <div id="listsTable"></div>
         <div id="listDetails"></div>
-        <hr style="margin:2em 0;">
-        <div id="editZone">
-            <h2>Données entreprises (champ libre)</h2>
-            <textarea id="companyData" rows="5" style="width:100%;border-radius:8px;border:1px solid #e2e8f0;padding:1em;font-size:1em;resize:vertical;margin-bottom:1.5em;"></textarea>
-            <h2>Importer des fichiers</h2>
-            <input type="file" id="fileInput" multiple accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.txt" style="margin-bottom:1em;">
-            <ul id="fileList" style="list-style:none;padding-left:0;"></ul>
-            <button id="saveBtn" style="margin-top:1em;background:#1a365d;color:#fff;border:none;border-radius:8px;padding:0.7em 1.5em;font-size:1em;cursor:pointer;">Save</button>
-        </div>
-        <div id="resumeZone" style="display:none;"></div>
         <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
             &copy; 2025 Lydi. All rights reserved.
         </footer>
     </div>
-    <script>
-    // Affichage des fichiers sélectionnés
-    let selectedFiles = [];
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = '';
-        selectedFiles = Array.from(e.target.files);
-        for (const file of selectedFiles) {
-            const li = document.createElement('li');
-            li.textContent = file.name;
-            fileList.appendChild(li);
-        }
-    });
-
-    // Sauvegarde et affichage du résumé
-    document.getElementById('saveBtn').addEventListener('click', function() {
-        const data = document.getElementById('companyData').value;
-        const files = selectedFiles.map(f => f.name);
-        // Affichage du résumé
-        let html = `<h2>Résumé du profil</h2>`;
-        html += `<b>Données entreprises :</b><br><div style='white-space:pre-line;background:#f4f7fa;border-radius:8px;padding:1em;margin-bottom:1em;'>${data ? data.replace(/</g,'&lt;') : '<i>(vide)</i>'}</div>`;
-        html += `<b>Fichiers importés :</b><ul style='margin-top:0.5em;'>`;
-        if(files.length) files.forEach(f => html += `<li>${f}</li>`);
-        else html += '<li><i>Aucun fichier</i></li>';
-        html += `</ul>`;
-        html += `<button id='editBtn' style='margin-top:1.5em;background:#e2e8f0;color:#222;border:none;border-radius:8px;padding:0.7em 1.5em;font-size:1em;cursor:pointer;'>Modifier</button>`;
-        document.getElementById('editZone').style.display = 'none';
-        const resumeZone = document.getElementById('resumeZone');
-        resumeZone.innerHTML = html;
-        resumeZone.style.display = '';
-        // Ajout du handler Modifier
-        document.getElementById('editBtn').onclick = function() {
-            document.getElementById('editZone').style.display = '';
-            resumeZone.style.display = 'none';
-        };
-    });
-    </script>
     <script src="js/saved.js"></script>
 </body>
 </html>
