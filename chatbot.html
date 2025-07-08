@@ -37,17 +37,18 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 
 function addMessage(text, sender) {
-    // Sécurise le texte pour éviter l'injection HTML
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[tag]));
-    }
-    // Autorise <br> pour les retours à la ligne
-    let safeText = (typeof text === 'string') ? escapeHtml(text).replace(/\n/g, '<br>') : '';
-    // Si déjà des <br> (venant de l'IA), ne double pas
-    safeText = safeText.replace(/&lt;br&gt;/g, '<br>');
     const msg = document.createElement('div');
     msg.className = 'msg ' + sender;
-    msg.innerHTML = `<span class="bubble">${safeText}</span>`;
+    if (sender === 'ai') {
+        // Affiche les retours à la ligne de l'IA
+        let safe = (typeof text === 'string') ? text.replace(/[&<>]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[tag])).replace(/\n/g, '<br>') : '';
+        safe = safe.replace(/&lt;br&gt;/g, '<br>');
+        msg.innerHTML = `<span class="bubble">${safe}</span>`;
+    } else {
+        // Pour l'utilisateur, pas de HTML
+        msg.innerHTML = `<span class="bubble"></span>`;
+        msg.querySelector('.bubble').textContent = text;
+    }
     chatHistory.appendChild(msg);
     chatHistory.style.display = '';
     chatHistory.scrollTop = chatHistory.scrollHeight;
