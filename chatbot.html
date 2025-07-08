@@ -74,9 +74,13 @@ chatForm.onsubmit = async function(e) {
         // Supprime le loader
         const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
         if (lastMsg) lastMsg.remove();
-        if (res.ok && data.answer) {
-            addMessage(data.answer, 'ai');
-            chatHistoryArr.push({ role: 'assistant', content: data.answer });
+        if (res.ok) {
+            if (data.answer && data.answer.trim()) {
+                addMessage(data.answer, 'ai');
+                chatHistoryArr.push({ role: 'assistant', content: data.answer });
+            } else {
+                addMessage("Aucune réponse générée par l'IA.", 'ai');
+            }
         } else {
             addMessage('Erreur lors de la génération de la réponse AI.', 'ai');
         }
