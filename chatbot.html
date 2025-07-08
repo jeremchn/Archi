@@ -60,10 +60,15 @@ chatForm.onsubmit = async function(e) {
     addMessage('<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #e2e8f0;border-top:3px solid #1a365d;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;"></span> Réflexion AI...', 'ai');
     try {
         if (!chatHistoryArr.length) throw new Error('Aucun message à envoyer.');
+        // Récupère le profil depuis le localStorage
+        const profile = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+        if (!profile || Object.keys(profile).length === 0) {
+            throw new Error('Profil entreprise manquant.');
+        }
         const res = await fetch('/api/sales-chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: chatHistoryArr })
+            body: JSON.stringify({ messages: chatHistoryArr, profile })
         });
         const data = await res.json();
         // Supprime le loader
@@ -78,7 +83,7 @@ chatForm.onsubmit = async function(e) {
     } catch (e) {
         const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
         if (lastMsg) lastMsg.remove();
-        addMessage('Erreur réseau ou serveur.', 'ai');
+        addMessage('Erreur réseau, serveur ou profil manquant.', 'ai');
     }
 };
 </script>
