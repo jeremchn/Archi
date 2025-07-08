@@ -37,9 +37,17 @@ const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 
 function addMessage(text, sender) {
+    // Sécurise le texte pour éviter l'injection HTML
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[tag]));
+    }
+    // Autorise <br> pour les retours à la ligne
+    let safeText = (typeof text === 'string') ? escapeHtml(text).replace(/\n/g, '<br>') : '';
+    // Si déjà des <br> (venant de l'IA), ne double pas
+    safeText = safeText.replace(/&lt;br&gt;/g, '<br>');
     const msg = document.createElement('div');
     msg.className = 'msg ' + sender;
-    msg.innerHTML = `<span class="bubble">${text}</span>`;
+    msg.innerHTML = `<span class="bubble">${safeText}</span>`;
     chatHistory.appendChild(msg);
     chatHistory.style.display = '';
     chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -70,15 +78,15 @@ chatForm.onsubmit = async function(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: chatHistoryArr, profile })
         });
-        const data = await res.json();
+        let data = null;
+        try { data = await res.json(); } catch { data = {}; }
         console.log('Réponse backend chatbot:', data); // LOG DEBUG
         // Supprime le loader
         const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
         if (lastMsg) lastMsg.remove();
         if (res.ok) {
-            if (data.answer && data.answer.trim()) {
-                // Affiche les retours à la ligne correctement
-                addMessage(data.answer.replace(/\n/g, '<br>'), 'ai');
+            if (data.answer && typeof data.answer === 'string' && data.answer.trim()) {
+                addMessage(data.answer, 'ai');
                 chatHistoryArr.push({ role: 'assistant', content: data.answer });
             } else if (data.error && data.error.includes('OPENAI')) {
                 addMessage("Erreur OpenAI : clé API manquante ou invalide.", 'ai');
