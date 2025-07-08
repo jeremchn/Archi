@@ -77,7 +77,8 @@ chatForm.onsubmit = async function(e) {
         if (lastMsg) lastMsg.remove();
         if (res.ok) {
             if (data.answer && data.answer.trim()) {
-                addMessage(data.answer, 'ai');
+                // Affiche les retours à la ligne correctement
+                addMessage(data.answer.replace(/\n/g, '<br>'), 'ai');
                 chatHistoryArr.push({ role: 'assistant', content: data.answer });
             } else if (data.error && data.error.includes('OPENAI')) {
                 addMessage("Erreur OpenAI : clé API manquante ou invalide.", 'ai');
