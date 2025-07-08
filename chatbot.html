@@ -71,6 +71,7 @@ chatForm.onsubmit = async function(e) {
             body: JSON.stringify({ messages: chatHistoryArr, profile })
         });
         const data = await res.json();
+        console.log('Réponse backend chatbot:', data); // LOG DEBUG
         // Supprime le loader
         const lastMsg = chatHistory.querySelector('.msg.ai:last-child');
         if (lastMsg) lastMsg.remove();
@@ -78,6 +79,8 @@ chatForm.onsubmit = async function(e) {
             if (data.answer && data.answer.trim()) {
                 addMessage(data.answer, 'ai');
                 chatHistoryArr.push({ role: 'assistant', content: data.answer });
+            } else if (data.error && data.error.includes('OPENAI')) {
+                addMessage("Erreur OpenAI : clé API manquante ou invalide.", 'ai');
             } else {
                 addMessage("Aucune réponse générée par l'IA.", 'ai');
             }
