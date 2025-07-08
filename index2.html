@@ -186,6 +186,11 @@
                         <label><b>Champs Libre, données entreprises</b></label><br>
                         <textarea name="champsLibre" rows="3" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;"></textarea>
                     </div>
+                    <div style="grid-column:1/3;margin-top:-1em;">
+                        <label for="fileUpload"><b>Importer des fichiers (PDF, CSV, etc.)</b></label><br>
+                        <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,.json" multiple style="margin-top:0.3em;">
+                        <div id="fileList" style="font-size:0.97em;color:#1a365d;margin-top:0.3em;"></div>
+                    </div>
                     <div>
                         <label><b>3 Dream Clients</b></label><br>
                         <input type="text" name="dreamClient1" placeholder="Dream Client 1" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:0.5em;">
@@ -230,13 +235,35 @@ if (form) {
     setTimeout(() => { feedback.innerHTML = ''; }, 3000);
   };
   // Pré-remplit le formulaire si un profil existe déjà
-  const existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+  let existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
   if (existing && Object.keys(existing).length > 0) {
     for (const [k, v] of Object.entries(existing)) {
       if (form.elements[k]) form.elements[k].value = v;
     }
   }
+  // Affiche la liste des fichiers sélectionnés
+  const fileInput = document.getElementById('fileUpload');
+  const fileList = document.getElementById('fileList');
+  if (fileInput && fileList) {
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length === 0) {
+        fileList.textContent = '';
+        return;
+      }
+      let names = Array.from(fileInput.files).map(f => f.name).join(', ');
+      fileList.textContent = 'Fichiers sélectionnés : ' + names;
+    });
+  }
+  // Sauvegarde le nom des fichiers dans le profil (pas le contenu)
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    if (fileInput && fileInput.files.length > 0) {
+      data.uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+    }
+    localStorage.setItem('companyProfile', JSON.stringify(data));
+    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
+    setTimeout(() => { feedback.innerHTML = ''; }, 3000);
+    existing = data; // met à jour la variable pour la session
+  };
 }
-</script>
-</body>
-</html>
