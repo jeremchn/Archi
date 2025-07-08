@@ -8,7 +8,7 @@
         body { background: #f7fafc; font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 0; }
         .chat-container { max-width: 600px; margin: 3em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(26,54,93,0.10); padding: 2em 2em 1.5em 2em; }
         h2 { color: #1a365d; text-align: center; margin-bottom: 1.2em; }
-        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; }
+        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; display:none; }
         .msg { margin-bottom: 1em; }
         .msg.user { text-align: right; }
         .msg.ai { text-align: left; }
@@ -25,11 +25,11 @@
 <body>
 <div class="chat-container">
     <h2>AI Companion - Sales Chatbot</h2>
-    <div class="chat-history" id="chat-history"></div>
-    <form class="chat-input" id="chat-form" autocomplete="off">
+    <form class="chat-input" id="chat-form" autocomplete="off" style="margin-bottom:1.2em;">
         <input type="text" id="chat-input" placeholder="Posez votre question commerciale..." required />
         <button type="submit">Envoyer</button>
     </form>
+    <div class="chat-history" id="chat-history" style="display:none;"></div>
 </div>
 <script>
 const chatHistory = document.getElementById('chat-history');
@@ -41,6 +41,7 @@ function addMessage(text, sender) {
     msg.className = 'msg ' + sender;
     msg.innerHTML = `<span class="bubble">${text}</span>`;
     chatHistory.appendChild(msg);
+    chatHistory.style.display = '';
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
