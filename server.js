@@ -4,6 +4,11 @@ const cors = require('cors');
 const axios = require('axios');
 const { Pool } = require('pg');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const csvParse = require('csv-parse/sync');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -831,9 +836,39 @@ app.post('/api/sales-chatbot', async (req, res) => {
   context += `Unique Value Proposition: ${profile.uvp || '-'}\n`;
   context += `Champs libre: ${profile.champsLibre || '-'}\n`;
 
+  // === RAG : Ajout du contexte extrait des documents importés ===
+  let ragContext = '';
+  if (profile.uploadedFiles && Array.isArray(profile.uploadedFiles) && profile.uploadedFiles.length > 0) {
+    ragContext = '\nContexte extrait des documents importés :\n';
+    for (const fname of profile.uploadedFiles) {
+      const uploadDir = path.join(__dirname, 'uploads');
+      const filePath = path.join(uploadDir, fname);
+      // Recherche le fichier par nom partiel (originalname ou filename)
+      let found = '';
+      if (fs.existsSync(filePath)) found = filePath;
+      else {
+        // Recherche par originalname
+        const files = fs.readdirSync(uploadDir);
+        const match = files.find(f => f.includes(fname));
+        if (match) found = path.join(uploadDir, match);
+      }
+      if (found) {
+        try {
+          const mimetype = require('mime-types').lookup(found) || '';
+          const text = await extractTextFromFile(found, mimetype);
+          if (text && text.trim().length > 0) {
+            ragContext += `---\nFichier: ${fname}\n${text.substring(0, 2000)}\n`;
+          }
+        } catch (e) { ragContext += `Erreur extraction fichier ${fname}\n`; }
+      } else {
+        ragContext += `Fichier non trouvé: ${fname}\n`;
+      }
+    }
+  }
+
   // Prépare le prompt pour OpenAI
   const openaiMessages = [
-    { role: 'system', content: `Tu es un assistant commercial pour une équipe sales B2B. Utilise le contexte suivant pour donner des réponses utiles, concrètes et actionnables pour la vente. Sois synthétique, pertinent, et donne des conseils adaptés au profil.\n${context}` },
+    { role: 'system', content: `Tu es un assistant commercial pour une équipe sales B2B. Utilise le contexte suivant pour donner des réponses utiles, concrètes et actionnables pour la vente. Sois synthétique, pertinent, et donne des conseils adaptés au profil.\n${context}${ragContext}` },
     ...messages.map(m => ({ role: m.role, content: m.content }))
   ];
   try {
@@ -859,6 +894,33 @@ app.post('/api/sales-chatbot', async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la génération de la réponse AI.' });
   }
 });
+
+// === UPLOAD DE FICHIERS POUR LE PROFIL ENTREPRISE ===
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+app.post('/api/upload', upload.array('files'), (req, res) => {
+  if (!req.files) return res.status(400).json({ error: 'Aucun fichier reçu.' });
+  const fileInfos = req.files.map(f => ({ filename: f.filename, originalname: f.originalname, mimetype: f.mimetype }));
+  res.json({ success: true, files: fileInfos });
+});
+
+// Helper: extraction texte selon type
+async function extractTextFromFile(filePath, mimetype) {
+  if (mimetype === 'application/pdf') {
+    const data = await pdfParse(fs.readFileSync(filePath));
+    return data.text;
+  } else if (mimetype.includes('word') || filePath.endsWith('.docx')) {
+    const result = await mammoth.extractRawText({ path: filePath });
+    return result.value;
+  } else if (mimetype.includes('csv') || filePath.endsWith('.csv')) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const records = csvParse.parse(content, { columns: false });
+    return records.flat().join(' ');
+  } else if (mimetype.startsWith('text/') || filePath.endsWith('.txt')) {
+    return fs.readFileSync(filePath, 'utf8');
+  }
+  return '';
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

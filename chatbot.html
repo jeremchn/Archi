@@ -192,6 +192,12 @@ chatForm.onsubmit = async function(e) {
             addMessage('Profil entreprise manquant. Veuillez compléter votre profil dans AI Sales.', 'ai');
             return;
         }
+        // Si fichiers à uploader, upload avant d'envoyer la question
+        if (profile.uploadedFiles && Array.isArray(profile.uploadedFiles) && profile.uploadedFiles.length > 0 && profile._uploadedFilesContent !== true) {
+            // Cherche les fichiers dans l'input file du profil (index2.html doit permettre l'accès)
+            // Ici, on suppose que les fichiers sont déjà uploadés côté backend, sinon il faut les uploader ici
+            // (à adapter selon votre logique d'import)
+        }
         const res = await fetch('/api/sales-chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
