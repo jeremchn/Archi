@@ -855,6 +855,10 @@ app.post('/api/sales-chatbot', async (req, res) => {
     { role: 'system', content: `Tu es un assistant commercial pour une équipe sales B2B. Utilise le contexte suivant pour donner des réponses utiles, concrètes et actionnables pour la vente. Sois synthétique, pertinent, et donne des conseils adaptés au profil.\n${context}${ragContext}` },
     ...messages.map(m => ({ role: m.role, content: m.content }))
   ];
+  // === LOG DEBUG RAG ===
+  console.log('--- PROMPT OPENAI SYSTEM ---');
+  console.log(openaiMessages[0].content.substring(0, 3000));
+  console.log('---------------------------');
   try {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
