@@ -1,322 +1,442 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sales - Lydi</title>
-    <style>
-        :root {
-            --primary: #1a365d;
-            --secondary: #2ecc71;
-            --background: #f7fafc;
-            --card-bg: #fff;
-            --text: #222;
-            --border: #e2e8f0;
-            --shadow: 0 2px 12px rgba(26,54,93,0.08);
-            --danger: #e74c3c;
-            --success: #27ae60;
-            --gray: #e2e8f0;
-        }
-        html, body {
-            background: var(--background);
-            color: var(--text);
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-        aside.menu {
-            background: #f3f7fa;
-            border-right: 1.5px solid #e2e8f0;
-            padding: 2em 1.2em;
-            display: flex;
-            flex-direction: column;
-            gap: 2em;
-            min-width: 210px;
-            position: relative;
-        }
-        .menu ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2em;
-        }
-        .menu li {
-            margin-bottom: 0.7em;
-            cursor: pointer;
-            color: var(--primary);
-            font-weight: 500;
-            padding: 0.3em 0.5em;
-            border-radius: 6px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.7em;
-        }
-        .menu li.active, .menu li:hover {
-            background: var(--secondary);
-            color: #fff;
-        }
-        .menu .bottom-btns {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1em;
-        }
-        .btn {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5em 1.2em;
-            font-size: 1.05em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
-            min-width: 120px;
-        }
-        .btn:hover, .btn:focus {
-            background: var(--secondary);
-            color: #fff;
-            transform: translateY(-2px) scale(1.03);
-        }
-        .btn:active {
-            background: #145;
-        }
-        .btn[disabled] {
-            background: #bfc9d1;
-            color: #fff;
-            cursor: not-allowed;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 2em auto;
-            padding: 2em;
-            background: var(--card-bg);
-            border-radius: 18px;
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.7s;
-            flex: 1;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: none; }
-        }
-        h1 {
-            color: var(--primary);
-            margin-top: 0;
-            margin-bottom: 1.5em;
-            letter-spacing: 1px;
-            font-size: 2.2em;
-        }
-        @media (max-width: 900px) {
-            .layout { flex-direction: column; }
-            aside.menu { width: 100%; border-right: none; border-bottom: 1.5px solid var(--border); flex-direction: row; gap: 1em; }
-            .container { max-width: 100vw; margin: 0; border-radius: 0; }
-        }
-        @media (max-width: 700px) {
-            .container { padding: 1em; }
-            .menu ul { gap: 0.5em; }
-            .menu li { font-size: 0.98em; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil Entreprise – AI Sales</title>
+  <style>
+    :root {
+      --primary: #1a365d;
+      --secondary: #2ecc71;
+      --background: #f7fafc;
+      --card-bg: #fff;
+      --text: #222;
+      --border: #e2e8f0;
+      --shadow: 0 2px 12px rgba(26,54,93,0.08);
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --gray: #e2e8f0;
+    }
+    html, body {
+      background: var(--background);
+      color: var(--text);
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    aside.menu {
+      background: #f3f7fa;
+      border-right: 1.5px solid #e2e8f0;
+      padding: 2em 1.2em;
+      display: flex;
+      flex-direction: column;
+      gap: 2em;
+      min-width: 210px;
+      position: relative;
+    }
+    .menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+    }
+    .menu li {
+      margin-bottom: 0.7em;
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: 500;
+      padding: 0.3em 0.5em;
+      border-radius: 6px;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.7em;
+    }
+    .menu li.active, .menu li:hover {
+      background: var(--secondary);
+      color: #fff;
+    }
+    .menu .bottom-btns {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5em 1.2em;
+      font-size: 1.05em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      box-shadow: 0 1px 4px rgba(26,54,93,0.08);
+      min-width: 120px;
+    }
+    .btn:hover, .btn:focus {
+      background: var(--secondary);
+      color: #fff;
+      transform: translateY(-2px) scale(1.03);
+    }
+    .btn:active {
+      background: #145;
+    }
+    .btn[disabled] {
+      background: #bfc9d1;
+      color: #fff;
+      cursor: not-allowed;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 2em auto;
+      padding: 2em 2.5em;
+      background: var(--card-bg);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      animation: fadeIn 0.7s;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: none; }
+    }
+    h1 {
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 1.5em;
+      letter-spacing: 1px;
+      font-size: 2.2em;
+      text-align: center;
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5em 2em;
+      align-items: start;
+    }
+    .profile-col {
+      background: #f7fafc;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(26,54,93,0.06);
+      padding: 2em 1.5em 1.5em 1.5em;
+      min-width: 0;
+    }
+    .profile-col h2 {
+      color: var(--primary);
+      font-size: 1.25em;
+      margin-top: 0;
+      margin-bottom: 1.2em;
+      text-align: left;
+    }
+    .profile-field {
+      margin-bottom: 1.2em;
+    }
+    .profile-field label {
+      font-weight: 600;
+      margin-bottom: 0.3em;
+      display: block;
+    }
+    .profile-field input, .profile-field textarea {
+      width: 100%;
+      padding: 0.7em;
+      border-radius: 7px;
+      border: 1px solid #e2e8f0;
+      font-size: 1em;
+      margin-top: 0.2em;
+      background: #fff;
+      color: var(--text);
+    }
+    .profile-field textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .file-list {
+      font-size: 0.97em;
+      color: #1a365d;
+      margin-top: 0.3em;
+    }
+    .profile-actions {
+      text-align: center;
+      margin-top: 2em;
+      grid-column: 1/3;
+    }
+    .profile-summary {
+      font-size: 1.08em;
+      line-height: 1.7;
+      color: #1a365d;
+    }
+    .profile-summary ul {
+      margin: 0.5em 0 0 1.2em;
+      padding: 0;
+    }
+    @media (max-width: 900px) {
+      .layout { flex-direction: column; }
+      aside.menu { width: 100%; border-right: none; border-bottom: 1.5px solid var(--border); flex-direction: row; gap: 1em; }
+      .container { max-width: 100vw; margin: 0; border-radius: 0; }
+      .profile-grid { grid-template-columns: 1fr; gap: 1.5em 0; }
+    }
+    @media (max-width: 700px) {
+      .container { padding: 1em; }
+      .menu ul { gap: 0.5em; }
+      .menu li { font-size: 0.98em; }
+      .profile-col { padding: 1em 0.7em; }
+    }
+  </style>
 </head>
 <body>
 <div class="layout">
-    <aside class="menu">
-        <ul>
-            <li id="menu-custom" class="menu-item active"><span style="font-size:1.2em;">🛠️</span> <span>Custom Module</span></li>
-        </ul>
-        <div class="bottom-btns">
-            <button id="btn-search-companies" class="btn btn-gray" style="width:90%;" onclick="window.location.href='index.html'">Search Companies</button>
-            <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='auth.html'">Logout</button>
-        </div>
-    </aside>
-    <div class="container">
-        <header style="display:flex;align-items:center;justify-content:center;margin-bottom:2em;">
-            <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
-                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f916.svg" alt="AI Sales" style="height:48px;width:48px;vertical-align:middle;margin-bottom:0.5em;">
-                <span style="font-size:2.1em;font-weight:800;color:var(--primary);letter-spacing:1px;">AI Sales</span>
-                <div style="font-size:1.25em;font-weight:500;color:#1a365d;margin-top:0.7em;text-align:center;">Your AI-powered sales assistant</div>
-            </div>
-        </header>
-        <div id="module-content">
-            <div id="custom-module" style="display:block;max-width:800px;margin:auto;">
-                <h2 style="text-align:center;margin-bottom:1.5em;">Profil Entreprise</h2>
-                <form id="company-profile-form" style="display:grid;grid-template-columns:1fr 1fr;gap:2em 2.5em;background:#f7fafc;padding:2em 2.5em;border-radius:18px;box-shadow:0 2px 12px rgba(26,54,93,0.08);">
-                    <div>
-                        <label><b>Secteur d'activité</b></label><br>
-                        <input type="text" name="secteur" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Business Model</b></label><br>
-                        <input type="text" name="businessModel" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Taille d’équipe / Sales</b></label><br>
-                        <input type="text" name="tailleEquipe" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Marchés cibles</b></label><br>
-                        <input type="text" name="marchesCibles" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Cycle de vente moyen</b></label><br>
-                        <input type="text" name="cycleVente" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Outils utilisés</b></label><br>
-                        <input type="text" name="outilsUtilises" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Objectifs 12 mois</b></label><br>
-                        <input type="text" name="objectifs12mois" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>CA annuel estimé</b></label><br>
-                        <input type="text" name="caAnnuel" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div style="grid-column:1/3;">
-                        <label><b>Champs Libre, données entreprises</b></label><br>
-                        <textarea name="champsLibre" rows="3" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;"></textarea>
-                    </div>
-                    <div style="grid-column:1/3;margin-top:-1em;">
-                        <label for="fileUpload"><b>Importer des fichiers (PDF, CSV, etc.)</b></label><br>
-                        <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,.json" multiple style="margin-top:0.3em;">
-                        <div id="fileList" style="font-size:0.97em;color:#1a365d;margin-top:0.3em;"></div>
-                    </div>
-                    <div>
-                        <label><b>3 Dream Clients</b></label><br>
-                        <input type="text" name="dreamClient1" placeholder="Dream Client 1" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:0.5em;">
-                        <input type="text" name="dreamClient2" placeholder="Dream Client 2" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;margin-bottom:0.5em;">
-                        <input type="text" name="dreamClient3" placeholder="Dream Client 3" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div>
-                        <label><b>Unique Value Proposition</b></label><br>
-                        <input type="text" name="uvp" style="width:100%;padding:0.7em;border-radius:7px;border:1px solid #e2e8f0;">
-                    </div>
-                    <div style="grid-column:1/3;text-align:center;margin-top:1em;">
-                        <button type="submit" class="btn btn-search" style="width:220px;">Enregistrer le profil</button>
-                    </div>
-                </form>
-                <div id="profile-resume" style="display:none;"></div>
-                <div id="profile-feedback" style="margin-top:1em;text-align:center;"></div>
-            </div>
-        </div>
-        <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
-            &copy; 2025 Lydi. All rights reserved.
-        </footer>
+  <aside class="menu">
+    <ul>
+      <li id="menu-profil" class="menu-item active"><span style="font-size:1.2em;">🏢</span> <span>Profil Entreprise</span></li>
+    </ul>
+    <div class="bottom-btns">
+      <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='index.html'">Search Companies</button>
+      <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='auth.html'">Logout</button>
     </div>
+  </aside>
+  <div class="container">
+    <h1>Profil Entreprise</h1>
+    <div id="profile-edit" style="display:none;">
+      <form id="profile-form" autocomplete="off" enctype="multipart/form-data">
+        <div class="profile-grid">
+          <div class="profile-col">
+            <h2>Informations principales</h2>
+            <div class="profile-field">
+              <label for="secteur">Secteur d'activité</label>
+              <input type="text" id="secteur" name="secteur" required>
+            </div>
+            <div class="profile-field">
+              <label for="businessModel">Business Model</label>
+              <input type="text" id="businessModel" name="businessModel">
+            </div>
+            <div class="profile-field">
+              <label for="tailleEquipe">Taille d’équipe / Sales</label>
+              <input type="text" id="tailleEquipe" name="tailleEquipe">
+            </div>
+            <div class="profile-field">
+              <label for="marchesCibles">Marchés cibles</label>
+              <input type="text" id="marchesCibles" name="marchesCibles">
+            </div>
+            <div class="profile-field">
+              <label for="cycleVente">Cycle de vente moyen</label>
+              <input type="text" id="cycleVente" name="cycleVente">
+            </div>
+            <div class="profile-field">
+              <label for="outilsUtilises">Outils utilisés</label>
+              <input type="text" id="outilsUtilises" name="outilsUtilises">
+            </div>
+            <div class="profile-field">
+              <label for="objectifs12mois">Objectifs 12 mois</label>
+              <input type="text" id="objectifs12mois" name="objectifs12mois">
+            </div>
+            <div class="profile-field">
+              <label for="caAnnuel">CA annuel estimé</label>
+              <input type="text" id="caAnnuel" name="caAnnuel">
+            </div>
+          </div>
+          <div class="profile-col">
+            <h2>Informations complémentaires</h2>
+            <div class="profile-field">
+              <label for="dreamClient1">3 Dream Clients</label>
+              <input type="text" id="dreamClient1" name="dreamClient1" placeholder="Dream Client 1" style="margin-bottom:0.5em;">
+              <input type="text" id="dreamClient2" name="dreamClient2" placeholder="Dream Client 2" style="margin-bottom:0.5em;">
+              <input type="text" id="dreamClient3" name="dreamClient3" placeholder="Dream Client 3">
+            </div>
+            <div class="profile-field">
+              <label for="uvp">Unique Value Proposition</label>
+              <input type="text" id="uvp" name="uvp">
+            </div>
+            <div class="profile-field">
+              <label for="champsLibre">Champs Libre, données entreprises</label>
+              <textarea id="champsLibre" name="champsLibre" rows="3"></textarea>
+            </div>
+            <div class="profile-field">
+              <label for="fileUpload">Importer des fichiers (PDF, CSV, etc.)</label>
+              <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,.json" multiple>
+              <div id="fileList" class="file-list"></div>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button type="submit" class="btn btn-search" style="width:220px;">Enregistrer le profil</button>
+          </div>
+        </div>
+      </form>
+      <div id="profile-feedback" style="margin-top:1em;text-align:center;"></div>
+    </div>
+    <div id="profile-summary" style="display:none;">
+      <h2 style="text-align:center;margin-bottom:1.2em;">Résumé du profil</h2>
+      <div class="profile-grid">
+        <div class="profile-col">
+          <div class="profile-summary" id="summary-main"></div>
+        </div>
+        <div class="profile-col">
+          <div class="profile-summary" id="summary-side"></div>
+        </div>
+        <div class="profile-actions">
+          <button id="editProfileBtn" class="btn btn-gray" style="width:220px;">Modifier</button>
+        </div>
+      </div>
+    </div>
+    <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
+      &copy; 2025 Lydi. All rights reserved.
+    </footer>
+  </div>
 </div>
 <script>
-// Navigation entre modules
-const customBtn = document.getElementById('menu-custom');
-const customModule = document.getElementById('custom-module');
-
-customBtn.onclick = function() {
-    customBtn.classList.add('active');
-    customModule.style.display = 'block';
-};
-
-// Navigation entre modules (un seul module custom ici)
-function getUrlParams() {
-  const params = {};
-  window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-    params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\+/g, ' '));
-  });
-  return params;
-}
-const form = document.getElementById('company-profile-form');
-const feedback = document.getElementById('profile-feedback');
-const resumeDiv = document.getElementById('profile-resume');
+// --- Gestion du mode édition/résumé ---
+const editDiv = document.getElementById('profile-edit');
+const summaryDiv = document.getElementById('profile-summary');
+const form = document.getElementById('profile-form');
 const fileInput = document.getElementById('fileUpload');
 const fileList = document.getElementById('fileList');
+const feedback = document.getElementById('profile-feedback');
+const summaryMain = document.getElementById('summary-main');
+const summarySide = document.getElementById('summary-side');
 
-function showResume(data) {
-  let html = `<h2 style='text-align:center;margin-bottom:1.2em;'>Résumé du profil</h2>`;
-  html += `<b>Secteur :</b> ${data.secteur || '-'}<br>`;
-  html += `<b>Business Model :</b> ${data.businessModel || '-'}<br>`;
-  html += `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>`;
-  html += `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>`;
-  html += `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>`;
-  html += `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>`;
-  html += `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>`;
-  html += `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
-  html += `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>`;
-  html += `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>`;
-  html += `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>`;
-  html += `<b>Fichiers importés :</b> <ul style='margin-top:0.5em;'>`;
-  if(data.uploadedFiles && data.uploadedFiles.length) data.uploadedFiles.forEach(f => html += `<li>${f}</li>`);
-  else html += '<li><i>Aucun fichier</i></li>';
-  html += `</ul>`;
-  html += `<button id='editProfileBtn' class='btn btn-gray' style='margin-top:1.5em;'>Modifier</button>`;
-  resumeDiv.innerHTML = html;
-  form.style.display = 'none';
-  resumeDiv.style.display = '';
-  document.getElementById('editProfileBtn').onclick = function() {
-    form.style.display = '';
-    resumeDiv.style.display = 'none';
-  };
+async function uploadProfileFiles(files, email) {
+  if (!files || files.length === 0) return [];
+  const formData = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    formData.append('files', files[i]);
+  }
+  formData.append('email', email || '');
+  try {
+    const res = await fetch('/api/upload-profile-files', {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) throw new Error('Erreur upload fichiers');
+    const data = await res.json();
+    return data.uploadedFiles || [];
+  } catch (e) {
+    feedback.innerHTML = '<span style="color:var(--danger);font-weight:600;">Erreur lors de l\'upload des fichiers</span>';
+    setTimeout(() => { feedback.innerHTML = ''; }, 3000);
+    return [];
+  }
 }
 
-if (form) {
-  // 1. Si paramètres dans l'URL, pré-remplit et enregistre
-  const urlParams = getUrlParams();
-  let hasUrlParams = false;
-  for (const k in urlParams) {
-    if (form.elements[k]) {
-      form.elements[k].value = urlParams[k];
-      hasUrlParams = true;
-    }
-  }
-  if (hasUrlParams) {
-    const data = Object.fromEntries(new FormData(form).entries());
-    localStorage.setItem('companyProfile', JSON.stringify(data));
-    showResume(data);
+function getProfileData() {
+  const data = {};
+  if (!form) return data;
+  const fd = new FormData(form);
+  for (const [k, v] of fd.entries()) data[k] = v;
+  // Ajout fichiers (noms)
+  if (fileInput && fileInput.files.length > 0) {
+    data.uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+  } else if (window._lastFiles) {
+    data.uploadedFiles = window._lastFiles;
   } else {
-    // 2. Sinon, comportement normal (localStorage)
-    let existing = JSON.parse(localStorage.getItem('companyProfile') || '{}');
-    // Affiche le résumé si au moins un champ est rempli
-    if (existing && Object.values(existing).some(v => v && v !== '')) {
-      for (const [k, v] of Object.entries(existing)) {
-        if (form.elements[k]) form.elements[k].value = v;
-      }
-      if(existing.uploadedFiles) {
-        fileList.textContent = 'Fichiers sélectionnés : ' + existing.uploadedFiles.join(', ');
-      }
-      showResume(existing);
+    data.uploadedFiles = [];
+  }
+  return data;
+}
+
+function setProfileData(data) {
+  if (!form) return;
+  for (const [k, v] of Object.entries(data)) {
+    if (form.elements[k]) form.elements[k].value = v;
+  }
+  // Affiche la liste des fichiers
+  if (data.uploadedFiles && data.uploadedFiles.length) {
+    fileList.textContent = 'Fichiers sélectionnés : ' + data.uploadedFiles.join(', ');
+    window._lastFiles = data.uploadedFiles;
+  } else {
+    fileList.textContent = '';
+    window._lastFiles = [];
+  }
+}
+
+function showEdit() {
+  editDiv.style.display = '';
+  summaryDiv.style.display = 'none';
+}
+function showSummary(data) {
+  // Colonne principale
+  summaryMain.innerHTML =
+    `<b>Secteur :</b> ${data.secteur || '-'}<br>` +
+    `<b>Business Model :</b> ${data.businessModel || '-'}<br>` +
+    `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>` +
+    `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>` +
+    `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>` +
+    `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>` +
+    `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>` +
+    `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
+  // Colonne secondaire
+  summarySide.innerHTML =
+    `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>` +
+    `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>` +
+    `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>` +
+    `<b>Fichiers importés :</b> <ul>` +
+    ((data.uploadedFiles && data.uploadedFiles.length) ? data.uploadedFiles.map(f => `<li>${f}</li>`).join('') : '<li><i>Aucun fichier</i></li>') +
+    `</ul>`;
+  editDiv.style.display = 'none';
+  summaryDiv.style.display = '';
+}
+
+// Gestion fichiers (affichage noms)
+if (fileInput && fileList) {
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length === 0) {
+      fileList.textContent = '';
+      window._lastFiles = [];
+      return;
     }
-  }
-  // Affiche la liste des fichiers sélectionnés
-  if (fileInput && fileList) {
-    fileInput.addEventListener('change', function() {
-      if (fileInput.files.length === 0) {
-        fileList.textContent = '';
-        return;
-      }
-      let names = Array.from(fileInput.files).map(f => f.name).join(', ');
-      fileList.textContent = 'Fichiers sélectionnés : ' + names;
-    });
-  }
-  // Sauvegarde le nom des fichiers dans le profil (pas le contenu)
-  form.onsubmit = function(e) {
+    let names = Array.from(fileInput.files).map(f => f.name);
+    fileList.textContent = 'Fichiers sélectionnés : ' + names.join(', ');
+    window._lastFiles = names;
+  });
+}
+
+// Soumission du formulaire
+if (form) {
+  form.onsubmit = async function(e) {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
+    const data = getProfileData();
+    // Récupère l'email utilisateur (depuis localStorage ou champ caché si besoin)
+    let email = localStorage.getItem('email') || data.email || '';
+    // Upload fichiers si présents
+    let uploadedFiles = [];
     if (fileInput && fileInput.files.length > 0) {
-      data.uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+      uploadedFiles = await uploadProfileFiles(fileInput.files, email);
+      data.uploadedFiles = uploadedFiles;
     }
     localStorage.setItem('companyProfile', JSON.stringify(data));
-    showResume(data);
+    showSummary(data);
     feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
     setTimeout(() => { feedback.innerHTML = ''; }, 2000);
   };
 }
+
+// Bouton Modifier
+const editBtn = document.getElementById('editProfileBtn');
+if (editBtn) {
+  editBtn.onclick = function() {
+    const data = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+    setProfileData(data);
+    showEdit();
+  };
+}
+
+// Initialisation : affiche le bon mode
+(function init() {
+  const data = JSON.parse(localStorage.getItem('companyProfile') || '{}');
+  if (data && Object.keys(data).length > 0 && Object.values(data).some(v => v && v !== '')) {
+    showSummary(data);
+  } else {
+    showEdit();
+  }
+  setProfileData(data);
+})();
 </script>
 </body>
 </html>

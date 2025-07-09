@@ -838,30 +838,14 @@ app.post('/api/sales-chatbot', async (req, res) => {
 
   // === RAG : Ajout du contexte extrait des documents importés ===
   let ragContext = '';
-  if (profile.uploadedFiles && Array.isArray(profile.uploadedFiles) && profile.uploadedFiles.length > 0) {
-    ragContext = '\nContexte extrait des documents importés :\n';
-    for (const fname of profile.uploadedFiles) {
-      const uploadDir = path.join(__dirname, 'uploads');
-      const filePath = path.join(uploadDir, fname);
-      // Recherche le fichier par nom partiel (originalname ou filename)
-      let found = '';
-      if (fs.existsSync(filePath)) found = filePath;
-      else {
-        // Recherche par originalname
-        const files = fs.readdirSync(uploadDir);
-        const match = files.find(f => f.includes(fname));
-        if (match) found = path.join(uploadDir, match);
-      }
-      if (found) {
-        try {
-          const mimetype = require('mime-types').lookup(found) || '';
-          const text = await extractTextFromFile(found, mimetype);
-          if (text && text.trim().length > 0) {
-            ragContext += `---\nFichier: ${fname}\n${text.substring(0, 2000)}\n`;
-          }
-        } catch (e) { ragContext += `Erreur extraction fichier ${fname}\n`; }
-      } else {
-        ragContext += `Fichier non trouvé: ${fname}\n`;
+  if (profile.email) {
+    const ragFiles = getRagTextsForEmail(profile.email);
+    if (ragFiles.length > 0) {
+      ragContext = '\nContexte extrait des documents importés :\n';
+      for (const f of ragFiles) {
+        if (f.text && f.text.trim().length > 0) {
+          ragContext += `---\nFichier: ${f.name}\n${f.text.substring(0, 2000)}\n`;
+        }
       }
     }
   }
@@ -903,6 +887,42 @@ app.post('/api/upload', upload.array('files'), (req, res) => {
   const fileInfos = req.files.map(f => ({ filename: f.filename, originalname: f.originalname, mimetype: f.mimetype }));
   res.json({ success: true, files: fileInfos });
 });
+
+// === UPLOAD DE FICHIERS POUR LE PROFIL ENTREPRISE (RAG) ===
+// Utilise le même 'upload' déjà déclaré plus haut
+
+// Nouveau endpoint : upload + extraction texte + association à l'email
+app.post('/api/upload-profile-files', upload.array('files'), async (req, res) => {
+  const email = req.body.email;
+  if (!req.files || !email) return res.status(400).json({ error: 'Fichiers et email requis.' });
+  // On stocke le mapping email -> fichiers + texte extrait (en RAM pour démo, à persister en prod)
+  if (!global.profileRagStore) global.profileRagStore = {};
+  if (!global.profileRagStore[email]) global.profileRagStore[email] = [];
+  const uploadedFiles = [];
+  for (const f of req.files) {
+    let text = '';
+    try {
+      text = await extractTextFromFile(f.path, f.mimetype);
+    } catch (e) { text = ''; }
+    global.profileRagStore[email].push({
+      filename: f.filename,
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+      text: text || ''
+    });
+    uploadedFiles.push(f.originalname);
+  }
+  res.json({ success: true, uploadedFiles });
+});
+
+// Helper pour récupérer le texte RAG d'un email
+function getRagTextsForEmail(email) {
+  if (!global.profileRagStore || !global.profileRagStore[email]) return [];
+  return global.profileRagStore[email].map(f => ({
+    name: f.originalname,
+    text: f.text
+  }));
+}
 
 // Helper: extraction texte selon type
 async function extractTextFromFile(filePath, mimetype) {
