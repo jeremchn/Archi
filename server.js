@@ -856,7 +856,9 @@ app.post('/api/sales-chatbot', async (req, res) => {
       for (const c of topChunks) {
         ragContext += `---\nFichier: ${c.filename}\n${c.chunk.substring(0, 2000)}\n`;
       }
+      console.log(`[RAG] Chunks utilisés:`, topChunks.map(c => c.filename + '...' + c.chunk.slice(0,40)));
     } catch (e) {
+      console.error('[RAG][ERROR]', e.response?.data || e.message, e.stack);
       ragContext = '';
     }
   }
@@ -889,8 +891,8 @@ app.post('/api/sales-chatbot', async (req, res) => {
     const aiMsg = response.data.choices[0].message.content;
     res.json({ answer: aiMsg });
   } catch (e) {
-    console.error('Erreur OpenAI:', e.response?.data || e.message);
-    res.status(500).json({ error: 'Erreur lors de la génération de la réponse AI.' });
+    console.error('[OPENAI][ERROR]', e.response?.data || e.message, e.stack);
+    res.status(500).json({ error: 'Erreur lors de la génération de la réponse AI.', details: e.response?.data || e.message });
   }
 });
 
@@ -941,24 +943,26 @@ async function getEmbeddingsForChunks(chunks) {
   return allEmbeddings;
 }
 
-// Helper: découpe un texte en chunks (overlap possible)
+// Helper: découpe un texte en chunks (overlap possible, ignore les vides)
 function chunkText(text, chunkSize = 500, overlap = 100) {
   const chunks = [];
   let i = 0;
   while (i < text.length) {
-    const chunk = text.substring(i, i + chunkSize);
-    if (chunk.trim().length > 0) chunks.push(chunk);
+    const chunk = text.substring(i, i + chunkSize).trim();
+    if (chunk.length > 30) chunks.push(chunk); // ignore les tout petits ou vides
     i += chunkSize - overlap;
   }
   return chunks;
 }
 
-// Helper: génère les embeddings OpenAI pour une liste de textes
+// Helper: génère les embeddings OpenAI pour une liste de textes (ignore les vides)
 async function getEmbeddings(texts) {
   const apiKey = process.env.OPENAIKEY;
+  const filtered = texts.filter(t => t && t.trim().length > 0);
+  if (filtered.length === 0) return [];
   const response = await axios.post(
     'https://api.openai.com/v1/embeddings',
-    { input: texts, model: 'text-embedding-3-small' },
+    { input: filtered, model: 'text-embedding-3-small' },
     { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
   );
   return response.data.data.map(d => d.embedding);
@@ -1013,18 +1017,22 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
     });
     // Découpe en chunks
     const chunks = chunkText(text);
-    // Embeddings pour chaque chunk
+    // Embeddings pour chaque chunk (ignore les vides)
     let embeddings = [];
     try {
       embeddings = await getEmbeddings(chunks);
     } catch (e) { embeddings = chunks.map(() => []); }
     // Stocke chaque chunk+embedding+filename
+    let idx = 0;
     for (let i = 0; i < chunks.length; i++) {
-      global.profileRagChunks[email].push({
-        chunk: chunks[i],
-        embedding: embeddings[i],
-        filename: f.originalname
-      });
+      if (chunks[i] && chunks[i].trim().length > 0 && Array.isArray(embeddings[idx])) {
+        global.profileRagChunks[email].push({
+          chunk: chunks[i],
+          embedding: embeddings[idx],
+          filename: f.originalname
+        });
+        idx++;
+      }
     }
     uploadedFiles.push(f.originalname);
   }
