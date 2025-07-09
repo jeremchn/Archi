@@ -836,17 +836,28 @@ app.post('/api/sales-chatbot', async (req, res) => {
   context += `Unique Value Proposition: ${profile.uvp || '-'}\n`;
   context += `Champs libre: ${profile.champsLibre || '-'}\n`;
 
-  // === RAG : Ajout du contexte extrait des documents importés ===
+  // === RAG dense: sélection dynamique des passages les plus pertinents ===
   let ragContext = '';
-  if (profile.email) {
-    const ragFiles = getRagTextsForEmail(profile.email);
-    if (ragFiles.length > 0) {
-      ragContext = '\nContexte extrait des documents importés :\n';
-      for (const f of ragFiles) {
-        if (f.text && f.text.trim().length > 0) {
-          ragContext += `---\nFichier: ${f.name}\n${f.text.substring(0, 2000)}\n`;
-        }
+  if (profile.email && global.profileRagChunks[profile.email] && global.profileRagChunks[profile.email].length > 0) {
+    try {
+      // Embedding de la question (dernier message user)
+      const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+      const question = lastUserMsg ? lastUserMsg.content : '';
+      const questionEmbedding = (await getEmbeddings([question]))[0];
+      // Score chaque chunk
+      const scored = global.profileRagChunks[profile.email].map(obj => ({
+        ...obj,
+        score: Array.isArray(obj.embedding) ? cosineSimilarity(questionEmbedding, obj.embedding) : 0
+      }));
+      scored.sort((a, b) => b.score - a.score);
+      // Sélectionne les N meilleurs passages (ex: 4)
+      const topChunks = scored.slice(0, 4);
+      ragContext = '\nContexte extrait des documents importés (pertinent pour la question) :\n';
+      for (const c of topChunks) {
+        ragContext += `---\nFichier: ${c.filename}\n${c.chunk.substring(0, 2000)}\n`;
       }
+    } catch (e) {
+      ragContext = '';
     }
   }
 
@@ -892,40 +903,76 @@ app.post('/api/upload', upload.array('files'), (req, res) => {
   res.json({ success: true, files: fileInfos });
 });
 
-// === UPLOAD DE FICHIERS POUR LE PROFIL ENTREPRISE (RAG) ===
-// Utilise le même 'upload' déjà déclaré plus haut
+// === RAG DENSE : CHUNKING + EMBEDDINGS ===
+const CHUNK_SIZE = 500; // caractères par chunk (ajuster si besoin)
+const RAG_TOP_K = 5; // nombre de chunks à injecter dans le prompt
 
-// Nouveau endpoint : upload + extraction texte + association à l'email
-app.post('/api/upload-profile-files', upload.array('files'), async (req, res) => {
-  const email = req.body.email;
-  if (!req.files || !email) return res.status(400).json({ error: 'Fichiers et email requis.' });
-  // On stocke le mapping email -> fichiers + texte extrait (en RAM pour démo, à persister en prod)
-  if (!global.profileRagStore) global.profileRagStore = {};
-  if (!global.profileRagStore[email]) global.profileRagStore[email] = [];
-  const uploadedFiles = [];
-  for (const f of req.files) {
-    let text = '';
-    try {
-      text = await extractTextFromFile(f.path, f.mimetype);
-    } catch (e) { text = ''; }
-    global.profileRagStore[email].push({
-      filename: f.filename,
-      originalname: f.originalname,
-      mimetype: f.mimetype,
-      text: text || ''
-    });
-    uploadedFiles.push(f.originalname);
+// Helper : découpe un texte en chunks de taille fixe
+function chunkText(text, size = CHUNK_SIZE) {
+  const chunks = [];
+  let i = 0;
+  while (i < text.length) {
+    let end = i + size;
+    // Essaie de couper à la fin d'une phrase si possible
+    let nextDot = text.lastIndexOf('.', end);
+    if (nextDot > i + size * 0.5) end = nextDot + 1;
+    chunks.push(text.slice(i, end).trim());
+    i = end;
   }
-  res.json({ success: true, uploadedFiles });
-});
+  return chunks.filter(c => c.length > 30); // ignore les tout petits
+}
 
-// Helper pour récupérer le texte RAG d'un email
-function getRagTextsForEmail(email) {
-  if (!global.profileRagStore || !global.profileRagStore[email]) return [];
-  return global.profileRagStore[email].map(f => ({
-    name: f.originalname,
-    text: f.text
-  }));
+// Helper : génère les embeddings OpenAI pour une liste de textes
+async function getEmbeddingsForChunks(chunks) {
+  const apiKey = process.env.OPENAIKEY;
+  const model = 'text-embedding-3-small';
+  // OpenAI accepte jusqu'à 2048 inputs par requête, on batch par 50 pour éviter les limites
+  const batchSize = 50;
+  let allEmbeddings = [];
+  for (let i = 0; i < chunks.length; i += batchSize) {
+    const batch = chunks.slice(i, i + batchSize);
+    const resp = await axios.post(
+      'https://api.openai.com/v1/embeddings',
+      { input: batch, model },
+      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
+    );
+    allEmbeddings = allEmbeddings.concat(resp.data.data.map(d => d.embedding));
+  }
+  return allEmbeddings;
+}
+
+// Helper: découpe un texte en chunks (overlap possible)
+function chunkText(text, chunkSize = 500, overlap = 100) {
+  const chunks = [];
+  let i = 0;
+  while (i < text.length) {
+    const chunk = text.substring(i, i + chunkSize);
+    if (chunk.trim().length > 0) chunks.push(chunk);
+    i += chunkSize - overlap;
+  }
+  return chunks;
+}
+
+// Helper: génère les embeddings OpenAI pour une liste de textes
+async function getEmbeddings(texts) {
+  const apiKey = process.env.OPENAIKEY;
+  const response = await axios.post(
+    'https://api.openai.com/v1/embeddings',
+    { input: texts, model: 'text-embedding-3-small' },
+    { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
+  );
+  return response.data.data.map(d => d.embedding);
+}
+
+// Helper: calcule la similarité cosinus
+function cosineSimilarity(a, b) {
+  let dot = 0.0, normA = 0.0, normB = 0.0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
 // Helper: extraction texte selon type
@@ -945,6 +992,44 @@ async function extractTextFromFile(filePath, mimetype) {
   }
   return '';
 }
+
+// Nouveau endpoint upload RAG: découpe, embedding, stockage chunks+embeddings
+app.post('/api/upload-profile-files', upload.array('files'), async (req, res) => {
+  const email = req.body.email;
+  if (!req.files || !email) return res.status(400).json({ error: 'Fichiers et email requis.' });
+  if (!global.profileRagStore[email]) global.profileRagStore[email] = [];
+  if (!global.profileRagChunks[email]) global.profileRagChunks[email] = [];
+  const uploadedFiles = [];
+  for (const f of req.files) {
+    let text = '';
+    try {
+      text = await extractTextFromFile(f.path, f.mimetype);
+    } catch (e) { text = ''; }
+    global.profileRagStore[email].push({
+      filename: f.filename,
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+      text: text || ''
+    });
+    // Découpe en chunks
+    const chunks = chunkText(text);
+    // Embeddings pour chaque chunk
+    let embeddings = [];
+    try {
+      embeddings = await getEmbeddings(chunks);
+    } catch (e) { embeddings = chunks.map(() => []); }
+    // Stocke chaque chunk+embedding+filename
+    for (let i = 0; i < chunks.length; i++) {
+      global.profileRagChunks[email].push({
+        chunk: chunks[i],
+        embedding: embeddings[i],
+        filename: f.originalname
+      });
+    }
+    uploadedFiles.push(f.originalname);
+  }
+  res.json({ success: true, uploadedFiles });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
