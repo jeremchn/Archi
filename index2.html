@@ -381,6 +381,16 @@ function showSummary(data) {
     `</ul>`;
   editDiv.style.display = 'none';
   summaryDiv.style.display = '';
+  // Attache l'événement au bouton Modifier à chaque affichage
+  setTimeout(() => {
+    const editBtn = document.getElementById('editProfileBtn');
+    if (editBtn) {
+      editBtn.onclick = function() {
+        setProfileData(data);
+        showEdit();
+      };
+    }
+  }, 0);
 }
 
 // Gestion fichiers (affichage noms)
@@ -414,16 +424,6 @@ if (form) {
     showSummary(data);
     feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
     setTimeout(() => { feedback.innerHTML = ''; }, 2000);
-  };
-}
-
-// Bouton Modifier
-const editBtn = document.getElementById('editProfileBtn');
-if (editBtn) {
-  editBtn.onclick = function() {
-    const data = JSON.parse(localStorage.getItem('companyProfile') || '{}');
-    setProfileData(data);
-    showEdit();
   };
 }
 
