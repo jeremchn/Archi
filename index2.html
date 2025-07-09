@@ -338,6 +338,8 @@ function getProfileData() {
   } else {
     data.uploadedFiles = [];
   }
+  // Ajoute l'email utilisateur au profil (pour le RAG)
+  data.email = localStorage.getItem('email') || '';
   return data;
 }
 
