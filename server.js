@@ -822,7 +822,6 @@ app.post('/api/sales-chatbot', async (req, res) => {
   if (!Array.isArray(messages) || !profile) {
     return res.status(400).json({ error: 'Messages et profil requis.' });
   }
-  // Construit le contexte à partir du profil
   let context = `Profil entreprise:\n`;
   context += `Secteur: ${profile.secteur || '-'}\n`;
   context += `Business Model: ${profile.businessModel || '-'}\n`;
@@ -836,33 +835,42 @@ app.post('/api/sales-chatbot', async (req, res) => {
   context += `Unique Value Proposition: ${profile.uvp || '-'}\n`;
   context += `Champs libre: ${profile.champsLibre || '-'}\n`;
 
-  // === RAG dense: sélection dynamique des passages les plus pertinents ===
+  // === RAG dense: sélection dynamique des passages les plus pertinents (limite stricte) ===
   let ragContext = '';
+  const MAX_CHUNKS = 3;
+  const MAX_CHUNK_SIZE = 800;
+  const MAX_RAG_TOTAL = 3000;
   if (profile.email && global.profileRagChunks[profile.email] && global.profileRagChunks[profile.email].length > 0) {
     try {
-      // Embedding de la question (dernier message user)
       const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
       const question = lastUserMsg ? lastUserMsg.content : '';
       const questionEmbedding = (await getEmbeddings([question]))[0];
-      // Score chaque chunk
       const scored = global.profileRagChunks[profile.email].map(obj => ({
         ...obj,
         score: Array.isArray(obj.embedding) ? cosineSimilarity(questionEmbedding, obj.embedding) : 0
       }));
       scored.sort((a, b) => b.score - a.score);
-      // Sélectionne les N meilleurs passages (ex: 4)
-      const topChunks = scored.slice(0, 4);
+      // Limite le nombre de chunks et la taille de chaque chunk
+      let totalLen = 0;
+      const topChunks = [];
+      for (const c of scored) {
+        if (topChunks.length >= MAX_CHUNKS) break;
+        let chunkText = c.chunk.substring(0, MAX_CHUNK_SIZE);
+        if (totalLen + chunkText.length > MAX_RAG_TOTAL) break;
+        topChunks.push({ ...c, chunk: chunkText });
+        totalLen += chunkText.length;
+      }
       ragContext = '\nContexte extrait des documents importés (pertinent pour la question) :\n';
       for (const c of topChunks) {
-        ragContext += `---\nFichier: ${c.filename}\n${c.chunk.substring(0, 2000)}\n`;
+        ragContext += `---\nFichier: ${c.filename}\n${c.chunk}\n`;
       }
       console.log(`[RAG] Chunks utilisés:`, topChunks.map(c => c.filename + '...' + c.chunk.slice(0,40)));
+      console.log(`[RAG] Longueur totale contexte RAG:`, totalLen);
     } catch (e) {
       console.error('[RAG][ERROR]', e.response?.data || e.message, e.stack);
       ragContext = '';
     }
   }
-
   // Prépare le prompt pour OpenAI
   const openaiMessages = [
     { role: 'system', content: `Tu es un assistant commercial pour une équipe sales B2B. Utilise le contexte suivant pour donner des réponses utiles, concrètes et actionnables pour la vente. Sois synthétique, pertinent, et donne des conseils adaptés au profil.\n${context}${ragContext}` },
@@ -1039,11 +1047,15 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
   res.json({ success: true, uploadedFiles });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// === INIT RAG GLOBALS (toujours, même sur Render) ===
+if (!global.profileRagStore) global.profileRagStore = {};
+if (!global.profileRagChunks) global.profileRagChunks = {};
 
 // Sert aussi chatbot.html à la racine
 app.get('/chatbot.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'chatbot.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
