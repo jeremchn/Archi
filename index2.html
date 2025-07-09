@@ -344,9 +344,11 @@ function getProfileData() {
 function setProfileData(data) {
   if (!form) return;
   for (const [k, v] of Object.entries(data)) {
+    // Ne pas essayer de pré-remplir le champ fichier (fileUpload) ni uploadedFiles
+    if (k === 'fileUpload' || k === 'uploadedFiles') continue;
     if (form.elements[k]) form.elements[k].value = v;
   }
-  // Affiche la liste des fichiers
+  // Affiche la liste des fichiers (noms)
   if (data.uploadedFiles && data.uploadedFiles.length) {
     fileList.textContent = 'Fichiers sélectionnés : ' + data.uploadedFiles.join(', ');
     window._lastFiles = data.uploadedFiles;
@@ -354,11 +356,17 @@ function setProfileData(data) {
     fileList.textContent = '';
     window._lastFiles = [];
   }
+  // Vide le champ fichier à chaque passage en édition
+  if (fileInput) fileInput.value = '';
 }
 
 function showEdit() {
   editDiv.style.display = '';
   summaryDiv.style.display = 'none';
+  // Effet visuel pour montrer le passage en édition
+  setTimeout(() => {
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
 }
 function showSummary(data) {
   // Colonne principale
@@ -386,6 +394,7 @@ function showSummary(data) {
     const editBtn = document.getElementById('editProfileBtn');
     if (editBtn) {
       editBtn.onclick = function() {
+        console.log('Bouton Modifier cliqué');
         setProfileData(data);
         showEdit();
       };
