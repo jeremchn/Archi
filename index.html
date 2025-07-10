@@ -238,6 +238,10 @@
 <body>
 <div class="layout">
     <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
+        <div id="load-data-section" style="text-align:left;margin-bottom:1.5em;">
+            <button id="loadDataBtn" class="btn btn-search" style="min-width:160px;">Load Data</button>
+            <span id="dataStatus" style="margin-left:1em;font-weight:500;color:var(--primary);"></span>
+        </div>
         <nav>
             <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
                 <li id="menu-prompt" class="menu-item active" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
@@ -318,10 +322,8 @@
             </button>
         </div>
         <!-- BOUTON DE CHARGEMENT DES DONNÉES POUR LA SESSION -->
-        <div id="load-data-section" style="text-align:center;margin-bottom:1.5em;">
-            <button id="loadDataBtn" class="btn btn-search" style="min-width:160px;">Load Data</button>
-            <span id="dataStatus" style="margin-left:1em;font-weight:500;color:var(--primary);"></span>
-        </div>
+        <!-- (moved to top left) -->
+        <!-- <div id="load-data-section" style="text-align:center;margin-bottom:1.5em;"> ... </div> -->
         <!-- TABLEAU DE RÉSULTATS, THEAD MASQUÉ PAR DÉFAUT -->
         <table style="margin-top:1.5em;">
             <thead id="results-thead" style="display:none;">
@@ -339,7 +341,7 @@
             <tbody id="results"></tbody>
         </table>
         <footer style="margin-top:2.5em;text-align:center;color:#888;font-size:0.98em;opacity:0.8;">
-            &copy; 2025 Lydi. All rights reserved.
+            &copy; 2025 Lydi. All rights reserved;
         </footer>
     </div>
 </div>
