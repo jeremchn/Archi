@@ -191,6 +191,14 @@
       .menu li { font-size: 0.98em; }
       .profile-col { padding: 1em 0.7em; }
     }
+    .menu li#menu-aisales:hover, .menu li#menu-aisales.active {
+      background: var(--secondary) !important;
+      color: #fff !important;
+    }
+    .menu li#menu-contacts:hover, .menu li#menu-contacts.active {
+      box-shadow: none !important;
+      border-bottom: none !important;
+    }
   </style>
 </head>
 <body>
@@ -198,25 +206,25 @@
   <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
     <nav>
         <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
-            <li id="menu-prompt" class="menu-item" onclick="window.location.href='index.html'">
+            <li id="menu-prompt" class="menu-item">
                 <span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span>
             </li>
-            <li id="menu-name" class="menu-item" onclick="window.location.href='details.html'">
+            <li id="menu-name" class="menu-item">
                 <span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span>
             </li>
-            <li id="menu-filter" class="menu-item" onclick="window.location.href='score.html'">
+            <li id="menu-filter" class="menu-item">
                 <span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span>
             </li>
-            <li id="menu-aisales" class="menu-item" onclick="window.location.href='index2.html'" style="font-weight:600;color:#1a365d;background:#eaf6ff;">
+            <li id="menu-aisales" class="menu-item" style="font-weight:600;color:#1a365d;background:#eaf6ff;">
                 <span style="font-size:1.2em;">🤖</span> <span>AI Sales</span>
             </li>
-            <li id="menu-chatbot" class="menu-item" onclick="window.location.href='chatbot.html'">
+            <li id="menu-chatbot" class="menu-item">
                 <span style="font-size:1.2em;">💬</span> <span>AI Companion</span>
             </li>
-            <li id="menu-saved" class="menu-item" onclick="window.location.href='saved.html'" style="margin-top:1.5em;font-weight:600;color:#1a365d;">
+            <li id="menu-saved" class="menu-item" style="margin-top:1.5em;font-weight:600;color:#1a365d;">
                 <span style="font-size:1.2em;">💾</span> <span>Saved companies</span>
             </li>
-            <li id="menu-contacts" class="menu-item" onclick="window.location.href='contacts.html'">
+            <li id="menu-contacts" class="menu-item">
                 <span style="font-size:1.2em;">👤</span> <span>Leads</span>
             </li>
             <li style="flex:1 1 auto;"></li>
@@ -313,6 +321,41 @@
   </div>
 </div>
 <script>
+// --- Robust left menu navigation (anchors for index.html) ---
+document.addEventListener('DOMContentLoaded', function() {
+  const menuLinks = [
+    { id: 'menu-prompt', href: 'index.html#prompt' },
+    { id: 'menu-name', href: 'index.html#domain' },
+    { id: 'menu-filter', href: 'index.html#filter' },
+    { id: 'menu-aisales', href: 'index2.html' },
+    { id: 'menu-chatbot', href: 'chatbot.html' },
+    { id: 'menu-saved', href: 'saved.html' },
+    { id: 'menu-contacts', href: 'contacts.html' }
+  ];
+  menuLinks.forEach(link => {
+    const el = document.getElementById(link.id);
+    if (el) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = link.href;
+      });
+    }
+  });
+  // Logout button logic
+  const logoutBtn = document.querySelector('.btn.btn-gray[onclick]');
+  if (logoutBtn) {
+    logoutBtn.onclick = null;
+    logoutBtn.style.cursor = 'pointer';
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Optionally clear localStorage/session
+      localStorage.clear();
+      window.location.href = 'auth.html';
+    });
+  }
+});
+
 // --- Gestion du mode édition/résumé ---
 const editDiv = document.getElementById('profile-edit');
 const summaryDiv = document.getElementById('profile-summary');
