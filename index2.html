@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profil Entreprise – AI Sales</title>
+  <title>Company Profile – AI Sales</title>
   <style>
     :root {
       --primary: #1a365d;
@@ -196,43 +196,43 @@
 <body>
 <div class="layout">
   <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
-        <nav>
-            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
-                <li id="menu-prompt" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span>
-                </li>
-                <li id="menu-name" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span>
-                </li>
-                <li id="menu-filter" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span>
-                </li>
-                <li id="menu-aisales" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;font-weight:600;color:#1a365d;background:#eaf6ff;">
-                    <span style="font-size:1.2em;">🤖</span> <span>AI Sales</span>
-                </li>
-                <li id="menu-chatbot" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">💬</span> <span>AI Companion</span>
-                </li>
-                <li id="menu-saved" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-top:1.5em;font-weight:600;color:#1a365d;">
-                    <span style="font-size:1.2em;">💾</span> <span>Saved companies</span>
-                </li>
-                <li id="menu-contacts" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
-                    <span style="font-size:1.2em;">👤</span> <span>Leads</span>
-                </li>
-                <li style="flex:1 1 auto;"></li>
-            </ul>
-        </nav>
-        <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
-    </aside>
+    <nav>
+        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
+            <li id="menu-prompt" class="menu-item" onclick="window.location.href='index.html'">
+                <span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span>
+            </li>
+            <li id="menu-name" class="menu-item" onclick="window.location.href='details.html'">
+                <span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span>
+            </li>
+            <li id="menu-filter" class="menu-item" onclick="window.location.href='score.html'">
+                <span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span>
+            </li>
+            <li id="menu-aisales" class="menu-item" onclick="window.location.href='index2.html'" style="font-weight:600;color:#1a365d;background:#eaf6ff;">
+                <span style="font-size:1.2em;">🤖</span> <span>AI Sales</span>
+            </li>
+            <li id="menu-chatbot" class="menu-item" onclick="window.location.href='chatbot.html'">
+                <span style="font-size:1.2em;">💬</span> <span>AI Companion</span>
+            </li>
+            <li id="menu-saved" class="menu-item" onclick="window.location.href='saved.html'" style="margin-top:1.5em;font-weight:600;color:#1a365d;">
+                <span style="font-size:1.2em;">💾</span> <span>Saved companies</span>
+            </li>
+            <li id="menu-contacts" class="menu-item" onclick="window.location.href='contacts.html'">
+                <span style="font-size:1.2em;">👤</span> <span>Leads</span>
+            </li>
+            <li style="flex:1 1 auto;"></li>
+        </ul>
+    </nav>
+    <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
+</aside>
   <div class="container">
-    <h1>Profil Entreprise</h1>
+    <h1>Company Profile</h1>
     <div id="profile-edit" style="display:none;">
       <form id="profile-form" autocomplete="off" enctype="multipart/form-data">
         <div class="profile-grid">
           <div class="profile-col">
-            <h2>Informations principales</h2>
+            <h2>Main Information</h2>
             <div class="profile-field">
-              <label for="secteur">Secteur d'activité</label>
+              <label for="secteur">Sector</label>
               <input type="text" id="secteur" name="secteur" required>
             </div>
             <div class="profile-field">
@@ -240,32 +240,32 @@
               <input type="text" id="businessModel" name="businessModel">
             </div>
             <div class="profile-field">
-              <label for="tailleEquipe">Taille d’équipe / Sales</label>
+              <label for="tailleEquipe">Team Size / Sales</label>
               <input type="text" id="tailleEquipe" name="tailleEquipe">
             </div>
             <div class="profile-field">
-              <label for="marchesCibles">Marchés cibles</label>
+              <label for="marchesCibles">Target Markets</label>
               <input type="text" id="marchesCibles" name="marchesCibles">
             </div>
             <div class="profile-field">
-              <label for="cycleVente">Cycle de vente moyen</label>
+              <label for="cycleVente">Average Sales Cycle</label>
               <input type="text" id="cycleVente" name="cycleVente">
             </div>
             <div class="profile-field">
-              <label for="outilsUtilises">Outils utilisés</label>
+              <label for="outilsUtilises">Tools Used</label>
               <input type="text" id="outilsUtilises" name="outilsUtilises">
             </div>
             <div class="profile-field">
-              <label for="objectifs12mois">Objectifs 12 mois</label>
+              <label for="objectifs12mois">12-Month Objectives</label>
               <input type="text" id="objectifs12mois" name="objectifs12mois">
             </div>
             <div class="profile-field">
-              <label for="caAnnuel">CA annuel estimé</label>
+              <label for="caAnnuel">Estimated Annual Revenue</label>
               <input type="text" id="caAnnuel" name="caAnnuel">
             </div>
           </div>
           <div class="profile-col">
-            <h2>Informations complémentaires</h2>
+            <h2>Additional Information</h2>
             <div class="profile-field">
               <label for="dreamClient1">3 Dream Clients</label>
               <input type="text" id="dreamClient1" name="dreamClient1" placeholder="Dream Client 1" style="margin-bottom:0.5em;">
@@ -277,24 +277,24 @@
               <input type="text" id="uvp" name="uvp">
             </div>
             <div class="profile-field">
-              <label for="champsLibre">Champs Libre, données entreprises</label>
+              <label for="champsLibre">Free Field, Company Data</label>
               <textarea id="champsLibre" name="champsLibre" rows="3"></textarea>
             </div>
             <div class="profile-field">
-              <label for="fileUpload">Importer des fichiers (PDF, CSV, etc.)</label>
+              <label for="fileUpload">Import files (PDF, CSV, etc.)</label>
               <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,.json" multiple>
               <div id="fileList" class="file-list"></div>
             </div>
           </div>
           <div class="profile-actions">
-            <button type="submit" class="btn btn-search" style="width:220px;">Enregistrer le profil</button>
+            <button type="submit" class="btn btn-search" style="width:220px;">Save Profile</button>
           </div>
         </div>
       </form>
       <div id="profile-feedback" style="margin-top:1em;text-align:center;"></div>
     </div>
     <div id="profile-summary" style="display:none;">
-      <h2 style="text-align:center;margin-bottom:1.2em;">Résumé du profil</h2>
+      <h2 style="text-align:center;margin-bottom:1.2em;">Profile Summary</h2>
       <div class="profile-grid">
         <div class="profile-col">
           <div class="profile-summary" id="summary-main"></div>
@@ -303,7 +303,7 @@
           <div class="profile-summary" id="summary-side"></div>
         </div>
         <div class="profile-actions">
-          <button id="editProfileBtn" class="btn btn-gray" style="width:220px;">Modifier</button>
+          <button id="editProfileBtn" class="btn btn-gray" style="width:220px;">Edit</button>
         </div>
       </div>
     </div>
@@ -391,32 +391,31 @@ function showEdit() {
   }, 50);
 }
 function showSummary(data) {
-  // Colonne principale
+  // Main column
   summaryMain.innerHTML =
-    `<b>Secteur :</b> ${data.secteur || '-'}<br>` +
-    `<b>Business Model :</b> ${data.businessModel || '-'}<br>` +
-    `<b>Taille équipe :</b> ${data.tailleEquipe || '-'}<br>` +
-    `<b>Marchés cibles :</b> ${data.marchesCibles || '-'}<br>` +
-    `<b>Cycle de vente :</b> ${data.cycleVente || '-'}<br>` +
-    `<b>Outils :</b> ${data.outilsUtilises || '-'}<br>` +
-    `<b>Objectifs 12 mois :</b> ${data.objectifs12mois || '-'}<br>` +
-    `<b>CA annuel estimé :</b> ${data.caAnnuel || '-'}<br>`;
-  // Colonne secondaire
+    `<b>Sector:</b> ${data.secteur || '-'}<br>` +
+    `<b>Business Model:</b> ${data.businessModel || '-'}<br>` +
+    `<b>Team Size:</b> ${data.tailleEquipe || '-'}<br>` +
+    `<b>Target Markets:</b> ${data.marchesCibles || '-'}<br>` +
+    `<b>Sales Cycle:</b> ${data.cycleVente || '-'}<br>` +
+    `<b>Tools:</b> ${data.outilsUtilises || '-'}<br>` +
+    `<b>12-Month Objectives:</b> ${data.objectifs12mois || '-'}<br>` +
+    `<b>Estimated Annual Revenue:</b> ${data.caAnnuel || '-'}<br>`;
+  // Side column
   summarySide.innerHTML =
-    `<b>Dream Clients :</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>` +
-    `<b>Unique Value Proposition :</b> ${data.uvp || '-'}<br>` +
-    `<b>Champs libre :</b> ${data.champsLibre || '-'}<br>` +
-    `<b>Fichiers importés :</b> <ul>` +
-    ((data.uploadedFiles && data.uploadedFiles.length) ? data.uploadedFiles.map(f => `<li>${f}</li>`).join('') : '<li><i>Aucun fichier</i></li>') +
+    `<b>Dream Clients:</b> ${[data.dreamClient1, data.dreamClient2, data.dreamClient3].filter(Boolean).join(', ') || '-'}<br>` +
+    `<b>Unique Value Proposition:</b> ${data.uvp || '-'}<br>` +
+    `<b>Free Field:</b> ${data.champsLibre || '-'}<br>` +
+    `<b>Imported Files:</b> <ul>` +
+    ((data.uploadedFiles && data.uploadedFiles.length) ? data.uploadedFiles.map(f => `<li>${f}</li>`).join('') : '<li><i>No file</i></li>') +
     `</ul>`;
   editDiv.style.display = 'none';
   summaryDiv.style.display = '';
-  // Attache l'événement au bouton Modifier à chaque affichage
+  // Attach event to Edit button
   setTimeout(() => {
     const editBtn = document.getElementById('editProfileBtn');
     if (editBtn) {
       editBtn.onclick = function() {
-        console.log('Bouton Modifier cliqué');
         setProfileData(data);
         showEdit();
       };
