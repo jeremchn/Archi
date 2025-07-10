@@ -195,15 +195,35 @@
 </head>
 <body>
 <div class="layout">
-  <aside class="menu">
-    <ul>
-      <li id="menu-profil" class="menu-item active"><span style="font-size:1.2em;">🏢</span> <span>Profil Entreprise</span></li>
-    </ul>
-    <div class="bottom-btns">
-      <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='index.html'">Search Companies</button>
-      <button class="btn btn-gray" style="width:90%;" onclick="window.location.href='auth.html'">Logout</button>
-    </div>
-  </aside>
+  <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
+        <nav>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:1.2em;">
+                <li id="menu-prompt" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span>
+                </li>
+                <li id="menu-name" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span>
+                </li>
+                <li id="menu-filter" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span>
+                </li>
+                <li id="menu-aisales" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;font-weight:600;color:#1a365d;background:#eaf6ff;">
+                    <span style="font-size:1.2em;">🤖</span> <span>AI Sales</span>
+                </li>
+                <li id="menu-chatbot" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">💬</span> <span>AI Companion</span>
+                </li>
+                <li id="menu-saved" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;margin-top:1.5em;font-weight:600;color:#1a365d;">
+                    <span style="font-size:1.2em;">💾</span> <span>Saved companies</span>
+                </li>
+                <li id="menu-contacts" class="menu-item" style="display:flex;align-items:center;gap:0.7em;cursor:pointer;padding:0.5em 0.7em;border-radius:7px;transition:background 0.2s;">
+                    <span style="font-size:1.2em;">👤</span> <span>Leads</span>
+                </li>
+                <li style="flex:1 1 auto;"></li>
+            </ul>
+        </nav>
+        <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
+    </aside>
   <div class="container">
     <h1>Profil Entreprise</h1>
     <div id="profile-edit" style="display:none;">
