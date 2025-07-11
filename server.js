@@ -435,18 +435,41 @@ app.post('/api/icebreakers', async (req, res) => {
 // Endpoint pour récupérer les infos d'un profil LinkedIn de contact via Proxycurl
 app.post('/api/contact-linkedin', async (req, res) => {
   const { linkedin_url } = req.body;
-  if (!linkedin_url) return res.status(400).json({ error: 'Missing linkedin_url' });
+  console.log('[contact-linkedin] Requête reçue:', req.body);
   const PROXYCURL_API_KEY = process.env.PROXYCURL_API_KEY;
+  if (!linkedin_url) {
+    console.warn('[contact-linkedin] linkedin_url manquant');
+    return res.status(400).json({ error: 'Missing linkedin_url' });
+  }
+  if (!PROXYCURL_API_KEY) {
+    console.error('[contact-linkedin] PROXYCURL_API_KEY manquant');
+    return res.status(500).json({ error: 'API key missing' });
+  }
   try {
-    console.log('[Proxycurl] Requesting:', linkedin_url);
+    console.log('[contact-linkedin] Appel EnrichLayer:', {
+      url: 'https://enrichlayer.com/api/v2/linkedin',
+      params: { url: linkedin_url },
+      headers: { Authorization: `Bearer ${PROXYCURL_API_KEY}` }
+    });
     const proxycurlRes = await axios.get('https://enrichlayer.com/api/v2/linkedin', {
       params: { url: linkedin_url },
       headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` }
     });
-    console.log('[Proxycurl] Response:', JSON.stringify(proxycurlRes.data, null, 2));
+    console.log('[contact-linkedin] Statut réponse:', proxycurlRes.status);
+    console.log('[contact-linkedin] Données réponse:', JSON.stringify(proxycurlRes.data, null, 2));
+    if (!proxycurlRes.data || Object.keys(proxycurlRes.data).length === 0) {
+      console.warn('[contact-linkedin] Réponse vide ou incomplète:', proxycurlRes.data);
+    }
     res.json(proxycurlRes.data);
   } catch (e) {
-    console.error('[Proxycurl] Error:', e.response ? e.response.data : e.message);
+    if (e.response) {
+      console.error('[contact-linkedin] Erreur API:', {
+        status: e.response.status,
+        data: e.response.data
+      });
+    } else {
+      console.error('[contact-linkedin] Erreur générale:', e.message);
+    }
     res.json({});
   }
 });
@@ -507,7 +530,7 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
   }
   try {
     const response = await axios.get(
-      'https://nubela.co/proxycurl/api/v2/linkedin',
+      'https://enrichlayer.com/api/v2/profile',
       {
         params: {
           url: linkedin_url,
@@ -523,7 +546,7 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
     const data = response.data;
     // Log pour debug si la réponse ne contient pas les champs attendus
     if (!data.posts && !data.comments && !data.connections && !data.close_contacts) {
-      console.warn('[Proxycurl] Réponse sans graphe social:', JSON.stringify(data));
+      console.warn('[EnrichLayer] Réponse sans graphe social:', JSON.stringify(data));
     }
     const socialGraph = {
       posts: data.posts || [],
@@ -536,8 +559,8 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
     };
     res.json(socialGraph);
   } catch (e) {
-    console.error('Erreur Proxycurl:', e.response ? e.response.data : e.message);
-    res.status(502).json({ error: 'Erreur lors de la récupération Proxycurl', details: e.message });
+    console.error('Erreur EnrichLayer:', e.response ? e.response.data : e.message);
+    res.status(502).json({ error: 'Erreur lors de la récupération EnrichLayer', details: e.message });
   }
 });
 
