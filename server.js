@@ -446,21 +446,21 @@ app.post('/api/contact-linkedin', async (req, res) => {
     return res.status(500).json({ error: 'API key missing' });
   }
   try {
-    console.log('[contact-linkedin] Appel EnrichLayer:', {
-      url: 'https://enrichlayer.com/api/v2/linkedin',
+    console.log('[contact-linkedin] Appel EnrichLayer (profile):', {
+      url: 'https://enrichlayer.com/api/v2/profile',
       params: { url: linkedin_url },
       headers: { Authorization: `Bearer ${PROXYCURL_API_KEY}` }
     });
-    const proxycurlRes = await axios.get('https://enrichlayer.com/api/v2/linkedin', {
+    const enrichRes = await axios.get('https://enrichlayer.com/api/v2/profile', {
       params: { url: linkedin_url },
       headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` }
     });
-    console.log('[contact-linkedin] Statut réponse:', proxycurlRes.status);
-    console.log('[contact-linkedin] Données réponse:', JSON.stringify(proxycurlRes.data, null, 2));
-    if (!proxycurlRes.data || Object.keys(proxycurlRes.data).length === 0) {
-      console.warn('[contact-linkedin] Réponse vide ou incomplète:', proxycurlRes.data);
+    console.log('[contact-linkedin] Statut réponse:', enrichRes.status);
+    console.log('[contact-linkedin] Données réponse:', JSON.stringify(enrichRes.data, null, 2));
+    if (!enrichRes.data || Object.keys(enrichRes.data).length === 0) {
+      console.warn('[contact-linkedin] Réponse vide ou incomplète:', enrichRes.data);
     }
-    res.json(proxycurlRes.data);
+    res.json(enrichRes.data);
   } catch (e) {
     if (e.response) {
       console.error('[contact-linkedin] Erreur API:', {
