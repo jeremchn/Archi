@@ -439,7 +439,7 @@ app.post('/api/contact-linkedin', async (req, res) => {
   const PROXYCURL_API_KEY = process.env.PROXYCURL_API_KEY;
   try {
     console.log('[Proxycurl] Requesting:', linkedin_url);
-    const proxycurlRes = await axios.get('https://nubela.co/proxycurl/api/v2/linkedin', {
+    const proxycurlRes = await axios.get('https://enrichlayer.com/api/v2/linkedin', {
       params: { url: linkedin_url },
       headers: { 'Authorization': `Bearer ${PROXYCURL_API_KEY}` }
     });
