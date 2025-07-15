@@ -1094,6 +1094,16 @@ app.get('/import_docs_only.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'import_docs_only.html'));
 });
 
+// Endpoint pour récupérer la liste des documents importés pour RAG
+app.get('/api/get-imported-docs', (req, res) => {
+  const email = req.query.email;
+  if (!email || !global.profileRagStore[email]) {
+    return res.json({ files: [] });
+  }
+  const files = global.profileRagStore[email].map(f => f.originalname);
+  res.json({ files });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
