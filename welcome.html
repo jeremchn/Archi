@@ -58,6 +58,23 @@
             color: #222;
             margin-bottom: 1.2em;
         }
+        .menu {
+            text-align: center;
+            margin-top: 2em;
+        }
+        .menu-btn {
+            background: #1a365d;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.8em 2em;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .menu-btn:hover {
+            background: #27496d;
+        }
         @media (max-width: 900px) {
             .blocks { flex-direction: column; gap: 1.5em; align-items: center; }
             .block { width: 90%; max-width: 500px; }
@@ -79,6 +96,9 @@
             <div class="block-title">Smart Filter Search</div>
             <div class="block-desc">Search for companies using criteria like industry, company size and region.</div>
         </a>
+    </div>
+    <div class="menu">
+        <button onclick="window.location.href='index3.html'" class="menu-btn">Only chatbot</button>
     </div>
 </body>
 </html>

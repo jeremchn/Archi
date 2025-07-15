@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Importer des Documents Only</title>
+  <link rel="stylesheet" href="frontend/style.css">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; }
+    .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
+    .back-btn { margin-bottom: 20px; }
+    #import-docs { margin-top: 10px; }
+    .import-form { margin: 30px auto; text-align: center; }
+    .import-form input[type=file] { margin-bottom: 15px; }
+    .import-form button { padding: 8px 20px; }
+    .result { margin-top: 20px; color: green; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
+    <h2>Importer des Documents pour le Chatbot</h2>
+    <div id="import-docs">
+      <form class="import-form" id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="files" multiple required>
+        <input type="text" name="email" placeholder="Votre email" required>
+        <button type="submit">Importer</button>
+      </form>
+      <div class="result" id="result"></div>
+    </div>
+    <script>
+      document.getElementById('uploadForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const res = await fetch('/api/upload-profile-files', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if(data.success) {
+          document.getElementById('result').textContent = 'Fichiers importés avec succès !';
+        } else {
+          document.getElementById('result').textContent = 'Erreur lors de l\'import.';
+        }
+      };
+    </script>
+  </div>
+</body>
+</html>
