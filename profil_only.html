@@ -23,7 +23,21 @@
   </div>
   <script>
     const email = localStorage.getItem('email') || '';
-    let profile = {};
+    let profile = {
+      secteur: '',
+      businessModel: '',
+      tailleEquipe: '',
+      marchesCibles: '',
+      cycleVente: '',
+      outilsUtilises: '',
+      objectifs12mois: '',
+      caAnnuel: '',
+      dreamClient1: '',
+      dreamClient2: '',
+      dreamClient3: '',
+      uvp: '',
+      champsLibre: ''
+    };
     let saved = false;
     async function loadProfile() {
       if (!email) {
@@ -33,11 +47,11 @@
       try {
         const res = await fetch(`/api/profile/${email}`);
         const data = await res.json();
-        if (data.error) {
-          document.getElementById('profile-area').innerHTML = '<span style="color:red">Profil non trouvé.</span>';
-          return;
+        if (!data.error) {
+          for (const key in profile) {
+            if (data[key] !== undefined) profile[key] = data[key];
+          }
         }
-        profile = data;
         showForm();
       } catch (e) {
         document.getElementById('profile-area').innerHTML = '<span style="color:red">Erreur de chargement du profil.</span>';
@@ -45,11 +59,19 @@
     }
     function showForm() {
       let html = '<form id="profile-form" class="profile-form">';
-      for (const key in profile) {
-        if (key !== 'email' && key !== 'id') {
-          html += `<div class='profile-row'><span class='profile-label'>${key}:</span><input type='text' name='${key}' value='${profile[key] || ''}' /></div>`;
-        }
-      }
+      html += `<div class='profile-row'><span class='profile-label'>Secteur:</span><input type='text' name='secteur' value='${profile.secteur || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Business Model:</span><input type='text' name='businessModel' value='${profile.businessModel || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Taille équipe / Sales:</span><input type='text' name='tailleEquipe' value='${profile.tailleEquipe || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Marchés cibles:</span><input type='text' name='marchesCibles' value='${profile.marchesCibles || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Cycle de vente moyen:</span><input type='text' name='cycleVente' value='${profile.cycleVente || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Outils utilisés:</span><input type='text' name='outilsUtilises' value='${profile.outilsUtilises || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Objectifs 12 mois:</span><input type='text' name='objectifs12mois' value='${profile.objectifs12mois || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>CA annuel estimé:</span><input type='text' name='caAnnuel' value='${profile.caAnnuel || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Dream Client 1:</span><input type='text' name='dreamClient1' value='${profile.dreamClient1 || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Dream Client 2:</span><input type='text' name='dreamClient2' value='${profile.dreamClient2 || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Dream Client 3:</span><input type='text' name='dreamClient3' value='${profile.dreamClient3 || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Unique Value Proposition:</span><input type='text' name='uvp' value='${profile.uvp || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Champs libre:</span><textarea name='champsLibre'>${profile.champsLibre || ''}</textarea></div>`;
       html += `<button type='button' id='save-btn'>Saved</button>`;
       html += '</form>';
       document.getElementById('profile-area').innerHTML = html;
@@ -57,11 +79,19 @@
     }
     function showSummary() {
       let html = '<div class="profile-summary">';
-      for (const key in profile) {
-        if (key !== 'email' && key !== 'id') {
-          html += `<div><span class='profile-label'>${key}:</span> ${profile[key]}</div>`;
-        }
-      }
+      html += `<div><span class='profile-label'>Secteur:</span> ${profile.secteur}</div>`;
+      html += `<div><span class='profile-label'>Business Model:</span> ${profile.businessModel}</div>`;
+      html += `<div><span class='profile-label'>Taille équipe / Sales:</span> ${profile.tailleEquipe}</div>`;
+      html += `<div><span class='profile-label'>Marchés cibles:</span> ${profile.marchesCibles}</div>`;
+      html += `<div><span class='profile-label'>Cycle de vente moyen:</span> ${profile.cycleVente}</div>`;
+      html += `<div><span class='profile-label'>Outils utilisés:</span> ${profile.outilsUtilises}</div>`;
+      html += `<div><span class='profile-label'>Objectifs 12 mois:</span> ${profile.objectifs12mois}</div>`;
+      html += `<div><span class='profile-label'>CA annuel estimé:</span> ${profile.caAnnuel}</div>`;
+      html += `<div><span class='profile-label'>Dream Client 1:</span> ${profile.dreamClient1}</div>`;
+      html += `<div><span class='profile-label'>Dream Client 2:</span> ${profile.dreamClient2}</div>`;
+      html += `<div><span class='profile-label'>Dream Client 3:</span> ${profile.dreamClient3}</div>`;
+      html += `<div><span class='profile-label'>Unique Value Proposition:</span> ${profile.uvp}</div>`;
+      html += `<div><span class='profile-label'>Champs libre:</span> ${profile.champsLibre}</div>`;
       html += '</div>';
       html += `<button id='edit-btn'>Modifier</button>`;
       document.getElementById('profile-area').innerHTML = html;

@@ -1,82 +1,107 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Chatbot Seul</title>
-  <link rel="stylesheet" href="frontend/style.css">
-  <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; }
-    .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
-    .back-btn { margin-bottom: 20px; }
-    #chatbot-box { margin-top: 10px; }
-    #question-top { font-size: 1.1em; margin-bottom: 16px; color: #0077cc; }
-    #messages { min-height: 300px; background: #f0f0f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .msg-user { color: #333; margin-bottom: 8px; }
-    .msg-ai { color: #0077cc; margin-bottom: 8px; }
-    #input-box { width: 80%; padding: 8px; }
-    #send-btn { padding: 8px 16px; }
-    #input-area { display: none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Companion - Sales Chatbot Only</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2ecc71;
+            --background: #f7fafc;
+            --card-bg: #fff;
+            --text: #222;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(26,54,93,0.08);
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --gray: #e2e8f0;
+        }
+        html, body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container { max-width: 600px; margin: 3em auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 16px rgba(26,54,93,0.10); padding: 2em 2em 1.5em 2em; }
+        h2 { color: #1a365d; text-align: center; margin-bottom: 1.2em; }
+        .chat-history { min-height: 220px; max-height: 350px; overflow-y: auto; background: #f3f7fa; border-radius: 10px; padding: 1em; margin-bottom: 1.2em; }
+        .msg { margin-bottom: 1em; }
+        .msg.user { text-align: right; }
+        .msg.ai { text-align: left; }
+        .msg .bubble { display: inline-block; padding: 0.7em 1.1em; border-radius: 16px; max-width: 80%; font-size: 1.08em; }
+        .msg.user .bubble { background: #eaf6ff; color: #1a365d; }
+        .msg.ai .bubble { background: #eafaf1; color: #222; }
+        .chat-input { display: flex; gap: 0.7em; }
+        .chat-input input { flex: 1; padding: 0.8em 1em; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 1.05em; }
+        .chat-input button { background: #1a365d; color: #fff; border: none; border-radius: 8px; padding: 0.7em 1.5em; font-size: 1.05em; cursor: pointer; transition: background 0.2s; }
+        .chat-input button:hover { background: #2ecc71; }
+        .back-btn { margin-bottom: 20px; }
+        @media (max-width: 900px) { .container { max-width: 100vw; margin: 0; border-radius: 0; } }
+        @media (max-width: 700px) { .container { padding: 1em; } }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
-    <h2>Chatbot Seul</h2>
-    <div id="chatbot-box">
-      <div id="question-top"></div>
-      <div id="messages"></div>
-      <div id="input-area">
-        <input type="text" id="input-box" placeholder="Votre question..." />
-        <button id="send-btn">Envoyer</button>
-      </div>
+    <div class="container">
+        <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
+        <h2>AI Companion - Sales Chatbot</h2>
+        <form class="chat-input" id="chat-form" autocomplete="off" style="margin-bottom:1.2em;">
+            <input type="text" id="chat-input" placeholder="Posez votre question commerciale..." required />
+            <button type="submit">Envoyer</button>
+        </form>
+        <div class="chat-history" id="chat-history"></div>
     </div>
-  </div>
-  <script>
-    const email = localStorage.getItem('email') || '';
-    let profile = null;
-    let messages = [];
-    async function loadProfile() {
-      if (!email) return;
-      try {
+<script>
+const chatHistory = document.getElementById('chat-history');
+const chatForm = document.getElementById('chat-form');
+const chatInput = document.getElementById('chat-input');
+const email = localStorage.getItem('email') || '';
+let profile = null;
+let messages = [];
+async function loadProfile() {
+    if (!email) return;
+    try {
         const res = await fetch(`/api/profile/${email}`);
         profile = await res.json();
-      } catch {}
+    } catch {}
+}
+loadProfile();
+function addMessage(text, sender) {
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + sender;
+    if (sender === 'ai') {
+        let safe = (typeof text === 'string') ? text.replace(/[&<>]/g, tag => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[tag])).replace(/\n/g, '<br>') : '';
+        safe = safe.replace(/&lt;br&gt;/g, '<br>');
+        msg.innerHTML = `<span class="bubble">${safe}</span>`;
+    } else {
+        msg.innerHTML = `<span class="bubble"></span>`;
+        msg.querySelector('.bubble').textContent = text;
     }
-    loadProfile();
-    function renderMessages() {
-      const box = document.getElementById('messages');
-      box.innerHTML = messages.map(m => `<div class='msg-${m.role}'>${m.role === 'user' ? '👤' : '🤖'} ${m.content}</div>`).join('');
-      box.scrollTop = box.scrollHeight;
-      // Show last question at top
-      const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0];
-      document.getElementById('question-top').textContent = lastUserMsg ? lastUserMsg.content : '';
-      // Show input only if there is at least one message
-      document.getElementById('input-area').style.display = messages.length > 0 ? 'block' : 'none';
-    }
-    document.getElementById('send-btn').onclick = async function() {
-      const input = document.getElementById('input-box');
-      const text = input.value.trim();
-      if (!text) return;
-      messages.push({ role: 'user', content: text });
-      renderMessages();
-      input.value = '';
-      // Appel backend chatbot avec RAG
-      try {
+    chatHistory.appendChild(msg);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+chatForm.onsubmit = async function(e) {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage(text, 'user');
+    messages.push({ role: 'user', content: text });
+    chatInput.value = '';
+    try {
         const res = await fetch('/api/sales-chatbot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages, profile })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages, profile })
         });
         const data = await res.json();
+        addMessage(data.answer || '[Pas de réponse]', 'ai');
         messages.push({ role: 'ai', content: data.answer || '[Pas de réponse]' });
-        renderMessages();
-      } catch {
+    } catch {
+        addMessage('[Erreur serveur]', 'ai');
         messages.push({ role: 'ai', content: '[Erreur serveur]' });
-        renderMessages();
-      }
-    };
-    // Show input for first question
-    document.getElementById('input-area').style.display = 'block';
-  </script>
+    }
+};
+</script>
 </body>
 </html>

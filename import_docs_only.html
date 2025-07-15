@@ -10,6 +10,10 @@
     .back-btn { margin-bottom: 20px; }
     #upload-form { margin-top: 20px; }
     #status { margin-top: 16px; color: #0077cc; }
+    #docs-summary { margin-top: 30px; background: #f3f7fa; border-radius: 8px; padding: 16px; }
+    #docs-summary h3 { margin-top: 0; }
+    #docs-list { margin: 0; padding: 0; list-style: none; }
+    #docs-list li { margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -21,9 +25,33 @@
       <button type="submit">Importer</button>
     </form>
     <div id="status"></div>
+    <div id="docs-summary">
+      <h3>Documents importés pour RAG :</h3>
+      <ul id="docs-list"></ul>
+    </div>
   </div>
   <script>
     const email = localStorage.getItem('email') || '';
+    async function loadDocs() {
+      if (!email) return;
+      try {
+        const res = await fetch(`/api/get-imported-docs?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+        const list = document.getElementById('docs-list');
+        list.innerHTML = '';
+        if (data.files && data.files.length) {
+          data.files.forEach(f => {
+            const li = document.createElement('li');
+            li.textContent = f;
+            list.appendChild(li);
+          });
+        } else {
+          list.innerHTML = '<li>Aucun document importé.</li>';
+        }
+      } catch {
+        document.getElementById('docs-list').innerHTML = '<li>Erreur de chargement des documents.</li>';
+      }
+    }
     document.getElementById('upload-form').onsubmit = async function(e) {
       e.preventDefault();
       const files = document.getElementById('files').files;
@@ -43,6 +71,7 @@
         const data = await res.json();
         if (data.success) {
           document.getElementById('status').textContent = 'Import réussi: ' + (data.uploadedFiles || []).join(', ');
+          loadDocs();
         } else {
           document.getElementById('status').textContent = 'Erreur: ' + (data.error || 'Import échoué');
         }
@@ -50,6 +79,8 @@
         document.getElementById('status').textContent = 'Erreur serveur.';
       }
     };
+    // Initial load
+    loadDocs();
   </script>
 </body>
 </html>
