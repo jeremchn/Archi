@@ -9,11 +9,13 @@
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
     #chatbot-box { margin-top: 10px; }
+    #question-top { font-size: 1.1em; margin-bottom: 16px; color: #0077cc; }
     #messages { min-height: 300px; background: #f0f0f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
     .msg-user { color: #333; margin-bottom: 8px; }
     .msg-ai { color: #0077cc; margin-bottom: 8px; }
     #input-box { width: 80%; padding: 8px; }
     #send-btn { padding: 8px 16px; }
+    #input-area { display: none; }
   </style>
 </head>
 <body>
@@ -21,9 +23,12 @@
     <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
     <h2>Chatbot Seul</h2>
     <div id="chatbot-box">
+      <div id="question-top"></div>
       <div id="messages"></div>
-      <input type="text" id="input-box" placeholder="Votre question..." />
-      <button id="send-btn">Envoyer</button>
+      <div id="input-area">
+        <input type="text" id="input-box" placeholder="Votre question..." />
+        <button id="send-btn">Envoyer</button>
+      </div>
     </div>
   </div>
   <script>
@@ -42,6 +47,11 @@
       const box = document.getElementById('messages');
       box.innerHTML = messages.map(m => `<div class='msg-${m.role}'>${m.role === 'user' ? '👤' : '🤖'} ${m.content}</div>`).join('');
       box.scrollTop = box.scrollHeight;
+      // Show last question at top
+      const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0];
+      document.getElementById('question-top').textContent = lastUserMsg ? lastUserMsg.content : '';
+      // Show input only if there is at least one message
+      document.getElementById('input-area').style.display = messages.length > 0 ? 'block' : 'none';
     }
     document.getElementById('send-btn').onclick = async function() {
       const input = document.getElementById('input-box');
@@ -65,6 +75,8 @@
         renderMessages();
       }
     };
+    // Show input for first question
+    document.getElementById('input-area').style.display = 'block';
   </script>
 </body>
 </html>

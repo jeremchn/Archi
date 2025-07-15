@@ -8,43 +8,75 @@
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
-    .profile-info { font-size: 1.1em; margin-top: 20px; }
+    .profile-form { margin-top: 20px; }
+    .profile-row { margin-bottom: 12px; }
     .profile-label { font-weight: bold; margin-right: 8px; }
+    .profile-summary { font-size: 1.1em; margin-top: 20px; }
+    #save-btn, #edit-btn { margin-top: 20px; padding: 8px 16px; }
   </style>
 </head>
 <body>
   <div class="container">
     <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
     <h2>Profil de l'entreprise</h2>
-    <div class="profile-info" id="profile-content">
-      <!-- Les infos du profil seront chargées ici -->
-    </div>
+    <div id="profile-area"></div>
   </div>
   <script>
-    // Utilisateur connecté
     const email = localStorage.getItem('email') || '';
+    let profile = {};
+    let saved = false;
     async function loadProfile() {
       if (!email) {
-        document.getElementById('profile-content').innerHTML = '<span style="color:red">Aucun email utilisateur trouvé.</span>';
+        document.getElementById('profile-area').innerHTML = '<span style="color:red">Aucun email utilisateur trouvé.</span>';
         return;
       }
       try {
         const res = await fetch(`/api/profile/${email}`);
         const data = await res.json();
         if (data.error) {
-          document.getElementById('profile-content').innerHTML = '<span style="color:red">Profil non trouvé.</span>';
+          document.getElementById('profile-area').innerHTML = '<span style="color:red">Profil non trouvé.</span>';
           return;
         }
-        let html = '';
-        for (const key in data) {
-          if (key !== 'email' && key !== 'id') {
-            html += `<div><span class='profile-label'>${key}:</span> ${data[key]}</div>`;
-          }
-        }
-        document.getElementById('profile-content').innerHTML = html;
+        profile = data;
+        showForm();
       } catch (e) {
-        document.getElementById('profile-content').innerHTML = '<span style="color:red">Erreur de chargement du profil.</span>';
+        document.getElementById('profile-area').innerHTML = '<span style="color:red">Erreur de chargement du profil.</span>';
       }
+    }
+    function showForm() {
+      let html = '<form id="profile-form" class="profile-form">';
+      for (const key in profile) {
+        if (key !== 'email' && key !== 'id') {
+          html += `<div class='profile-row'><span class='profile-label'>${key}:</span><input type='text' name='${key}' value='${profile[key] || ''}' /></div>`;
+        }
+      }
+      html += `<button type='button' id='save-btn'>Saved</button>`;
+      html += '</form>';
+      document.getElementById('profile-area').innerHTML = html;
+      document.getElementById('save-btn').onclick = saveProfile;
+    }
+    function showSummary() {
+      let html = '<div class="profile-summary">';
+      for (const key in profile) {
+        if (key !== 'email' && key !== 'id') {
+          html += `<div><span class='profile-label'>${key}:</span> ${profile[key]}</div>`;
+        }
+      }
+      html += '</div>';
+      html += `<button id='edit-btn'>Modifier</button>`;
+      document.getElementById('profile-area').innerHTML = html;
+      document.getElementById('edit-btn').onclick = function() {
+        showForm();
+      };
+    }
+    function saveProfile() {
+      const form = document.getElementById('profile-form');
+      const formData = new FormData(form);
+      for (const [key, value] of formData.entries()) {
+        profile[key] = value;
+      }
+      saved = true;
+      showSummary();
     }
     loadProfile();
   </script>
