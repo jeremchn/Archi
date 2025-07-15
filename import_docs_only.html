@@ -2,48 +2,54 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Importer des Documents Only</title>
+  <title>Importer des documents Only</title>
   <link rel="stylesheet" href="frontend/style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
-    #import-docs { margin-top: 10px; }
-    .import-form { margin: 30px auto; text-align: center; }
-    .import-form input[type=file] { margin-bottom: 15px; }
-    .import-form button { padding: 8px 20px; }
-    .result { margin-top: 20px; color: green; }
+    #upload-form { margin-top: 20px; }
+    #status { margin-top: 16px; color: #0077cc; }
   </style>
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
-    <h2>Importer des Documents pour le Chatbot</h2>
-    <div id="import-docs">
-      <form class="import-form" id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="files" multiple required>
-        <input type="text" name="email" placeholder="Votre email" required>
-        <button type="submit">Importer</button>
-      </form>
-      <div class="result" id="result"></div>
-    </div>
-    <script>
-      document.getElementById('uploadForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
+    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
+    <h2>Importer des documents</h2>
+    <form id="upload-form">
+      <input type="file" id="files" name="files" multiple />
+      <button type="submit">Importer</button>
+    </form>
+    <div id="status"></div>
+  </div>
+  <script>
+    const email = localStorage.getItem('email') || '';
+    document.getElementById('upload-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const files = document.getElementById('files').files;
+      if (!files.length || !email) {
+        document.getElementById('status').textContent = 'Sélectionnez des fichiers et assurez-vous d\'être connecté.';
+        return;
+      }
+      const formData = new FormData();
+      for (let f of files) formData.append('files', f);
+      formData.append('email', email);
+      document.getElementById('status').textContent = 'Import en cours...';
+      try {
         const res = await fetch('/api/upload-profile-files', {
           method: 'POST',
           body: formData
         });
         const data = await res.json();
-        if(data.success) {
-          document.getElementById('result').textContent = 'Fichiers importés avec succès !';
+        if (data.success) {
+          document.getElementById('status').textContent = 'Import réussi: ' + (data.uploadedFiles || []).join(', ');
         } else {
-          document.getElementById('result').textContent = 'Erreur lors de l\'import.';
+          document.getElementById('status').textContent = 'Erreur: ' + (data.error || 'Import échoué');
         }
-      };
-    </script>
-  </div>
+      } catch {
+        document.getElementById('status').textContent = 'Erreur serveur.';
+      }
+    };
+  </script>
 </body>
 </html>

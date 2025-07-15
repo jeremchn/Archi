@@ -8,18 +8,63 @@
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
-    #chatbot { margin-top: 10px; }
-    /* Ajoutez ici le style du chatbot si besoin */
+    #chatbot-box { margin-top: 10px; }
+    #messages { min-height: 300px; background: #f0f0f0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .msg-user { color: #333; margin-bottom: 8px; }
+    .msg-ai { color: #0077cc; margin-bottom: 8px; }
+    #input-box { width: 80%; padding: 8px; }
+    #send-btn { padding: 8px 16px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
+    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
     <h2>Chatbot Seul</h2>
-    <div id="chatbot">
-      <!-- Ici, intégrer le composant chatbot sans menu latéral -->
-      <iframe src="chatbot.html" style="width:100%;height:600px;border:none;"></iframe>
+    <div id="chatbot-box">
+      <div id="messages"></div>
+      <input type="text" id="input-box" placeholder="Votre question..." />
+      <button id="send-btn">Envoyer</button>
     </div>
   </div>
+  <script>
+    const email = localStorage.getItem('email') || '';
+    let profile = null;
+    let messages = [];
+    async function loadProfile() {
+      if (!email) return;
+      try {
+        const res = await fetch(`/api/profile/${email}`);
+        profile = await res.json();
+      } catch {}
+    }
+    loadProfile();
+    function renderMessages() {
+      const box = document.getElementById('messages');
+      box.innerHTML = messages.map(m => `<div class='msg-${m.role}'>${m.role === 'user' ? '👤' : '🤖'} ${m.content}</div>`).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+    document.getElementById('send-btn').onclick = async function() {
+      const input = document.getElementById('input-box');
+      const text = input.value.trim();
+      if (!text) return;
+      messages.push({ role: 'user', content: text });
+      renderMessages();
+      input.value = '';
+      // Appel backend chatbot avec RAG
+      try {
+        const res = await fetch('/api/sales-chatbot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, profile })
+        });
+        const data = await res.json();
+        messages.push({ role: 'ai', content: data.answer || '[Pas de réponse]' });
+        renderMessages();
+      } catch {
+        messages.push({ role: 'ai', content: '[Erreur serveur]' });
+        renderMessages();
+      }
+    };
+  </script>
 </body>
 </html>

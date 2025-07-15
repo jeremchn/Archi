@@ -8,26 +8,26 @@
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
-    #profil { margin-top: 10px; }
     .profile-info { font-size: 1.1em; margin-top: 20px; }
     .profile-label { font-weight: bold; margin-right: 8px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
+    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
     <h2>Profil de l'entreprise</h2>
-    <div id="profil">
-      <div class="profile-info" id="profile-content">
-        <!-- Les infos du profil seront chargées ici -->
-      </div>
+    <div class="profile-info" id="profile-content">
+      <!-- Les infos du profil seront chargées ici -->
     </div>
   </div>
   <script>
-    // Remplacez par l'email de l'utilisateur connecté
+    // Utilisateur connecté
     const email = localStorage.getItem('email') || '';
     async function loadProfile() {
-      if (!email) return;
+      if (!email) {
+        document.getElementById('profile-content').innerHTML = '<span style="color:red">Aucun email utilisateur trouvé.</span>';
+        return;
+      }
       try {
         const res = await fetch(`/api/profile/${email}`);
         const data = await res.json();
