@@ -9,6 +9,8 @@
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
     .back-btn { margin-bottom: 20px; }
     #profil { margin-top: 10px; }
+    .profile-info { font-size: 1.1em; margin-top: 20px; }
+    .profile-label { font-weight: bold; margin-right: 8px; }
   </style>
 </head>
 <body>
@@ -16,9 +18,35 @@
     <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
     <h2>Profil de l'entreprise</h2>
     <div id="profil">
-      <!-- Ici, intégrer le composant profil entreprise sans import de documents -->
-      <iframe src="index2.html" style="width:100%;height:600px;border:none;"></iframe>
+      <div class="profile-info" id="profile-content">
+        <!-- Les infos du profil seront chargées ici -->
+      </div>
     </div>
   </div>
+  <script>
+    // Remplacez par l'email de l'utilisateur connecté
+    const email = localStorage.getItem('email') || '';
+    async function loadProfile() {
+      if (!email) return;
+      try {
+        const res = await fetch(`/api/profile/${email}`);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById('profile-content').innerHTML = '<span style="color:red">Profil non trouvé.</span>';
+          return;
+        }
+        let html = '';
+        for (const key in data) {
+          if (key !== 'email' && key !== 'id') {
+            html += `<div><span class='profile-label'>${key}:</span> ${data[key]}</div>`;
+          }
+        }
+        document.getElementById('profile-content').innerHTML = html;
+      } catch (e) {
+        document.getElementById('profile-content').innerHTML = '<span style="color:red">Erreur de chargement du profil.</span>';
+      }
+    }
+    loadProfile();
+  </script>
 </body>
 </html>
