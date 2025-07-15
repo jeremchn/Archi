@@ -1,39 +1,27 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Menu Only Chatbot</title>
+  <title>Menu - Only Pages</title>
   <link rel="stylesheet" href="frontend/style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
     .container { max-width: 900px; margin: 40px auto; padding: 30px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #0001; }
-    h1 { text-align: center; margin-bottom: 30px; }
-    .blocs { display: flex; gap: 30px; justify-content: center; }
-    .bloc { flex: 1; background: #e9ecef; border-radius: 10px; padding: 30px 20px; text-align: center; box-shadow: 0 1px 6px #0001; transition: box-shadow 0.2s; cursor: pointer; }
-    .bloc:hover { box-shadow: 0 4px 16px #0002; background: #dde3ea; }
-    .bloc-title { font-size: 1.3em; margin-bottom: 12px; font-weight: bold; }
-    .bloc-desc { color: #555; font-size: 1em; margin-bottom: 10px; }
-    .back-btn { margin-top: 30px; display: block; margin-left: auto; margin-right: auto; }
+    .menu-blocks { display: flex; gap: 32px; justify-content: center; margin-top: 40px; }
+    .block { background: #eaf6ff; border-radius: 14px; box-shadow: 0 1px 6px #1a365d22; padding: 40px 32px; min-width: 220px; text-align: center; cursor: pointer; transition: box-shadow 0.2s, transform 0.1s; font-size: 1.15em; font-weight: 500; color: #1a365d; }
+    .block:hover { box-shadow: 0 4px 16px #1a365d33; transform: translateY(-2px) scale(1.04); background: #d6f0ff; }
+    .back-btn { margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Only Chatbot - Choisissez une option</h1>
-    <div class="blocs">
-      <div class="bloc" onclick="window.location.href='chatbot_only.html'">
-        <div class="bloc-title">Chatbot Seul</div>
-        <div class="bloc-desc">Accédez au chatbot sans menu latéral.</div>
-      </div>
-      <div class="bloc" onclick="window.location.href='profil_only.html'">
-        <div class="bloc-title">Profil Entreprise</div>
-        <div class="bloc-desc">Consultez le profil de l'entreprise (sans import de documents).</div>
-      </div>
-      <div class="bloc" onclick="window.location.href='import_docs_only.html'">
-        <div class="bloc-title">Importer des Documents</div>
-        <div class="bloc-desc">Importez plusieurs documents à utiliser dans le chatbot.</div>
-      </div>
-    </div>
     <button class="back-btn" onclick="window.location.href='welcome.html'">Back</button>
+    <h2>Choose a mode</h2>
+    <div class="menu-blocks">
+      <div class="block" onclick="window.location.href='chatbot_only.html'">Chatbot Only</div>
+      <div class="block" onclick="window.location.href='profil_only.html'">Company Profile Only</div>
+      <div class="block" onclick="window.location.href='import_docs_only.html'">Import Documents Only</div>
+    </div>
   </div>
 </body>
 </html>

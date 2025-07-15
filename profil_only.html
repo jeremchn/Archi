@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Profil Entreprise Only</title>
+  <title>Company Profile Only</title>
   <link rel="stylesheet" href="frontend/style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
@@ -17,8 +17,8 @@
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
-    <h2>Profil de l'entreprise</h2>
+    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
+    <h2>Company Profile</h2>
     <div id="profile-area"></div>
   </div>
   <script>
@@ -41,7 +41,7 @@
     let saved = false;
     async function loadProfile() {
       if (!email) {
-        document.getElementById('profile-area').innerHTML = '<span style="color:red">Aucun email utilisateur trouvé.</span>';
+        document.getElementById('profile-area').innerHTML = '<span style="color:red">No user email found.</span>';
         return;
       }
       try {
@@ -54,46 +54,46 @@
         }
         showForm();
       } catch (e) {
-        document.getElementById('profile-area').innerHTML = '<span style="color:red">Erreur de chargement du profil.</span>';
+        document.getElementById('profile-area').innerHTML = '<span style="color:red">Error loading profile.</span>';
       }
     }
     function showForm() {
       let html = '<form id="profile-form" class="profile-form">';
-      html += `<div class='profile-row'><span class='profile-label'>Secteur:</span><input type='text' name='secteur' value='${profile.secteur || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Sector:</span><input type='text' name='secteur' value='${profile.secteur || ''}' /></div>`;
       html += `<div class='profile-row'><span class='profile-label'>Business Model:</span><input type='text' name='businessModel' value='${profile.businessModel || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Taille équipe / Sales:</span><input type='text' name='tailleEquipe' value='${profile.tailleEquipe || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Marchés cibles:</span><input type='text' name='marchesCibles' value='${profile.marchesCibles || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Cycle de vente moyen:</span><input type='text' name='cycleVente' value='${profile.cycleVente || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Outils utilisés:</span><input type='text' name='outilsUtilises' value='${profile.outilsUtilises || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Objectifs 12 mois:</span><input type='text' name='objectifs12mois' value='${profile.objectifs12mois || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>CA annuel estimé:</span><input type='text' name='caAnnuel' value='${profile.caAnnuel || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Team Size / Sales:</span><input type='text' name='tailleEquipe' value='${profile.tailleEquipe || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Target Markets:</span><input type='text' name='marchesCibles' value='${profile.marchesCibles || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Average Sales Cycle:</span><input type='text' name='cycleVente' value='${profile.cycleVente || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Tools Used:</span><input type='text' name='outilsUtilises' value='${profile.outilsUtilises || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>12-Month Objectives:</span><input type='text' name='objectifs12mois' value='${profile.objectifs12mois || ''}' /></div>`;
+      html += `<div class='profile-row'><span class='profile-label'>Estimated Annual Revenue:</span><input type='text' name='caAnnuel' value='${profile.caAnnuel || ''}' /></div>`;
       html += `<div class='profile-row'><span class='profile-label'>Dream Client 1:</span><input type='text' name='dreamClient1' value='${profile.dreamClient1 || ''}' /></div>`;
       html += `<div class='profile-row'><span class='profile-label'>Dream Client 2:</span><input type='text' name='dreamClient2' value='${profile.dreamClient2 || ''}' /></div>`;
       html += `<div class='profile-row'><span class='profile-label'>Dream Client 3:</span><input type='text' name='dreamClient3' value='${profile.dreamClient3 || ''}' /></div>`;
       html += `<div class='profile-row'><span class='profile-label'>Unique Value Proposition:</span><input type='text' name='uvp' value='${profile.uvp || ''}' /></div>`;
-      html += `<div class='profile-row'><span class='profile-label'>Champs libre:</span><textarea name='champsLibre'>${profile.champsLibre || ''}</textarea></div>`;
-      html += `<button type='button' id='save-btn'>Saved</button>`;
+      html += `<div class='profile-row'><span class='profile-label'>Free Field:</span><textarea name='champsLibre'>${profile.champsLibre || ''}</textarea></div>`;
+      html += `<button type='button' id='save-btn'>Save</button>`;
       html += '</form>';
       document.getElementById('profile-area').innerHTML = html;
       document.getElementById('save-btn').onclick = saveProfile;
     }
     function showSummary() {
       let html = '<div class="profile-summary">';
-      html += `<div><span class='profile-label'>Secteur:</span> ${profile.secteur}</div>`;
+      html += `<div><span class='profile-label'>Sector:</span> ${profile.secteur}</div>`;
       html += `<div><span class='profile-label'>Business Model:</span> ${profile.businessModel}</div>`;
-      html += `<div><span class='profile-label'>Taille équipe / Sales:</span> ${profile.tailleEquipe}</div>`;
-      html += `<div><span class='profile-label'>Marchés cibles:</span> ${profile.marchesCibles}</div>`;
-      html += `<div><span class='profile-label'>Cycle de vente moyen:</span> ${profile.cycleVente}</div>`;
-      html += `<div><span class='profile-label'>Outils utilisés:</span> ${profile.outilsUtilises}</div>`;
-      html += `<div><span class='profile-label'>Objectifs 12 mois:</span> ${profile.objectifs12mois}</div>`;
-      html += `<div><span class='profile-label'>CA annuel estimé:</span> ${profile.caAnnuel}</div>`;
+      html += `<div><span class='profile-label'>Team Size / Sales:</span> ${profile.tailleEquipe}</div>`;
+      html += `<div><span class='profile-label'>Target Markets:</span> ${profile.marchesCibles}</div>`;
+      html += `<div><span class='profile-label'>Average Sales Cycle:</span> ${profile.cycleVente}</div>`;
+      html += `<div><span class='profile-label'>Tools Used:</span> ${profile.outilsUtilises}</div>`;
+      html += `<div><span class='profile-label'>12-Month Objectives:</span> ${profile.objectifs12mois}</div>`;
+      html += `<div><span class='profile-label'>Estimated Annual Revenue:</span> ${profile.caAnnuel}</div>`;
       html += `<div><span class='profile-label'>Dream Client 1:</span> ${profile.dreamClient1}</div>`;
       html += `<div><span class='profile-label'>Dream Client 2:</span> ${profile.dreamClient2}</div>`;
       html += `<div><span class='profile-label'>Dream Client 3:</span> ${profile.dreamClient3}</div>`;
       html += `<div><span class='profile-label'>Unique Value Proposition:</span> ${profile.uvp}</div>`;
-      html += `<div><span class='profile-label'>Champs libre:</span> ${profile.champsLibre}</div>`;
+      html += `<div><span class='profile-label'>Free Field:</span> ${profile.champsLibre}</div>`;
       html += '</div>';
-      html += `<button id='edit-btn'>Modifier</button>`;
+      html += `<button id='edit-btn'>Edit</button>`;
       document.getElementById('profile-area').innerHTML = html;
       document.getElementById('edit-btn').onclick = function() {
         showForm();

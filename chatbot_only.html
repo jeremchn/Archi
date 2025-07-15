@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,11 +44,11 @@
 </head>
 <body>
     <div class="container">
-        <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
+        <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
         <h2>AI Companion - Sales Chatbot</h2>
         <form class="chat-input" id="chat-form" autocomplete="off" style="margin-bottom:1.2em;">
-            <input type="text" id="chat-input" placeholder="Posez votre question commerciale..." required />
-            <button type="submit">Envoyer</button>
+            <input type="text" id="chat-input" placeholder="Ask your sales question..." required />
+            <button type="submit">Send</button>
         </form>
         <div class="chat-history" id="chat-history"></div>
     </div>
@@ -95,11 +95,11 @@ chatForm.onsubmit = async function(e) {
             body: JSON.stringify({ messages, profile })
         });
         const data = await res.json();
-        addMessage(data.answer || '[Pas de réponse]', 'ai');
-        messages.push({ role: 'ai', content: data.answer || '[Pas de réponse]' });
+        addMessage(data.answer || '[No response]', 'ai');
+        messages.push({ role: 'ai', content: data.answer || '[No response]' });
     } catch {
-        addMessage('[Erreur serveur]', 'ai');
-        messages.push({ role: 'ai', content: '[Erreur serveur]' });
+        addMessage('[Server error]', 'ai');
+        messages.push({ role: 'ai', content: '[Server error]' });
     }
 };
 </script>

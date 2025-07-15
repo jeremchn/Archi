@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Importer des documents Only</title>
+  <title>Import Documents Only</title>
   <link rel="stylesheet" href="frontend/style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; }
@@ -18,15 +18,15 @@
 </head>
 <body>
   <div class="container">
-    <button class="back-btn" onclick="window.location.href='index3.html'">Retour</button>
-    <h2>Importer des documents</h2>
+    <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
+    <h2>Import Documents</h2>
     <form id="upload-form">
       <input type="file" id="files" name="files" multiple />
-      <button type="submit">Importer</button>
+      <button type="submit">Import</button>
     </form>
     <div id="status"></div>
     <div id="docs-summary">
-      <h3>Documents importés pour RAG :</h3>
+      <h3>Documents imported for RAG:</h3>
       <ul id="docs-list"></ul>
     </div>
   </div>
@@ -46,23 +46,23 @@
             list.appendChild(li);
           });
         } else {
-          list.innerHTML = '<li>Aucun document importé.</li>';
+          list.innerHTML = '<li>No documents imported.</li>';
         }
       } catch {
-        document.getElementById('docs-list').innerHTML = '<li>Erreur de chargement des documents.</li>';
+        document.getElementById('docs-list').innerHTML = '<li>Error loading documents.</li>';
       }
     }
     document.getElementById('upload-form').onsubmit = async function(e) {
       e.preventDefault();
       const files = document.getElementById('files').files;
       if (!files.length || !email) {
-        document.getElementById('status').textContent = 'Sélectionnez des fichiers et assurez-vous d\'être connecté.';
+        document.getElementById('status').textContent = 'Select files and make sure you are logged in.';
         return;
       }
       const formData = new FormData();
       for (let f of files) formData.append('files', f);
       formData.append('email', email);
-      document.getElementById('status').textContent = 'Import en cours...';
+      document.getElementById('status').textContent = 'Importing...';
       try {
         const res = await fetch('/api/upload-profile-files', {
           method: 'POST',
@@ -70,13 +70,13 @@
         });
         const data = await res.json();
         if (data.success) {
-          document.getElementById('status').textContent = 'Import réussi: ' + (data.uploadedFiles || []).join(', ');
+          document.getElementById('status').textContent = 'Import successful: ' + (data.uploadedFiles || []).join(', ');
           loadDocs();
         } else {
-          document.getElementById('status').textContent = 'Erreur: ' + (data.error || 'Import échoué');
+          document.getElementById('status').textContent = 'Error: ' + (data.error || 'Import failed');
         }
       } catch {
-        document.getElementById('status').textContent = 'Erreur serveur.';
+        document.getElementById('status').textContent = 'Server error.';
       }
     };
     // Initial load
