@@ -903,6 +903,7 @@ app.post('/api/sales-chatbot', async (req, res) => {
 
 // Nouveau endpoint pour le chatbot juridique avec RAG
 app.post('/api/legal-chatbot', async (req, res) => {
+
   const { messages, email } = req.body;
   console.log('[legal-chatbot] Request received:', { messages, email });
   if (!Array.isArray(messages) || !email) {
@@ -912,13 +913,35 @@ app.post('/api/legal-chatbot', async (req, res) => {
   let systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
   let context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises.";
 
-  // Ajout des chunks RAG du document importé (si dispo)
+  // Sélection intelligente des chunks RAG les plus pertinents
   let ragChunks = [];
   if (global.profileRagChunks && global.profileRagChunks[email] && global.profileRagChunks[email].length > 0) {
-    ragChunks = global.profileRagChunks[email].map(c => c.chunk).filter(Boolean);
-    // On limite à RAG_TOP_K chunks les plus longs
-    ragChunks = ragChunks.sort((a, b) => b.length - a.length).slice(0, 5);
-    context += "\n\nRésumé(s) du document importé :\n" + ragChunks.map((c, i) => `Chunk ${i+1}: ${c}`).join('\n');
+    // Récupère la dernière question utilisateur
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    let question = lastUserMsg ? lastUserMsg.content : '';
+    // Embedding de la question
+    let questionEmbedding = null;
+    try {
+      const embeddingRes = await axios.post(
+        'https://api.openai.com/v1/embeddings',
+        { input: question, model: 'text-embedding-3-small' },
+        { headers: { 'Authorization': `Bearer ${process.env.OPENAIKEY}`, 'Content-Type': 'application/json' } }
+      );
+      questionEmbedding = embeddingRes.data.data[0].embedding;
+    } catch (e) {
+      console.error('[legal-chatbot][embedding] Erreur embedding question:', e.message);
+    }
+    // Calcule la similarité pour chaque chunk
+    let scoredChunks = global.profileRagChunks[email].map(c => {
+      let score = 0;
+      if (questionEmbedding && Array.isArray(c.embedding)) {
+        score = cosineSimilarity(questionEmbedding, c.embedding);
+      }
+      return { chunk: c.chunk, score };
+    });
+    // Trie par score décroissant et prend les 5 meilleurs
+    ragChunks = scoredChunks.sort((a, b) => b.score - a.score).slice(0, 5).map(c => c.chunk);
+    context += "\n\nExtraits les plus pertinents du document importé :\n" + ragChunks.map((c, i) => `Chunk ${i+1}: ${c}`).join('\n');
   } else {
     context += "\n\nAucun document importé n'a été trouvé pour cet utilisateur.";
   }
