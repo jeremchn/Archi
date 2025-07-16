@@ -292,6 +292,7 @@
               <label for="fileUpload">Import files (PDF, CSV, etc.)</label>
               <input type="file" id="fileUpload" name="fileUpload" accept=".pdf,.csv,.xlsx,.xls,.txt,.doc,.docx,.json" multiple>
               <div id="fileList" class="file-list"></div>
+              <ul id="importedDocsList" class="file-list"></ul>
             </div>
           </div>
           <div class="profile-actions">
@@ -365,6 +366,7 @@ const fileList = document.getElementById('fileList');
 const feedback = document.getElementById('profile-feedback');
 const summaryMain = document.getElementById('summary-main');
 const summarySide = document.getElementById('summary-side');
+const importedDocsList = document.getElementById('importedDocsList');
 
 async function uploadProfileFiles(files, email) {
   if (!files || files.length === 0) return [];
@@ -480,6 +482,56 @@ if (fileInput && fileList) {
   });
 }
 
+// --- Gestion des documents importés (affichage, suppression) ---
+async function fetchImportedDocs() {
+  const email = localStorage.getItem('email') || '';
+  if (!email) return;
+  try {
+    const res = await fetch(`/api/get-imported-docs?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    renderImportedDocs(data.files || []);
+  } catch {
+    renderImportedDocs([]);
+  }
+}
+
+function renderImportedDocs(files) {
+  importedDocsList.innerHTML = '';
+  if (!files.length) {
+    importedDocsList.innerHTML = '<li><i>No documents imported.</i></li>';
+    return;
+  }
+  files.forEach(filename => {
+    const li = document.createElement('li');
+    li.textContent = filename + ' ';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.style.background = '#e74c3c';
+    delBtn.style.color = '#fff';
+    delBtn.style.border = 'none';
+    delBtn.style.borderRadius = '6px';
+    delBtn.style.padding = '4px 14px';
+    delBtn.style.marginLeft = '10px';
+    delBtn.style.cursor = 'pointer';
+    delBtn.onclick = async function() {
+      await deleteImportedDoc(filename);
+      fetchImportedDocs();
+    };
+    li.appendChild(delBtn);
+    importedDocsList.appendChild(li);
+  });
+}
+
+async function deleteImportedDoc(filename) {
+  const email = localStorage.getItem('email') || '';
+  if (!email || !filename) return;
+  await fetch('/api/delete-imported-doc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, filename })
+  });
+}
+
 // Soumission du formulaire
 if (form) {
   form.onsubmit = async function(e) {
@@ -492,10 +544,11 @@ if (form) {
     if (fileInput && fileInput.files.length > 0) {
       uploadedFiles = await uploadProfileFiles(fileInput.files, email);
       data.uploadedFiles = uploadedFiles;
+      fetchImportedDocs();
     }
     localStorage.setItem('companyProfile', JSON.stringify(data));
     showSummary(data);
-    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profil enregistré !</span>';
+    feedback.innerHTML = '<span style="color:var(--success);font-weight:600;">Profile saved!</span>';
     setTimeout(() => { feedback.innerHTML = ''; }, 2000);
   };
 }
@@ -509,6 +562,7 @@ if (form) {
     showEdit();
   }
   setProfileData(data);
+  fetchImportedDocs();
 })();
 </script>
 </body>

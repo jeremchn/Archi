@@ -1104,6 +1104,26 @@ app.get('/api/get-imported-docs', (req, res) => {
   res.json({ files });
 });
 
+// Endpoint to delete a specific imported document for a user
+app.post('/api/delete-imported-doc', (req, res) => {
+  const { email, filename } = req.body;
+  if (!email || !filename || !global.profileRagStore[email]) {
+    return res.status(400).json({ success: false, error: 'Missing email or filename.' });
+  }
+  // Remove from memory
+  global.profileRagStore[email] = global.profileRagStore[email].filter(f => f.originalname !== filename);
+  global.profileRagChunks[email] = (global.profileRagChunks[email] || []).filter(c => c.filename !== filename);
+  // Remove file from uploads folder
+  try {
+    const fileObj = global.profileRagStore[email].find(f => f.originalname === filename);
+    if (fileObj && fileObj.filename) {
+      const filePath = path.join(__dirname, 'uploads', fileObj.filename);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+  } catch {}
+  res.json({ success: true });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
