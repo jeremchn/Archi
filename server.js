@@ -567,6 +567,103 @@ app.post('/api/proxycurl-social-graph', async (req, res) => {
 // === CACHE EN MEMOIRE DES DONNEES UTILISATEUR ===
 const userDataCache = {};
 
+// === TABLES SQL ===
+// Table for imported documents
+// CREATE TABLE imported_docs (
+//   id SERIAL PRIMARY KEY,
+//   email TEXT NOT NULL,
+//   filename TEXT NOT NULL,
+//   originalname TEXT NOT NULL,
+//   mimetype TEXT NOT NULL,
+//   text TEXT,
+//   uploaded_at TIMESTAMP DEFAULT NOW()
+// );
+
+// Add endpoint to save company profile (upsert)
+app.post('/api/save-profile', async (req, res) => {
+  const { email, profile } = req.body;
+  if (!email || !profile) return res.status(400).json({ error: 'Email and profile required.' });
+  try {
+    // Upsert profile
+    const keys = [
+      'secteur', 'businessModel', 'tailleEquipe', 'marchesCibles', 'cycleVente', 'outilsUtilises',
+      'objectifs12mois', 'caAnnuel', 'dreamClient1', 'dreamClient2', 'dreamClient3', 'uvp', 'champsLibre'
+    ];
+    const fields = keys.map(k => `${k} = $${keys.indexOf(k)+2}`);
+    const values = keys.map(k => profile[k] || null);
+    // Try update, if not exists, insert
+    const updateRes = await pool.query(
+      `UPDATE profile SET ${fields.join(', ')} WHERE email = $1`,
+      [email, ...values]
+    );
+    if (updateRes.rowCount === 0) {
+      await pool.query(
+        `INSERT INTO profile (email, ${keys.join(', ')}) VALUES ($1, ${keys.map((_,i)=>'$'+(i+2)).join(', ')})`,
+        [email, ...values]
+      );
+    }
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: 'Error saving profile.' });
+  }
+});
+
+// === PERSISTENT IMPORTED DOCS ENDPOINTS ===
+// Upload and save imported docs to DB
+app.post('/api/upload-profile-files', upload.array('files'), async (req, res) => {
+  const email = req.body.email;
+  if (!req.files || !email) return res.status(400).json({ error: 'Fichiers et email requis.' });
+  const uploadedFiles = [];
+  for (const f of req.files) {
+    let text = '';
+    try {
+      text = await extractTextFromFile(f.path, f.mimetype);
+    } catch (e) { text = ''; }
+    // Save to DB
+    await pool.query(
+      `INSERT INTO imported_docs (email, filename, originalname, mimetype, text) VALUES ($1, $2, $3, $4, $5)`,
+      [email, f.filename, f.originalname, f.mimetype, text || '']
+    );
+    uploadedFiles.push(f.originalname);
+  }
+  res.json({ success: true, uploadedFiles });
+});
+
+// List imported docs from DB
+app.get('/api/get-imported-docs', async (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.json({ files: [] });
+  const result = await pool.query(
+    `SELECT originalname FROM imported_docs WHERE email = $1 ORDER BY uploaded_at DESC`,
+    [email]
+  );
+  res.json({ files: result.rows.map(r => r.originalname) });
+});
+
+// Delete imported doc from DB and disk
+app.post('/api/delete-imported-doc', async (req, res) => {
+  const { email, filename } = req.body;
+  if (!email || !filename) return res.status(400).json({ success: false, error: 'Missing email or filename.' });
+  // Get file info
+  const result = await pool.query(
+    `SELECT filename FROM imported_docs WHERE email = $1 AND originalname = $2`,
+    [email, filename]
+  );
+  if (result.rows.length === 0) return res.status(400).json({ success: false, error: 'File not found.' });
+  const dbFilename = result.rows[0].filename;
+  // Delete from DB
+  await pool.query(
+    `DELETE FROM imported_docs WHERE email = $1 AND originalname = $2`,
+    [email, filename]
+  );
+  // Delete from disk
+  try {
+    const filePath = path.join(__dirname, 'uploads', dbFilename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  } catch {}
+  res.json({ success: true });
+});
+
 // Endpoint pour charger les données dans le cache de session (manuel, version full+light)
 app.post('/api/load-session-data', async (req, res) => {
   const { email } = req.body;
