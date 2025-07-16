@@ -846,32 +846,39 @@ app.post('/api/company-name-search', async (req, res) => {
 
 // Endpoint pour le chatbot sales (OpenAI)
 app.post('/api/sales-chatbot', async (req, res) => {
-  const { messages, profile } = req.body;
-  console.log('[sales-chatbot] Request received:', { messages, profile }); // LOG
-  if (!Array.isArray(messages) || !profile) {
-    console.warn('[sales-chatbot] Missing messages or profile');
-    return res.status(400).json({ error: 'Messages and profile required.' });
+  const { messages, profile, mode } = req.body;
+  console.log('[sales-chatbot] Request received:', { messages, profile, mode }); // LOG
+  if (!Array.isArray(messages)) {
+    console.warn('[sales-chatbot] Missing messages');
+    return res.status(400).json({ error: 'Messages required.' });
   }
-  let context = `Company Profile:\n`;
-  context += `Sector: ${profile.secteur || '-'}\n`;
-  context += `Business Model: ${profile.businessModel || '-'}\n`;
-  context += `Team Size: ${profile.tailleEquipe || '-'}\n`;
-  context += `Target Markets: ${profile.marchesCibles || '-'}\n`;
-  context += `Sales Cycle: ${profile.cycleVente || '-'}\n`;
-  context += `Tools: ${profile.outilsUtilises || '-'}\n`;
-  context += `12-Month Objectives: ${profile.objectifs12mois || '-'}\n`;
-  context += `Estimated Annual Revenue: ${profile.caAnnuel || '-'}\n`;
-  context += `Dream Clients: ${(profile.dreamClient1||'') + (profile.dreamClient2?', '+profile.dreamClient2:'') + (profile.dreamClient3?', '+profile.dreamClient3:'')}\n`;
-  context += `Unique Value Proposition: ${profile.uvp || '-'}\n`;
-  context += `Free Field: ${profile.champsLibre || '-'}\n`;
-
-  // RAG logic (unchanged)
-  // ...existing code...
+  let context = '';
+  let systemPrompt = '';
+  if (mode === 'droit' || req.headers['referer']?.includes('chatbot_only.html')) {
+    // Chatbot spécialisé droit
+    systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
+    context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises."
+  } else {
+    // Chatbot commercial classique
+    context = `Company Profile:\n`;
+    context += `Sector: ${profile?.secteur || '-'}\n`;
+    context += `Business Model: ${profile?.businessModel || '-'}\n`;
+    context += `Team Size: ${profile?.tailleEquipe || '-'}\n`;
+    context += `Target Markets: ${profile?.marchesCibles || '-'}\n`;
+    context += `Sales Cycle: ${profile?.cycleVente || '-'}\n`;
+    context += `Tools: ${profile?.outilsUtilises || '-'}\n`;
+    context += `12-Month Objectives: ${profile?.objectifs12mois || '-'}\n`;
+    context += `Estimated Annual Revenue: ${profile?.caAnnuel || '-'}\n`;
+    context += `Dream Clients: ${(profile?.dreamClient1||'') + (profile?.dreamClient2?', '+profile?.dreamClient2:'') + (profile?.dreamClient3?', '+profile?.dreamClient3:'')}\n`;
+    context += `Unique Value Proposition: ${profile?.uvp || '-'}\n`;
+    context += `Free Field: ${profile?.champsLibre || '-'}\n`;
+    systemPrompt = `You are a B2B sales assistant. Use the following context to provide useful, concrete, and actionable sales advice. Be concise, relevant, and give advice tailored to the profile.\n${context}`;
+  }
 
   // Sanitize message roles (replace any invalid role with 'assistant')
   const validRoles = ['system', 'assistant', 'user', 'function', 'tool', 'developer'];
   const openaiMessages = [
-    { role: 'system', content: `You are a B2B sales assistant. Use the following context to provide useful, concrete, and actionable sales advice. Be concise, relevant, and give advice tailored to the profile.\n${context}` },
+    { role: 'system', content: systemPrompt },
     ...messages.map(m => ({
       role: validRoles.includes(m.role) ? m.role : (m.role === 'ai' ? 'assistant' : 'user'),
       content: m.content
