@@ -868,10 +868,14 @@ app.post('/api/sales-chatbot', async (req, res) => {
   // RAG logic (unchanged)
   // ...existing code...
 
-  // Prepare OpenAI messages
+  // Sanitize message roles (replace any invalid role with 'assistant')
+  const validRoles = ['system', 'assistant', 'user', 'function', 'tool', 'developer'];
   const openaiMessages = [
     { role: 'system', content: `You are a B2B sales assistant. Use the following context to provide useful, concrete, and actionable sales advice. Be concise, relevant, and give advice tailored to the profile.\n${context}` },
-    ...messages.map(m => ({ role: m.role, content: m.content }))
+    ...messages.map(m => ({
+      role: validRoles.includes(m.role) ? m.role : (m.role === 'ai' ? 'assistant' : 'user'),
+      content: m.content
+    }))
   ];
   console.log('[sales-chatbot] OpenAI messages:', openaiMessages); // LOG
   try {
