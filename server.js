@@ -613,53 +613,70 @@ app.post('/api/save-profile', async (req, res) => {
 app.post('/api/upload-profile-files', upload.array('files'), async (req, res) => {
   const email = req.body.email;
   if (!req.files || !email) return res.status(400).json({ error: 'Fichiers et email requis.' });
+  if (!global.profileRagStore[email]) global.profileRagStore[email] = [];
+  if (!global.profileRagChunks[email]) global.profileRagChunks[email] = [];
   const uploadedFiles = [];
   for (const f of req.files) {
     let text = '';
     try {
       text = await extractTextFromFile(f.path, f.mimetype);
     } catch (e) { text = ''; }
-    // Save to DB
-    await pool.query(
-      `INSERT INTO imported_docs (email, filename, originalname, mimetype, text) VALUES ($1, $2, $3, $4, $5)`,
-      [email, f.filename, f.originalname, f.mimetype, text || '']
-    );
+    global.profileRagStore[email].push({
+      filename: f.filename,
+      originalname: f.originalname,
+      mimetype: f.mimetype,
+      text: text || ''
+    });
+    // Découpe en chunks
+    const chunks = chunkText(text);
+    // Embeddings pour chaque chunk (ignore les vides)
+    let embeddings = [];
+    try {
+      embeddings = await getEmbeddings(chunks);
+    } catch (e) { embeddings = chunks.map(() => []); }
+    // Stocke chaque chunk+embedding+filename
+    let idx = 0;
+    for (let i = 0; i < chunks.length; i++) {
+      if (chunks[i] && chunks[i].trim().length > 0 && Array.isArray(embeddings[idx])) {
+        global.profileRagChunks[email].push({
+          chunk: chunks[i],
+          embedding: embeddings[idx],
+          filename: f.originalname
+        });
+        idx++;
+      }
+    }
     uploadedFiles.push(f.originalname);
   }
   res.json({ success: true, uploadedFiles });
 });
 
 // List imported docs from DB
-app.get('/api/get-imported-docs', async (req, res) => {
+app.get('/api/get-imported-docs', (req, res) => {
   const email = req.query.email;
-  if (!email) return res.json({ files: [] });
-  const result = await pool.query(
-    `SELECT originalname FROM imported_docs WHERE email = $1 ORDER BY uploaded_at DESC`,
-    [email]
-  );
-  res.json({ files: result.rows.map(r => r.originalname) });
+  if (!email || !global.profileRagStore[email]) {
+    return res.json({ files: [] });
+  }
+  const files = global.profileRagStore[email].map(f => f.originalname);
+  res.json({ files });
 });
 
 // Delete imported doc from DB and disk
-app.post('/api/delete-imported-doc', async (req, res) => {
+app.post('/api/delete-imported-doc', (req, res) => {
   const { email, filename } = req.body;
-  if (!email || !filename) return res.status(400).json({ success: false, error: 'Missing email or filename.' });
-  // Get file info
-  const result = await pool.query(
-    `SELECT filename FROM imported_docs WHERE email = $1 AND originalname = $2`,
-    [email, filename]
-  );
-  if (result.rows.length === 0) return res.status(400).json({ success: false, error: 'File not found.' });
-  const dbFilename = result.rows[0].filename;
-  // Delete from DB
-  await pool.query(
-    `DELETE FROM imported_docs WHERE email = $1 AND originalname = $2`,
-    [email, filename]
-  );
-  // Delete from disk
+  if (!email || !filename || !global.profileRagStore[email]) {
+    return res.status(400).json({ success: false, error: 'Missing email or filename.' });
+  }
+  // Remove from memory
+  global.profileRagStore[email] = global.profileRagStore[email].filter(f => f.originalname !== filename);
+  global.profileRagChunks[email] = (global.profileRagChunks[email] || []).filter(c => c.filename !== filename);
+  // Remove file from uploads folder
   try {
-    const filePath = path.join(__dirname, 'uploads', dbFilename);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    const fileObj = global.profileRagStore[email].find(f => f.originalname === filename);
+    if (fileObj && fileObj.filename) {
+      const filePath = path.join(__dirname, 'uploads', fileObj.filename);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
   } catch {}
   res.json({ success: true });
 });
