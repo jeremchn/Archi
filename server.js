@@ -845,37 +845,31 @@ app.post('/api/company-name-search', async (req, res) => {
 });
 
 // Endpoint pour le chatbot sales (OpenAI)
+
+// Endpoint pour le chatbot commercial (inchangé)
 app.post('/api/sales-chatbot', async (req, res) => {
-  const { messages, profile, mode } = req.body;
-  console.log('[sales-chatbot] Request received:', { messages, profile, mode }); // LOG
+  const { messages, profile } = req.body;
+  console.log('[sales-chatbot] Request received:', { messages, profile }); // LOG
   if (!Array.isArray(messages)) {
     console.warn('[sales-chatbot] Missing messages');
     return res.status(400).json({ error: 'Messages required.' });
   }
   let context = '';
-  let systemPrompt = '';
-  if (mode === 'droit' || req.headers['referer']?.includes('chatbot_only.html')) {
-    // Chatbot spécialisé droit
-    systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
-    context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises."
-  } else {
-    // Chatbot commercial classique
-    context = `Company Profile:\n`;
-    context += `Sector: ${profile?.secteur || '-'}\n`;
-    context += `Business Model: ${profile?.businessModel || '-'}\n`;
-    context += `Team Size: ${profile?.tailleEquipe || '-'}\n`;
-    context += `Target Markets: ${profile?.marchesCibles || '-'}\n`;
-    context += `Sales Cycle: ${profile?.cycleVente || '-'}\n`;
-    context += `Tools: ${profile?.outilsUtilises || '-'}\n`;
-    context += `12-Month Objectives: ${profile?.objectifs12mois || '-'}\n`;
-    context += `Estimated Annual Revenue: ${profile?.caAnnuel || '-'}\n`;
-    context += `Dream Clients: ${(profile?.dreamClient1||'') + (profile?.dreamClient2?', '+profile?.dreamClient2:'') + (profile?.dreamClient3?', '+profile?.dreamClient3:'')}\n`;
-    context += `Unique Value Proposition: ${profile?.uvp || '-'}\n`;
-    context += `Free Field: ${profile?.champsLibre || '-'}\n`;
-    systemPrompt = `You are a B2B sales assistant. Use the following context to provide useful, concrete, and actionable sales advice. Be concise, relevant, and give advice tailored to the profile.\n${context}`;
-  }
+  context = `Company Profile:\n`;
+  context += `Sector: ${profile?.secteur || '-'}\n`;
+  context += `Business Model: ${profile?.businessModel || '-'}\n`;
+  context += `Team Size: ${profile?.tailleEquipe || '-'}\n`;
+  context += `Target Markets: ${profile?.marchesCibles || '-'}\n`;
+  context += `Sales Cycle: ${profile?.cycleVente || '-'}\n`;
+  context += `Tools: ${profile?.outilsUtilises || '-'}\n`;
+  context += `12-Month Objectives: ${profile?.objectifs12mois || '-'}\n`;
+  context += `Estimated Annual Revenue: ${profile?.caAnnuel || '-'}\n`;
+  context += `Dream Clients: ${(profile?.dreamClient1||'') + (profile?.dreamClient2?', '+profile?.dreamClient2:'') + (profile?.dreamClient3?', '+profile?.dreamClient3:'')}\n`;
+  context += `Unique Value Proposition: ${profile?.uvp || '-'}\n`;
+  context += `Free Field: ${profile?.champsLibre || '-'}\n`;
+  const systemPrompt = `You are a B2B sales assistant. Use the following context to provide useful, concrete, and actionable sales advice. Be concise, relevant, and give advice tailored to the profile.\n${context}`;
 
-  // Sanitize message roles (replace any invalid role with 'assistant')
+  // Sanitize message roles
   const validRoles = ['system', 'assistant', 'user', 'function', 'tool', 'developer'];
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
@@ -884,7 +878,6 @@ app.post('/api/sales-chatbot', async (req, res) => {
       content: m.content
     }))
   ];
-  console.log('[sales-chatbot] OpenAI messages:', openaiMessages); // LOG
   try {
     const response = await axios.post(
       'https://api.openai.com/v1/chat/completions',
@@ -902,10 +895,63 @@ app.post('/api/sales-chatbot', async (req, res) => {
       }
     );
     const aiMsg = response.data.choices[0].message.content;
-    console.log('[sales-chatbot] OpenAI response:', aiMsg); // LOG
     res.json({ answer: aiMsg });
   } catch (e) {
-    console.error('[sales-chatbot][ERROR]', e.response?.data || e.message, e.stack); // LOG
+    res.status(500).json({ error: 'AI response error.', details: e.response?.data || e.message });
+  }
+});
+
+// Nouveau endpoint pour le chatbot juridique avec RAG
+app.post('/api/legal-chatbot', async (req, res) => {
+  const { messages, email } = req.body;
+  console.log('[legal-chatbot] Request received:', { messages, email });
+  if (!Array.isArray(messages) || !email) {
+    return res.status(400).json({ error: 'Messages et email requis.' });
+  }
+  // Prompt juridique
+  let systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
+  let context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises.";
+
+  // Ajout des chunks RAG du document importé (si dispo)
+  let ragChunks = [];
+  if (global.profileRagChunks && global.profileRagChunks[email] && global.profileRagChunks[email].length > 0) {
+    ragChunks = global.profileRagChunks[email].map(c => c.chunk).filter(Boolean);
+    // On limite à RAG_TOP_K chunks les plus longs
+    ragChunks = ragChunks.sort((a, b) => b.length - a.length).slice(0, 5);
+    context += "\n\nRésumé(s) du document importé :\n" + ragChunks.map((c, i) => `Chunk ${i+1}: ${c}`).join('\n');
+  } else {
+    context += "\n\nAucun document importé n'a été trouvé pour cet utilisateur.";
+  }
+
+  // Sanitize message roles
+  const validRoles = ['system', 'assistant', 'user', 'function', 'tool', 'developer'];
+  const openaiMessages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'system', content: context },
+    ...messages.map(m => ({
+      role: validRoles.includes(m.role) ? m.role : (m.role === 'ai' ? 'assistant' : 'user'),
+      content: m.content
+    }))
+  ];
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: openaiMessages,
+        max_tokens: 500,
+        temperature: 0.5
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAIKEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    const aiMsg = response.data.choices[0].message.content;
+    res.json({ answer: aiMsg });
+  } catch (e) {
     res.status(500).json({ error: 'AI response error.', details: e.response?.data || e.message });
   }
 });

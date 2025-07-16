@@ -89,12 +89,12 @@ chatForm.onsubmit = async function(e) {
     addMessage(text, 'user');
     messages.push({ role: 'user', content: text });
     chatInput.value = '';
-    // Send full conversation history to backend
+    // Envoie la conversation au backend juridique
     try {
-        const res = await fetch('/api/sales-chatbot', {
+        const res = await fetch('/api/legal-chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages, profile })
+            body: JSON.stringify({ messages, email })
         });
         const data = await res.json();
         addMessage(data.answer || '[No response]', 'ai');
