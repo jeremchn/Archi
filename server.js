@@ -909,9 +909,9 @@ app.post('/api/legal-chatbot', async (req, res) => {
   if (!Array.isArray(messages) || !email) {
     return res.status(400).json({ error: 'Messages et email requis.' });
   }
-  // Prompt juridique
-  let systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
-  let context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises.";
+  // Prompt CEO/Conseil stratégique
+  let systemPrompt = "Tu es un conseiller stratégique de haut niveau, expert en business, management, innovation et leadership. Tu t'adresses à un CEO ou dirigeant d'entreprise. Tes réponses sont concrètes, synthétiques, orientées action et décision, et couvrent tous les aspects utiles à un dirigeant (stratégie, organisation, opportunités, risques, management, croissance, innovation, gouvernance, etc). Tu peux t'appuyer sur le contexte fourni, les documents importés et l'expérience métier. Utilise un ton direct, professionnel, inspirant et factuel. Si la question sort du domaine business, indique-le poliment.";
+  let context = "Contexte : Ce chatbot est destiné à conseiller des dirigeants et CEO sur tous les sujets business, stratégie, organisation, innovation, management, etc.";
   // Ajoute les résumés courts de tous les documents importés pour cet utilisateur
   if (global.profileRagStore && global.profileRagStore[email] && global.profileRagStore[email].length > 0) {
     const shortSummaries = global.profileRagStore[email]
