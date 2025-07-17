@@ -1098,11 +1098,39 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
     try {
       text = await extractTextFromFile(f.path, f.mimetype);
     } catch (e) { text = ''; }
+
+    // Génère un résumé du document (max 500 tokens)
+    let summary = '';
+    try {
+      const gptRes = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a legal and business assistant. Summarize the following document in 3-5 sentences, focusing on the main topics, legal points, and practical information. Be concise and clear.' },
+            { role: 'user', content: text.slice(0, 6000) }
+          ],
+          max_tokens: 500,
+          temperature: 0.3
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAIKEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      summary = gptRes.data.choices[0].message.content.trim();
+    } catch (e) {
+      summary = '';
+    }
+
     global.profileRagStore[email].push({
       filename: f.filename,
       originalname: f.originalname,
       mimetype: f.mimetype,
-      text: text || ''
+      text: text || '',
+      summary
     });
     // Découpe en chunks
     const chunks = chunkText(text);
@@ -1153,7 +1181,11 @@ app.get('/api/get-imported-docs', (req, res) => {
   if (!email || !global.profileRagStore[email]) {
     return res.json({ files: [] });
   }
-  const files = global.profileRagStore[email].map(f => f.originalname);
+  // Retourne nom et résumé pour chaque doc
+  const files = global.profileRagStore[email].map(f => ({
+    name: f.originalname,
+    summary: f.summary || ''
+  }));
   res.json({ files });
 });
 

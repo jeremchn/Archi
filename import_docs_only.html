@@ -50,14 +50,18 @@
         const list = document.getElementById('docs-list');
         list.innerHTML = '';
         if (data.files && data.files.length) {
+          // Affiche le nombre total
+          const summaryDiv = document.getElementById('docs-summary');
+          let countText = `<div style='color:#1a365d;font-weight:600;margin-bottom:10px;'>${data.files.length} document${data.files.length>1?'s':''} imported</div>`;
+          summaryDiv.insertAdjacentHTML('afterbegin', countText);
+          // Affiche chaque doc avec nom et résumé
           data.files.forEach(f => {
             const li = document.createElement('li');
-            li.style.display = 'flex';
-            li.style.alignItems = 'center';
-            li.style.justifyContent = 'space-between';
-            li.style.gap = '10px';
-            li.innerHTML = `<span style='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;'>${f}</span>` +
-              `<button style='background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:4px 14px;font-size:0.98em;cursor:pointer;margin-left:8px;' title='Delete' onclick='deleteDoc("${encodeURIComponent(f)}")'>Delete</button>`;
+            li.style.display = 'block';
+            li.style.marginBottom = '18px';
+            li.innerHTML = `<div style='font-weight:600;color:#1a365d;'>${f.name}</div>` +
+              `<div style='font-size:0.98em;color:#225;opacity:0.92;margin:4px 0 0 0;'>${f.summary ? f.summary : '<span style=\'color:#888\'>No summary available.</span>'}</div>` +
+              `<button style='background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:4px 14px;font-size:0.98em;cursor:pointer;margin-top:6px;' title='Delete' onclick='deleteDoc("${encodeURIComponent(f.name)}")'>Delete</button>`;
             list.appendChild(li);
           });
         } else {
