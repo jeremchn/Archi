@@ -912,6 +912,15 @@ app.post('/api/legal-chatbot', async (req, res) => {
   // Prompt juridique
   let systemPrompt = "Tu es un assistant juridique expert en droit français et européen. Réponds de façon claire, précise et pédagogique à toutes les questions de droit, contrats, RGPD, conformité, litiges, etc. Si la question sort du domaine juridique, indique-le poliment. Ne donne jamais de conseils commerciaux. Si la question concerne un cas réel, précise que ta réponse ne remplace pas un avis d'avocat. Utilise un ton professionnel et accessible.";
   let context = "Contexte : Ce chatbot est destiné à répondre à des questions juridiques pour des professionnels et entreprises.";
+  // Ajoute les résumés courts de tous les documents importés pour cet utilisateur
+  if (global.profileRagStore && global.profileRagStore[email] && global.profileRagStore[email].length > 0) {
+    const shortSummaries = global.profileRagStore[email]
+      .map(f => f.shortSummary)
+      .filter(s => s && s.trim().length > 0);
+    if (shortSummaries.length > 0) {
+      context += "\n\nRésumé(s) synthétique(s) des documents importés :\n" + shortSummaries.map((s, i) => `Doc ${i+1}: ${s}`).join('\n');
+    }
+  }
 
   // Sélection intelligente des chunks RAG les plus pertinents
   let ragChunks = [];
@@ -1099,8 +1108,10 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
       text = await extractTextFromFile(f.path, f.mimetype);
     } catch (e) { text = ''; }
 
-    // Génère un résumé du document (max 500 tokens)
+    // Génère un résumé long (3-5 phrases)
     let summary = '';
+    // Génère un résumé court (1 phrase)
+    let shortSummary = '';
     try {
       const gptRes = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -1124,13 +1135,37 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
     } catch (e) {
       summary = '';
     }
+    try {
+      const gptShort = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are a legal and business assistant. Summarize the following document in one single, clear, and concise sentence.' },
+            { role: 'user', content: text.slice(0, 6000) }
+          ],
+          max_tokens: 80,
+          temperature: 0.2
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAIKEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      shortSummary = gptShort.data.choices[0].message.content.trim();
+    } catch (e) {
+      shortSummary = '';
+    }
 
     global.profileRagStore[email].push({
       filename: f.filename,
       originalname: f.originalname,
       mimetype: f.mimetype,
       text: text || '',
-      summary
+      summary,
+      shortSummary
     });
     // Découpe en chunks
     const chunks = chunkText(text);
@@ -1184,7 +1219,8 @@ app.get('/api/get-imported-docs', (req, res) => {
   // Retourne nom et résumé pour chaque doc
   const files = global.profileRagStore[email].map(f => ({
     name: f.originalname,
-    summary: f.summary || ''
+    summary: f.summary || '',
+    shortSummary: f.shortSummary || ''
   }));
   res.json({ files });
 });

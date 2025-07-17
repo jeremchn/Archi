@@ -52,15 +52,16 @@
         if (data.files && data.files.length) {
           // Affiche le nombre total
           const summaryDiv = document.getElementById('docs-summary');
-          let countText = `<div style='color:#1a365d;font-weight:600;margin-bottom:10px;'>${data.files.length} document${data.files.length>1?'s':''} imported</div>`;
+          summaryDiv.querySelectorAll('.doc-count').forEach(e => e.remove());
+          let countText = `<div class='doc-count' style='color:#1a365d;font-weight:600;margin-bottom:10px;'>${data.files.length} document${data.files.length>1?'s':''} imported</div>`;
           summaryDiv.insertAdjacentHTML('afterbegin', countText);
-          // Affiche chaque doc avec nom et résumé
-          data.files.forEach(f => {
+          // Affiche chaque doc avec nom, résumé court et résumé long
+          data.files.forEach((f, idx) => {
             const li = document.createElement('li');
             li.style.display = 'block';
-            li.style.marginBottom = '18px';
-            li.innerHTML = `<div style='font-weight:600;color:#1a365d;'>${f.name}</div>` +
-              `<div style='font-size:0.98em;color:#225;opacity:0.92;margin:4px 0 0 0;'>${f.summary ? f.summary : '<span style=\'color:#888\'>No summary available.</span>'}</div>` +
+            li.style.marginBottom = '22px';
+            li.innerHTML = `<div style='font-weight:600;color:#1a365d;'>${idx+1}. ${f.name}</div>` +
+              `<div style='font-size:0.98em;color:#225;opacity:0.92;margin:4px 0 0 0;'><b>Details:</b> ${f.summary ? f.summary : '<span style=\'color:#888\'>No detailed summary available.</span>'}</div>` +
               `<button style='background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:4px 14px;font-size:0.98em;cursor:pointer;margin-top:6px;' title='Delete' onclick='deleteDoc("${encodeURIComponent(f.name)}")'>Delete</button>`;
             list.appendChild(li);
           });
