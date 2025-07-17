@@ -939,8 +939,14 @@ app.post('/api/legal-chatbot', async (req, res) => {
       }
       return { chunk: c.chunk, score };
     });
-    // Trie par score décroissant et prend les 5 meilleurs
-    ragChunks = scoredChunks.sort((a, b) => b.score - a.score).slice(0, 5).map(c => c.chunk);
+    // Trie par score décroissant et prend les 10 meilleurs
+    const topChunks = scoredChunks.sort((a, b) => b.score - a.score).slice(0, 10);
+    ragChunks = topChunks.map(c => c.chunk);
+    // Log les 10 chunks sélectionnés
+    console.log('[legal-chatbot][RAG] Top 10 chunks sélectionnés :');
+    topChunks.forEach((c, i) => {
+      console.log(`Chunk ${i+1} (score ${c.score.toFixed(4)}): ${c.chunk.substring(0, 200).replace(/\n/g, ' ')}...`);
+    });
     context += "\n\nExtraits les plus pertinents du document importé :\n" + ragChunks.map((c, i) => `Chunk ${i+1}: ${c}`).join('\n');
   } else {
     context += "\n\nAucun document importé n'a été trouvé pour cet utilisateur.";
