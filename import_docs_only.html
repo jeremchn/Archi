@@ -31,7 +31,7 @@
       <div style="color:#225; font-size:1.08em; opacity:0.85; margin-bottom:10px;">Add PDF, Word, CSV or TXT files to enrich your RAG context.<br>Imported documents are only visible to you.</div>
     </div>
     <form id="upload-form" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; margin-bottom:18px;">
-      <input type="file" id="files" name="files" multiple style="flex:1; min-width:180px;" />
+      <input type="file" id="files" name="files" multiple style="flex:1; min-width:180px;" aria-label="Select files" />
       <button type="submit" style="min-width:120px; font-size:1.08em; padding:12px 32px;">Import</button>
     </form>
     <div id="status" style="margin-bottom:10px;"></div>
@@ -96,6 +96,16 @@
         document.getElementById('status').style.color = '#e74c3c';
         return;
       }
+
+    // Change the label for 'No file chosen' in English (for most browsers)
+    const fileInput = document.getElementById('files');
+    fileInput.addEventListener('change', function() {
+      if (!fileInput.files.length) {
+        fileInput.title = 'No file chosen';
+      } else {
+        fileInput.title = Array.from(fileInput.files).map(f => f.name).join(', ');
+      }
+    });
       const formData = new FormData();
       for (let f of files) formData.append('files', f);
       formData.append('email', email);
