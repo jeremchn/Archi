@@ -23,14 +23,20 @@
 <body>
   <div class="container">
     <button class="back-btn" onclick="window.location.href='index3.html'">Back</button>
-    <h2>Import Documents</h2>
-    <form id="upload-form">
-      <input type="file" id="files" name="files" multiple />
-      <button type="submit">Import</button>
+    <div style="text-align:center; margin-bottom:18px;">
+      <span style="display:inline-block; margin-bottom:8px;">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="6" fill="#1a365d" fill-opacity="0.08" stroke="#1a365d" stroke-width="2"/><rect x="16" y="18" width="16" height="3" rx="1.5" fill="#1a365d" fill-opacity="0.18"/><rect x="16" y="25" width="16" height="3" rx="1.5" fill="#1a365d" fill-opacity="0.18"/><rect x="16" y="32" width="10" height="3" rx="1.5" fill="#1a365d" fill-opacity="0.18"/></svg>
+      </span>
+      <h2 style="margin:0 0 6px 0; font-size:2em; color:#1a365d;">Import Documents</h2>
+      <div style="color:#225; font-size:1.08em; opacity:0.85; margin-bottom:10px;">Add PDF, Word, CSV or TXT files to enrich your RAG context.<br>Imported documents are only visible to you.</div>
+    </div>
+    <form id="upload-form" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; margin-bottom:18px;">
+      <input type="file" id="files" name="files" multiple style="flex:1; min-width:180px;" />
+      <button type="submit" style="min-width:120px; font-size:1.08em; padding:12px 32px;">Import</button>
     </form>
-    <div id="status"></div>
+    <div id="status" style="margin-bottom:10px;"></div>
     <div id="docs-summary">
-      <h3>Documents imported for RAG:</h3>
+      <h3 style="margin-top:0; color:#1a365d;">Imported documents</h3>
       <ul id="docs-list"></ul>
     </div>
   </div>
@@ -46,14 +52,40 @@
         if (data.files && data.files.length) {
           data.files.forEach(f => {
             const li = document.createElement('li');
-            li.textContent = f;
+            li.style.display = 'flex';
+            li.style.alignItems = 'center';
+            li.style.justifyContent = 'space-between';
+            li.style.gap = '10px';
+            li.innerHTML = `<span style='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;'>${f}</span>` +
+              `<button style='background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:4px 14px;font-size:0.98em;cursor:pointer;margin-left:8px;' title='Delete' onclick='deleteDoc("${encodeURIComponent(f)}")'>Delete</button>`;
             list.appendChild(li);
           });
         } else {
-          list.innerHTML = '<li>No documents imported.</li>';
+          list.innerHTML = '<li style="color:#888;">No documents imported.</li>';
         }
       } catch {
-        document.getElementById('docs-list').innerHTML = '<li>Error loading documents.</li>';
+        document.getElementById('docs-list').innerHTML = '<li style="color:#e74c3c;">Error loading documents.</li>';
+      }
+    }
+
+    async function deleteDoc(filename) {
+      if (!email || !filename) return;
+      document.getElementById('status').textContent = 'Deleting...';
+      try {
+        const res = await fetch('/api/delete-imported-doc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, filename: decodeURIComponent(filename) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('status').textContent = 'Document deleted.';
+          loadDocs();
+        } else {
+          document.getElementById('status').textContent = 'Error: ' + (data.error || 'Delete failed');
+        }
+      } catch {
+        document.getElementById('status').textContent = 'Server error.';
       }
     }
     document.getElementById('upload-form').onsubmit = async function(e) {
@@ -61,12 +93,14 @@
       const files = document.getElementById('files').files;
       if (!files.length || !email) {
         document.getElementById('status').textContent = 'Select files and make sure you are logged in.';
+        document.getElementById('status').style.color = '#e74c3c';
         return;
       }
       const formData = new FormData();
       for (let f of files) formData.append('files', f);
       formData.append('email', email);
       document.getElementById('status').textContent = 'Importing...';
+      document.getElementById('status').style.color = '#0077cc';
       try {
         const res = await fetch('/api/upload-profile-files', {
           method: 'POST',
@@ -75,12 +109,15 @@
         const data = await res.json();
         if (data.success) {
           document.getElementById('status').textContent = 'Import successful: ' + (data.uploadedFiles || []).join(', ');
+          document.getElementById('status').style.color = '#27ae60';
           loadDocs();
         } else {
           document.getElementById('status').textContent = 'Error: ' + (data.error || 'Import failed');
+          document.getElementById('status').style.color = '#e74c3c';
         }
       } catch {
         document.getElementById('status').textContent = 'Server error.';
+        document.getElementById('status').style.color = '#e74c3c';
       }
     };
     // Initial load
