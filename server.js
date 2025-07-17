@@ -1042,13 +1042,27 @@ async function getEmbeddingsForChunks(chunks) {
 }
 
 // Helper: découpe un texte en chunks (overlap possible, ignore les vides)
+// Nouveau chunking : découpe par structure logique (titres, paragraphes), avec overlap
 function chunkText(text, chunkSize = 500, overlap = 100) {
+  // Découpe d'abord en paragraphes (double saut de ligne ou \n\n)
+  let rawParagraphs = text.split(/\n\s*\n|\r\n\s*\r\n/).map(p => p.trim()).filter(Boolean);
+  // Si trop peu de paragraphes, fallback découpe simple
+  if (rawParagraphs.length < 2) {
+    rawParagraphs = text.split(/\n|\r\n/).map(p => p.trim()).filter(Boolean);
+  }
+  // Regroupe les paragraphes en chunks de taille cible, avec overlap
   const chunks = [];
   let i = 0;
-  while (i < text.length) {
-    const chunk = text.substring(i, i + chunkSize).trim();
-    if (chunk.length > 30) chunks.push(chunk); // ignore les tout petits ou vides
-    i += chunkSize - overlap;
+  while (i < rawParagraphs.length) {
+    let chunk = '';
+    let j = i;
+    while (j < rawParagraphs.length && chunk.length < chunkSize) {
+      chunk += (chunk ? '\n' : '') + rawParagraphs[j];
+      j++;
+    }
+    if (chunk.length > 30) chunks.push(chunk);
+    // Overlap : recule de quelques paragraphes pour le prochain chunk
+    i += Math.max(1, j - i - Math.floor(overlap / 100));
   }
   return chunks;
 }
