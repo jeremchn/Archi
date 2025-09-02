@@ -16,16 +16,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-const { Pool } = require('pg');
-
+// Connexion PostgreSQL
 const pool = new Pool({
-  user: process.env.DB_USER,        // exemple: "database"
-  password: process.env.DB_PASS,    // ton mot de passe
-  database: process.env.DB_NAME,    // exemple: "Test"
-  host: `/cloudsql/applydi:europe-west1:database`, // 🔑 socket Cloud SQL
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
-
 
 // Sert les fichiers statiques (frontend, js, etc.)
 app.use(express.static(path.join(__dirname, 'frontend')));
