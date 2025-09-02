@@ -16,11 +16,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// Connexion PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: false
 });
+
 
 // Sert les fichiers statiques (frontend, js, etc.)
 app.use(express.static(path.join(__dirname, 'frontend')));
