@@ -1,25 +1,59 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lydi - Welcome</title>
+    <title>Bienvenue - Archi</title>
     <style>
         body {
-            background: #181818;
-            color: #fff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%);
             min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
         }
-        .center-title {
-            text-align: center;
-            font-size: 3em;
+        .welcome-container {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px 32px 32px 32px;
+            max-width: 900px;
+            width: 100%;
+            margin-top: 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 12px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #3b4cca;
+            font-weight: bold;
+        }
+        .welcome-title {
+            font-size: 2.5rem;
             font-weight: 800;
             letter-spacing: 2px;
-            margin-top: 2.5em;
-            margin-bottom: 2.5em;
-            color: #fff;
+            margin-bottom: 8px;
+            color: #3b4cca;
+            text-align: center;
+        }
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 32px;
+            text-align: center;
         }
         .blocks {
             display: flex;
@@ -27,6 +61,7 @@
             justify-content: center;
             gap: 2.5em;
             margin-bottom: 3em;
+            width: 100%;
         }
         .block {
             background: #fff;
@@ -51,7 +86,7 @@
             font-size: 1.35em;
             font-weight: 700;
             margin-bottom: 0.7em;
-            color: #1a365d;
+            color: #3b4cca;
         }
         .block-desc {
             font-size: 1.08em;
@@ -63,17 +98,18 @@
             margin-top: 2em;
         }
         .menu-btn {
-            background: #1a365d;
+            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
             color: #fff;
             border: none;
             border-radius: 10px;
             padding: 0.8em 2em;
             font-size: 1.1em;
             cursor: pointer;
+            font-weight: 600;
             transition: background 0.3s;
         }
         .menu-btn:hover {
-            background: #27496d;
+            background: linear-gradient(90deg, #5f7cff 0%, #3b4cca 100%);
         }
         @media (max-width: 900px) {
             .blocks { flex-direction: column; gap: 1.5em; align-items: center; }
@@ -82,23 +118,27 @@
     </style>
 </head>
 <body>
-    <div class="center-title">Lydi</div>
-    <div class="blocks">
-        <a class="block" href="index.html#prompt" style="text-decoration:none;">
-            <div class="block-title">Prompt Finder</div>
-            <div class="block-desc">Generate ideas for potential clients based on your ideal description.</div>
-        </a>
-        <a class="block" href="index.html#domain" style="text-decoration:none;">
-            <div class="block-title">Domain Lookup</div>
-            <div class="block-desc">Find contacts by searching for a domain or company name.</div>
-        </a>
-        <a class="block" href="index.html#filter" style="text-decoration:none;">
-            <div class="block-title">Smart Filter Search</div>
-            <div class="block-desc">Search for companies using criteria like industry, company size and region.</div>
-        </a>
-    </div>
-    <div class="menu">
-        <button onclick="window.location.href='index3.html'" class="menu-btn">Only chatbot</button>
+    <div class="welcome-container">
+        <div class="logo">A</div>
+        <div class="welcome-title">Bienvenue sur Archi</div>
+        <div class="welcome-subtitle">Choisissez une fonctionnalité pour commencer :</div>
+        <div class="blocks">
+            <a class="block" href="index.html#prompt" style="text-decoration:none;">
+                <div class="block-title">Prompt Finder</div>
+                <div class="block-desc">Générez des idées de clients potentiels selon votre description idéale.</div>
+            </a>
+            <a class="block" href="index.html#domain" style="text-decoration:none;">
+                <div class="block-title">Domain Lookup</div>
+                <div class="block-desc">Trouvez des contacts en recherchant un domaine ou le nom d'une entreprise.</div>
+            </a>
+            <a class="block" href="index.html#filter" style="text-decoration:none;">
+                <div class="block-title">Smart Filter Search</div>
+                <div class="block-desc">Recherchez des entreprises par secteur, taille ou région.</div>
+            </a>
+        </div>
+        <div class="menu">
+            <button onclick="window.location.href='index3.html'" class="menu-btn">Chatbot uniquement</button>
+        </div>
     </div>
 </body>
 </html>
