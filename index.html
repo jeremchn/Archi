@@ -6,21 +6,21 @@
     <title>Lydi Search</title>
     <style>
         :root {
-            --primary: #1a365d;
-            --secondary: #2ecc71;
-            --background: #f7fafc;
+            --primary: #3b4cca;
+            --secondary: #5f7cff;
+            --background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%);
             --card-bg: #fff;
             --text: #222;
-            --border: #e2e8f0;
-            --shadow: 0 2px 12px rgba(26,54,93,0.08);
-            --danger: #e74c3c;
+            --border: #d1d5db;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --danger: #d32f2f;
             --success: #27ae60;
-            --gray: #e2e8f0;
+            --gray: #e0e7ff;
         }
         html, body {
             background: var(--background);
             color: var(--text);
-            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
@@ -29,14 +29,16 @@
             min-height: 100vh;
         }
         aside.menu {
-            background: #f3f7fa;
-            border-right: 1.5px solid #e2e8f0;
+            background: #e0e7ff;
+            border-right: 1.5px solid #d1d5db;
             padding: 2em 1.2em;
             display: flex;
             flex-direction: column;
             gap: 2em;
             min-width: 210px;
             position: relative;
+            border-top-left-radius: 18px;
+            border-bottom-left-radius: 18px;
         }
         .menu h2 {
             font-size: 1.15em;
@@ -55,11 +57,11 @@
             color: var(--primary);
             font-weight: 500;
             padding: 0.3em 0.5em;
-            border-radius: 6px;
-            transition: background 0.2s;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
         }
         .menu li.active, .menu li:hover {
-            background: var(--secondary);
+            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
             color: #fff;
         }
         .container {
@@ -105,7 +107,7 @@
             box-shadow: 0 0 0 2px #c3e6ff;
         }
         .btn {
-            background: var(--primary);
+            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -118,15 +120,15 @@
             min-width: 120px;
         }
         .btn-search {
-            background: var(--secondary) !important;
+            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%) !important;
             color: #fff !important;
         }
         .btn-gray {
-            background: var(--gray) !important;
-            color: #222 !important;
+            background: #e0e7ff !important;
+            color: #3b4cca !important;
         }
         .btn:hover, .btn:focus {
-            background: var(--secondary);
+            background: linear-gradient(90deg, #5f7cff 0%, #3b4cca 100%);
             color: #fff;
             transform: translateY(-2px) scale(1.03);
         }
@@ -190,7 +192,7 @@
             transition: color 0.2s;
         }
         .clickable-link:hover {
-            color: var(--primary);
+            color: #3b4cca;
         }
         .msg {
             margin: 1em 0;
