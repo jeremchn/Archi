@@ -2,77 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Connexion - Archi</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { background: #f7fafc; font-family: 'Segoe UI', Arial, sans-serif; }
-        .auth-container {
-            max-width: 400px;
-            margin: 3em auto;
+        body {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%);
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
             background: #fff;
             border-radius: 16px;
-            box-shadow: 0 2px 16px rgba(26,54,93,0.10);
-            padding: 2.5em 2em 2em 2em;
-            animation: fadeIn 0.7s;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px 32px 32px 32px;
+            max-width: 350px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: none; }
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #3b4cca;
+            letter-spacing: 1px;
         }
-        h2 { color: #1a365d; text-align: center; font-size: 2em; margin-bottom: 1.2em; }
-        form { display: flex; flex-direction: column; gap: 1.2em; }
-        input[type="email"], input[type="password"] {
-            padding: 0.9em 1.1em;
-            border: 1.5px solid #e2e8f0;
+        .login-subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .login-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .login-form input {
+            padding: 12px;
             border-radius: 8px;
-            font-size: 1.08em;
-            background: #f3f7fa;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
-        input[type="email"]:focus, input[type="password"]:focus {
-            border: 1.5px solid #1a365d;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
             outline: none;
-            box-shadow: 0 0 0 2px #c3e6ff;
+            transition: border-color 0.2s;
         }
-        button {
-            background: #1a365d;
+        .login-form input:focus {
+            border-color: #3b4cca;
+        }
+        .login-form button {
+            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
             color: #fff;
             border: none;
             border-radius: 8px;
-            padding: 0.9em 1.1em;
-            font-size: 1.08em;
-            font-weight: 500;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
-        button:hover, button:focus {
-            background: #2ecc71;
-            transform: translateY(-2px) scale(1.03);
+        .login-form button:hover {
+            background: linear-gradient(90deg, #5f7cff 0%, #3b4cca 100%);
         }
-        .error {
-            background: #ffeaea;
-            color: #e74c3c;
-            border: 1px solid #f5c6cb;
-            border-radius: 6px;
+        #msg {
+            color: #d32f2f;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            min-height: 20px;
             text-align: center;
-            margin-bottom: 0.5em;
-            padding: 0.7em 0.5em;
-            font-size: 1.05em;
         }
-        .success {
-            background: #eafaf1;
-            color: #27ae60;
-            border: 1px solid #b7eacb;
-            border-radius: 6px;
+        .login-footer {
+            margin-top: 18px;
+            font-size: 0.95rem;
+            color: #555;
             text-align: center;
-            margin-bottom: 0.5em;
-            padding: 0.7em 0.5em;
-            font-size: 1.05em;
         }
-        @media (max-width: 500px) {
-            .auth-container { padding: 1.2em 0.5em; }
-            h2 { font-size: 1.3em; }
+        .login-footer a {
+            color: #3b4cca;
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 4px;
         }
+        .logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 12px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #3b4cca;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">A</div>
+        <div class="login-title">Connexion</div>
+        <div class="login-subtitle">TAIC Companion</div>
+        <form id="login-form" class="login-form">
+            <div id="msg"></div>
+            <input type="email" id="login-email" name="login-email" placeholder="Nom d'utilisateur" required>
+            <input type="password" id="login-password" name="login-password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <div class="login-footer">
+            Pas encore de compte ? <a href="#">S'inscrire</a>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+</body>
+</html>
     </style>
 </head>
 <body>
