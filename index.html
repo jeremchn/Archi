@@ -241,7 +241,6 @@
 <div class="layout">
     <aside class="menu" style="background:#f3f7fa;border-right:1.5px solid #e2e8f0;padding:2em 1.2em;display:flex;flex-direction:column;gap:2em;min-width:210px;position:relative;">
         <div id="load-data-section" style="text-align:left;margin-bottom:1.5em;">
-            <button id="loadDataBtn" class="btn btn-search" style="min-width:160px;">Load Data</button>
             <span id="dataStatus" style="margin-left:1em;font-weight:500;color:var(--primary);"></span>
         </div>
         <nav>
@@ -348,21 +347,7 @@
     </div>
 </div>
 <script src="js/main.js"></script>
-<script>
-// Redirige vers index2.html quand on clique sur AI Sales
-const aiSalesBtn = document.getElementById('menu-aisales');
-if (aiSalesBtn) {
-  aiSalesBtn.addEventListener('click', function() {
-    window.location.href = 'index2.html';
-  });
-}
-// Redirige vers chatbot.html quand on clique sur AI Companion
-const aiCompanionBtn = document.getElementById('menu-chatbot');
-if (aiCompanionBtn) {
-  aiCompanionBtn.addEventListener('click', function() {
-    window.location.href = 'chatbot.html';
-  });
-}
+</script>
 </script>
 </body>
 </html>

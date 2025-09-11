@@ -162,39 +162,28 @@ if (localStorage.getItem('email')) {
 }
 
 // Load Data doit utiliser l'email pour charger les bonnes données
-if (loadDataBtn && dataStatus) {
-    loadDataBtn.addEventListener('click', async function() {
-        loadDataBtn.disabled = true;
+// Chargement automatique des données et affichage du nombre total d'entreprises
+window.addEventListener('DOMContentLoaded', async function() {
+    const dataStatus = document.getElementById('dataStatus');
+    const email = (localStorage.getItem('email') || '').trim().toLowerCase();
+    if (!email) return;
+    try {
         dataStatus.innerHTML = '<span class="loader" style="display:inline-block;width:18px;height:18px;border:3px solid #1a365d;border-top:3px solid #2ecc71;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px;"></span> Chargement...';
-        searchBtn.disabled = true;
-        resetBtn.disabled = true;
-        try {
-            const email = (localStorage.getItem('email') || '').trim().toLowerCase();
-            if (!email) {
-                dataStatus.textContent = 'Please log in.';
-                loadDataBtn.disabled = false;
-                return;
-            }
-            const res = await fetch('/api/load-session-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            const result = await res.json();
-            if (res.ok && (result.success || result.loaded)) {
-                dataStatus.innerHTML = `<span style='color:var(--success);font-weight:600;'>${result.count || 0} entreprises ont été chargées !</span>`;
-                searchBtn.disabled = false;
-                resetBtn.disabled = false;
-            } else {
-                dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>${result.error || 'Failed to load data.'}</span>`;
-                loadDataBtn.disabled = false;
-            }
-        } catch (e) {
-            dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>Failed to load data.</span>`;
-            loadDataBtn.disabled = false;
+        const res = await fetch('/api/load-session-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const result = await res.json();
+        if (res.ok && (result.success || result.loaded)) {
+            dataStatus.innerHTML = `<span style='color:var(--success);font-weight:600;'>${result.count || 0} entreprises ont été chargées !</span>`;
+        } else {
+            dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>${result.error || 'Failed to load data.'}</span>`;
         }
-    });
-}
+    } catch (e) {
+        dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>Failed to load data.</span>`;
+    }
+});
 
 // Redirection automatique si non connecté
 if (!localStorage.getItem('email')) {
