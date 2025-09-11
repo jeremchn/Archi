@@ -176,7 +176,7 @@ window.addEventListener('DOMContentLoaded', async function() {
         });
         const result = await res.json();
         if (res.ok && (result.success || result.loaded)) {
-            dataStatus.innerHTML = `<span style='color:var(--success);font-weight:600;'>${result.count || 0} entreprises ont été chargées !</span>`;
+            dataStatus.innerHTML = `<span style='color:#3b4cca;font-weight:600;'>${result.count || 0} entreprises ont été chargées !</span>`;
         } else {
             dataStatus.innerHTML = `<span style='color:var(--danger);font-weight:600;'>${result.error || 'Failed to load data.'}</span>`;
         }
