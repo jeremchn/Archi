@@ -77,8 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
             showMsg('Contacts enrichis avec succès !', 'success');
             downloadBtn.style.display = 'inline-block';
         })
-        .catch(() => {
-            showMsg('Erreur serveur lors de l\'enrichissement.', 'error');
+        .catch((err) => {
+            console.error('Erreur lors de la requête /api/icebreaker :', err);
+            showMsg('Erreur serveur lors de l\'enrichissement : ' + (err && err.message ? err.message : JSON.stringify(err)), 'error');
         });
     }
 
