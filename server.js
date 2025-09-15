@@ -1206,6 +1206,26 @@ app.post('/api/upload-profile-files', upload.array('files'), async (req, res) =>
 });
 
 // === INIT RAG GLOBALS (toujours, même sur Render) ===
+// Endpoint Ice Breaker: reçoit une liste de contacts, génère un ice breaker pour chaque, renvoie la liste enrichie
+app.post('/api/icebreaker', async (req, res) => {
+  const { contacts } = req.body;
+  if (!Array.isArray(contacts) || !contacts.length) {
+    return res.status(400).json({ error: 'Aucun contact fourni.' });
+  }
+  // Génération simple: concatène prénom, société, poste, etc. pour démo
+  const enriched = contacts.map(c => {
+    let icebreaker = '';
+    if (c.prenom && c.nom && c.societe) {
+      icebreaker = `Bonjour ${c.prenom}, ravi de voir votre parcours chez ${c.societe}${c.poste ? ' en tant que ' + c.poste : ''}!`;
+    } else if (c.nom && c.societe) {
+      icebreaker = `Bonjour ${c.nom}, votre expérience chez ${c.societe} est inspirante.`;
+    } else {
+      icebreaker = `Bonjour, ravi de découvrir votre profil!`;
+    }
+    return { ...c, icebreaker };
+  });
+  res.json({ contacts: enriched });
+});
 if (!global.profileRagStore) global.profileRagStore = {};
 if (!global.profileRagChunks) global.profileRagChunks = {};
 
