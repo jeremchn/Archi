@@ -77,7 +77,10 @@ function handleFile(file) {
             icebreaker: row.icebreaker || ''
         }));
         // Vérifie la validité des colonnes
-        const valid = contacts.every(c => c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url !== undefined && c.icebreaker !== undefined);
+            const valid = contacts.every(c =>
+                c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url !== undefined
+                && ('icebreaker' in c)
+            );
         if (!valid) {
             showMsg('Le fichier doit contenir les colonnes : email, first_name, last_name, position, company, linkedin_url, icebreaker.', 'danger');
             contacts = [];
