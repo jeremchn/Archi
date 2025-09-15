@@ -67,19 +67,19 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contacts })
         })
-            .then(res => res.json())
-            .then(data => {
-                if (!data || !Array.isArray(data) || !data.length) {
-                    showMsg('Erreur lors de l\'enrichissement des contacts.', 'error');
-                    return;
-                }
-                enrichedData = data;
-                showMsg('Contacts enrichis avec succès !', 'success');
-                downloadBtn.style.display = 'inline-block';
-            })
-            .catch(() => {
-                showMsg('Erreur serveur lors de l\'enrichissement.', 'error');
-            });
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !Array.isArray(data.contacts) || !data.contacts.length) {
+                showMsg('Erreur lors de l\'enrichissement des contacts ou réponse trop lente.', 'error');
+                return;
+            }
+            enrichedData = data.contacts;
+            showMsg('Contacts enrichis avec succès !', 'success');
+            downloadBtn.style.display = 'inline-block';
+        })
+        .catch(() => {
+            showMsg('Erreur serveur lors de l\'enrichissement.', 'error');
+        });
     }
 
     downloadBtn.addEventListener('click', function () {
