@@ -3,10 +3,11 @@
 // Handles file import, parsing, display, API call, and download
 
 // DOM elements
-const dropzone = document.getElementById('dropzone');
+const dropzone = document.getElementById('drop-zone');
 const fileInfo = document.getElementById('file-info');
-const resultTable = document.getElementById('result-table');
+const resultTableContainer = document.getElementById('result-table-container');
 const downloadBtn = document.getElementById('download-btn');
+let resultTable = null;
 
 let contacts = [];
 let enrichedContacts = [];
@@ -30,9 +31,8 @@ if (dropzone) {
 }
 
 // File input fallback
-const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = '.csv,.xlsx';
+dropzone.addEventListener('click', () => fileInput.click());
+const fileInput = document.getElementById('file-input');
 dropzone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -62,9 +62,11 @@ function handleFile(file) {
 }
 
 function displayContacts(list) {
-    if (!resultTable) return;
-    resultTable.innerHTML = '';
+    if (!resultTableContainer) return;
+    resultTableContainer.innerHTML = '';
     if (!list.length) return;
+    resultTable = document.createElement('table');
+    resultTable.className = 'result-table';
     // Table header
     const header = document.createElement('tr');
     Object.keys(list[0]).forEach(key => {
@@ -89,6 +91,7 @@ function displayContacts(list) {
         tr.appendChild(td);
         resultTable.appendChild(tr);
     });
+    resultTableContainer.appendChild(resultTable);
 }
 
 function callIceBreakerAPI(list) {
