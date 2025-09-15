@@ -145,17 +145,31 @@ function callIceBreakerAPI(list) {
     fetch('/api/icebreaker', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({contacts: originalContacts})
+        body: JSON.stringify({contacts: contacts})
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (!res.ok) {
+            let errMsg = 'Erreur lors de la génération des ice breakers.';
+            try {
+                const err = await res.json();
+                if (err && err.error) errMsg += ' ' + err.error;
+            } catch {}
+            showMsg(errMsg, 'danger');
+            loadingBtn.style.display = 'none';
+            enrichBtn.style.display = 'inline-block';
+            return;
+        }
+        return res.json();
+    })
     .then(data => {
+        if (!data || !data.contacts) return;
         enrichedContacts = data.contacts;
         displayContacts(enrichedContacts);
         downloadBtn.style.display = 'inline-block';
         loadingBtn.style.display = 'none';
     })
     .catch(() => {
-        alert('Erreur lors de la génération des ice breakers.');
+        showMsg('Erreur lors de la génération des ice breakers.', 'danger');
         loadingBtn.style.display = 'none';
         enrichBtn.style.display = 'inline-block';
     });
