@@ -62,13 +62,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function enrichContacts(contacts) {
         showMsg('Enrichissement des contacts en cours...');
+        console.log('Envoi des contacts à /api/icebreaker:', contacts);
         fetch('/api/icebreaker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contacts })
         })
-        .then(res => res.json())
+        .then(res => {
+            console.log('Réponse brute:', res);
+            return res.json();
+        })
         .then(data => {
+            console.log('Réponse JSON:', data);
             if (!data || !Array.isArray(data.contacts) || !data.contacts.length) {
                 showMsg('Erreur lors de l\'enrichissement des contacts ou réponse trop lente.', 'error');
                 return;
