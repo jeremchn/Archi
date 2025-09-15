@@ -6,10 +6,21 @@
 const dropzone = document.getElementById('drop-zone');
 const fileInfo = document.getElementById('file-info');
 const resultTableContainer = document.getElementById('result-table-container');
+const enrichBtn = document.createElement('button');
+enrichBtn.className = 'btn';
+enrichBtn.id = 'enrich-btn';
+enrichBtn.textContent = 'Enrichir';
+enrichBtn.style.display = 'none';
+const loadingBtn = document.createElement('button');
+loadingBtn.className = 'btn';
+loadingBtn.id = 'loading-btn';
+loadingBtn.textContent = 'Chargement...';
+loadingBtn.style.display = 'none';
 const downloadBtn = document.getElementById('download-btn');
 let resultTable = null;
 
 let contacts = [];
+let originalContacts = [];
 let enrichedContacts = [];
 let fileName = '';
 
@@ -52,11 +63,31 @@ function handleFile(file) {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             rows = XLSX.utils.sheet_to_json(sheet);
         } else {
-            rows = XLSX.utils.sheet_to_json(XLSX.read(data, {type: 'binary'}).Sheets['Sheet1'] || XLSX.read(data, {type: 'binary'}).Sheets[Object.keys(XLSX.read(data, {type: 'binary'}).Sheets)[0]]);
+            workbook = XLSX.read(data, {type: 'binary'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            rows = XLSX.utils.sheet_to_json(sheet);
         }
-        contacts = rows;
+        // Filtrer et normaliser les colonnes
+        contacts = rows.map(row => ({
+            email: row.email || row.Email || '',
+            first_name: row.first_name || row.FirstName || row.firstname || '',
+            last_name: row.last_name || row.LastName || row.lastname || '',
+            position: row.position || row.Position || '',
+            company: row.company || row.Company || '',
+            linkedin_url: row.linkedin_url || row.Linkedin || row.linkedin || '',
+            icebreaker: row.icebreaker || ''
+        }));
+        originalContacts = JSON.parse(JSON.stringify(contacts));
         displayContacts(contacts);
-        callIceBreakerAPI(contacts);
+        enrichBtn.style.display = 'inline-block';
+        downloadBtn.style.display = 'none';
+        loadingBtn.style.display = 'none';
+        if (!document.getElementById('enrich-btn')) {
+            resultTableContainer.parentNode.insertBefore(enrichBtn, resultTableContainer.nextSibling);
+        }
+        if (!document.getElementById('loading-btn')) {
+            resultTableContainer.parentNode.insertBefore(loadingBtn, enrichBtn.nextSibling);
+        }
     };
     reader.readAsBinaryString(file);
 }
@@ -69,45 +100,44 @@ function displayContacts(list) {
     resultTable.className = 'result-table';
     // Table header
     const header = document.createElement('tr');
-    Object.keys(list[0]).forEach(key => {
+    ['email','first_name','last_name','position','company','linkedin_url','icebreaker'].forEach(key => {
         const th = document.createElement('th');
         th.textContent = key;
         header.appendChild(th);
     });
-    const th = document.createElement('th');
-    th.textContent = 'Ice Breaker';
-    header.appendChild(th);
     resultTable.appendChild(header);
     // Table rows
     list.forEach((contact, idx) => {
         const tr = document.createElement('tr');
-        Object.values(contact).forEach(val => {
+        ['email','first_name','last_name','position','company','linkedin_url','icebreaker'].forEach(key => {
             const td = document.createElement('td');
-            td.textContent = val;
+            td.textContent = contact[key] || '';
             tr.appendChild(td);
         });
-        const td = document.createElement('td');
-        td.textContent = contact.icebreaker || '';
-        tr.appendChild(td);
         resultTable.appendChild(tr);
     });
     resultTableContainer.appendChild(resultTable);
 }
 
 function callIceBreakerAPI(list) {
+    loadingBtn.style.display = 'inline-block';
+    enrichBtn.style.display = 'none';
     fetch('/api/icebreaker', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({contacts: list})
+        body: JSON.stringify({contacts: originalContacts})
     })
     .then(res => res.json())
     .then(data => {
         enrichedContacts = data.contacts;
         displayContacts(enrichedContacts);
         downloadBtn.style.display = 'inline-block';
+        loadingBtn.style.display = 'none';
     })
     .catch(() => {
         alert('Erreur lors de la génération des ice breakers.');
+        loadingBtn.style.display = 'none';
+        enrichBtn.style.display = 'inline-block';
     });
 }
 
@@ -117,4 +147,8 @@ downloadBtn.addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
     XLSX.writeFile(wb, 'contacts_icebreakers.xlsx');
+});
+
+enrichBtn.addEventListener('click', () => {
+    callIceBreakerAPI(originalContacts);
 });
