@@ -1212,17 +1212,25 @@ app.post('/api/icebreaker', async (req, res) => {
   if (!Array.isArray(contacts) || !contacts.length) {
     return res.status(400).json({ error: 'Aucun contact fourni.' });
   }
-  // Génération simple: concatène prénom, société, poste, etc. pour démo
+  // Génération : utilise les bons champs
   const enriched = contacts.map(c => {
     let icebreaker = '';
-    if (c.prenom && c.nom && c.societe) {
-      icebreaker = `Bonjour ${c.prenom}, ravi de voir votre parcours chez ${c.societe}${c.poste ? ' en tant que ' + c.poste : ''}!`;
-    } else if (c.nom && c.societe) {
-      icebreaker = `Bonjour ${c.nom}, votre expérience chez ${c.societe} est inspirante.`;
+    if (c.first_name && c.company) {
+      icebreaker = `Bonjour ${c.first_name}, ravi de voir votre parcours chez ${c.company}${c.position ? ' en tant que ' + c.position : ''}!`;
+    } else if (c.last_name && c.company) {
+      icebreaker = `Bonjour ${c.last_name}, votre expérience chez ${c.company} est inspirante.`;
     } else {
       icebreaker = `Bonjour, ravi de découvrir votre profil!`;
     }
-    return { ...c, icebreaker };
+    return {
+      email: c.email || '',
+      first_name: c.first_name || '',
+      last_name: c.last_name || '',
+      position: c.position || '',
+      company: c.company || '',
+      linkedin_url: c.linkedin_url || '',
+      icebreaker
+    };
   });
   res.json({ contacts: enriched });
 });

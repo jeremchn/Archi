@@ -58,14 +58,13 @@ function handleFile(file) {
     reader.onload = function(e) {
         const data = e.target.result;
         let workbook, rows;
-        if (fileName.endsWith('.xlsx')) {
+        if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
             workbook = XLSX.read(data, {type: 'binary'});
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             rows = XLSX.utils.sheet_to_json(sheet);
         } else {
-            workbook = XLSX.read(data, {type: 'binary'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            rows = XLSX.utils.sheet_to_json(sheet);
+            showMsg('Format de fichier non supporté. Utilisez .csv ou .xlsx', 'danger');
+            return;
         }
         // Filtrer et normaliser les colonnes
         contacts = rows.map(row => ({
@@ -77,6 +76,18 @@ function handleFile(file) {
             linkedin_url: row.linkedin_url || row.Linkedin || row.linkedin || '',
             icebreaker: row.icebreaker || ''
         }));
+        // Vérifie la validité des colonnes
+        const valid = contacts.every(c => c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url !== undefined && c.icebreaker !== undefined);
+        if (!valid) {
+            showMsg('Le fichier doit contenir les colonnes : email, first_name, last_name, position, company, linkedin_url, icebreaker.', 'danger');
+            contacts = [];
+            originalContacts = [];
+            displayContacts([]);
+            enrichBtn.style.display = 'none';
+            downloadBtn.style.display = 'none';
+            loadingBtn.style.display = 'none';
+            return;
+        }
         originalContacts = JSON.parse(JSON.stringify(contacts));
         displayContacts(contacts);
         enrichBtn.style.display = 'inline-block';
@@ -90,6 +101,15 @@ function handleFile(file) {
         }
     };
     reader.readAsBinaryString(file);
+function showMsg(msg, type) {
+    const msgDiv = document.getElementById('msg');
+    msgDiv.textContent = msg;
+    msgDiv.className = 'msg visible ' + (type === 'danger' ? 'danger' : '');
+    setTimeout(() => {
+        msgDiv.className = 'msg';
+        msgDiv.textContent = '';
+    }, 4000);
+}
 }
 
 function displayContacts(list) {
