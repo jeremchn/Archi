@@ -28,165 +28,96 @@ let fileName = '';
 if (dropzone) {
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        dropzone.classList.add('dragover');
-    });
-    dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('dragover');
-    });
-    dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        handleFile(file);
-    });
-}
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const fileInfo = document.getElementById('file-info');
+            const msg = document.getElementById('msg');
+            const downloadBtn = document.getElementById('download-btn');
+            let enrichedData = null;
 
-// File input fallback
-dropzone.addEventListener('click', () => fileInput.click());
-const fileInput = document.getElementById('file-input');
-dropzone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    handleFile(file);
-});
+            function showMsg(text, type = 'info') {
+                msg.textContent = text;
+                msg.className = 'msg visible';
+                msg.style.borderColor = type === 'error' ? '#d32f2f' : (type === 'success' ? '#27ae60' : '#3b4cca');
+                msg.style.color = type === 'error' ? '#d32f2f' : (type === 'success' ? '#27ae60' : '#3b4cca');
+            }
+            function resetMsg() {
+                msg.textContent = '';
+                msg.className = 'msg';
+            }
 
-function handleFile(file) {
-    if (!file) return;
-    fileName = file.name;
-    fileInfo.textContent = `Fichier importé : ${fileName}`;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const data = e.target.result;
-        let workbook, rows;
-        if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
-            workbook = XLSX.read(data, {type: 'binary'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            rows = XLSX.utils.sheet_to_json(sheet);
-        } else {
-            showMsg('Format de fichier non supporté. Utilisez .csv ou .xlsx', 'danger');
-            return;
-        }
-        // Filtrer et normaliser les colonnes
-        contacts = rows.map(row => ({
-            email: row.email || row.Email || '',
-            first_name: row.first_name || row.FirstName || row.firstname || '',
-            last_name: row.last_name || row.LastName || row.lastname || '',
-            position: row.position || row.Position || '',
-            company: row.company || row.Company || '',
-            linkedin_url: row.linkedin_url || row.Linkedin || row.linkedin || '',
-            icebreaker: row.icebreaker || ''
-        }));
-        // Vérifie la validité des colonnes
-            const valid = contacts.every(c =>
-                c.email && c.first_name && c.last_name && c.position && c.company && c.linkedin_url !== undefined
-                && ('icebreaker' in c)
-            );
-        if (!valid) {
-            showMsg('Le fichier doit contenir les colonnes : email, first_name, last_name, position, company, linkedin_url, icebreaker.', 'danger');
-            contacts = [];
-            originalContacts = [];
-            displayContacts([]);
-            enrichBtn.style.display = 'none';
-            downloadBtn.style.display = 'none';
-            loadingBtn.style.display = 'none';
-            return;
-        }
-        originalContacts = JSON.parse(JSON.stringify(contacts));
-        displayContacts(contacts);
-        enrichBtn.style.display = 'inline-block';
-        downloadBtn.style.display = 'none';
-        loadingBtn.style.display = 'none';
-        if (!document.getElementById('enrich-btn')) {
-            resultTableContainer.parentNode.insertBefore(enrichBtn, resultTableContainer.nextSibling);
-        }
-        if (!document.getElementById('loading-btn')) {
-            resultTableContainer.parentNode.insertBefore(loadingBtn, enrichBtn.nextSibling);
-        }
-    };
-    reader.readAsBinaryString(file);
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                handleFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleFile(e.target.files[0]);
+            });
 
-function showMsg(msg, type) {
-    const msgDiv = document.getElementById('msg');
-    msgDiv.textContent = msg;
-    msgDiv.className = 'msg visible ' + (type === 'danger' ? 'danger' : '');
-    setTimeout(() => {
-        msgDiv.className = 'msg';
-        msgDiv.textContent = '';
-    }, 4000);
-}
-}
+            function handleFile(file) {
+                resetMsg();
+                fileInfo.textContent = `Fichier sélectionné : ${file.name}`;
+                showMsg('Traitement du fichier en cours...');
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    let contacts = [];
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        contacts = XLSX.utils.sheet_to_json(sheet);
+                    } catch (err) {
+                        showMsg('Erreur lors de la lecture du fichier.', 'error');
+                        return;
+                    }
+                    if (!contacts.length) {
+                        showMsg('Aucun contact trouvé dans le fichier.', 'error');
+                        return;
+                    }
+                    enrichContacts(contacts);
+                };
+                reader.onerror = function () {
+                    showMsg('Erreur de lecture du fichier.', 'error');
+                };
+                reader.readAsArrayBuffer(file);
+            }
 
-function displayContacts(list) {
-    if (!resultTableContainer) return;
-    resultTableContainer.innerHTML = '';
-    if (!list.length) return;
-    resultTable = document.createElement('table');
-    resultTable.className = 'result-table';
-    // Table header
-    const header = document.createElement('tr');
-    ['email','first_name','last_name','position','company','linkedin_url','icebreaker'].forEach(key => {
-        const th = document.createElement('th');
-        th.textContent = key;
-        header.appendChild(th);
-    });
-    resultTable.appendChild(header);
-    // Table rows
-    list.forEach((contact, idx) => {
-        const tr = document.createElement('tr');
-        ['email','first_name','last_name','position','company','linkedin_url','icebreaker'].forEach(key => {
-            const td = document.createElement('td');
-            td.textContent = contact[key] || '';
-            tr.appendChild(td);
+            function enrichContacts(contacts) {
+                showMsg('Enrichissement des contacts en cours...');
+                fetch('/api/icebreaker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contacts })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data || !Array.isArray(data) || !data.length) {
+                            showMsg('Erreur lors de l\'enrichissement des contacts.', 'error');
+                            return;
+                        }
+                        enrichedData = data;
+                        showMsg('Contacts enrichis avec succès !', 'success');
+                        downloadBtn.style.display = 'inline-block';
+                    })
+                    .catch(() => {
+                        showMsg('Erreur serveur lors de l\'enrichissement.', 'error');
+                    });
+            }
+
+            downloadBtn.addEventListener('click', function () {
+                if (!enrichedData) return;
+                const ws = XLSX.utils.json_to_sheet(enrichedData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Enrichi');
+                XLSX.writeFile(wb, 'contacts_enrichis.xlsx');
+            });
         });
-        resultTable.appendChild(tr);
-    });
-    resultTableContainer.appendChild(resultTable);
-}
 
-function callIceBreakerAPI(list) {
-    loadingBtn.style.display = 'inline-block';
-    enrichBtn.style.display = 'none';
-    fetch('/api/icebreaker', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({contacts: contacts})
-    })
-    .then(async res => {
-        if (!res.ok) {
-            let errMsg = 'Erreur lors de la génération des ice breakers.';
-            try {
-                const err = await res.json();
-                if (err && err.error) errMsg += ' ' + err.error;
-            } catch {}
-            showMsg(errMsg, 'danger');
-            loadingBtn.style.display = 'none';
-            enrichBtn.style.display = 'inline-block';
-            return;
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (!data || !data.contacts) return;
-        enrichedContacts = data.contacts;
-        displayContacts(enrichedContacts);
-        downloadBtn.style.display = 'inline-block';
-        loadingBtn.style.display = 'none';
-    })
-    .catch(() => {
-        showMsg('Erreur lors de la génération des ice breakers.', 'danger');
-        loadingBtn.style.display = 'none';
-        enrichBtn.style.display = 'inline-block';
-    });
-}
-
-downloadBtn.addEventListener('click', () => {
-    if (!enrichedContacts.length) return;
-    const ws = XLSX.utils.json_to_sheet(enrichedContacts);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Contacts');
-    XLSX.writeFile(wb, 'contacts_icebreakers.xlsx');
-});
-
-enrichBtn.addEventListener('click', () => {
-    callIceBreakerAPI(originalContacts);
-});
