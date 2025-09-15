@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             enrichContacts(contacts);
-
+        };
         reader.onerror = function () {
             showMsg('Erreur de lecture du fichier.', 'error');
         };
@@ -95,4 +95,4 @@ document.addEventListener('DOMContentLoaded', function () {
         XLSX.utils.book_append_sheet(wb, ws, 'Enrichi');
         XLSX.writeFile(wb, 'contacts_enrichis.xlsx');
     });
-    }});
+});
