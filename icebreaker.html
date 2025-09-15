@@ -61,142 +61,178 @@
             gap: 0.7em;
         }
         .menu li.active, .menu li:hover {
-            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
-            color: #fff;
-        }
-        .container {
-            max-width: 700px;
-            margin: 2em auto;
-            padding: 2em;
-            background: var(--card-bg);
-            border-radius: 18px;
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.7s;
-            flex: 1;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: none; }
-        }
-        h1 {
-            color: var(--primary);
-            margin-top: 0;
-            margin-bottom: 1.5em;
-            letter-spacing: 1px;
-            font-size: 2em;
-            text-align: center;
-        }
-        .drop-zone {
-            border: 2px dashed var(--primary);
-            border-radius: 12px;
-            padding: 2em;
-            text-align: center;
-            color: var(--primary);
-            background: #f3f7fa;
-            cursor: pointer;
-            margin-bottom: 2em;
-            transition: border-color 0.2s;
-        }
-        .drop-zone.dragover {
-            border-color: var(--secondary);
-            background: #e0e7ff;
-        }
-        .file-info {
-            margin-bottom: 1em;
-            color: var(--primary);
-            font-weight: 500;
-        }
-        .btn {
-            background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5em 1.2em;
-            font-size: 1.05em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-            box-shadow: 0 1px 4px rgba(26,54,93,0.08);
-            min-width: 120px;
-        }
-        .btn:hover, .btn:focus {
-            background: linear-gradient(90deg, #5f7cff 0%, #3b4cca 100%);
-            color: #fff;
-            transform: translateY(-2px) scale(1.03);
-        }
-        .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 2em;
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 1px 6px rgba(26,54,93,0.04);
-        }
-        .result-table th, .result-table td {
-            border: 1px solid var(--border);
-            padding: 10px;
-            text-align: left;
-            font-size: 1em;
-        }
-        .result-table th {
-            background: var(--primary);
-            color: #fff;
-            font-weight: 600;
-        }
-        .result-table tr:nth-child(even) td {
-            background: #f3f7fa;
-        }
-        .result-table tr:hover td {
-            background: #eaf6ff;
-            transition: background 0.2s;
-        }
-        .msg {
-            margin: 1em 0;
-            padding: 1em;
-            border-radius: 8px;
-            font-size: 1.1em;
-            background: #eaf6ff;
-            color: var(--primary);
-            border: 1px solid #b7eacb;
-            display: none;
-        }
-        .msg.visible {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-<div class="layout">
-    <aside class="menu">
-        <nav>
-            <ul>
-                <li id="menu-prompt" class="menu-item"><span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span></li>
-                <li id="menu-name" class="menu-item"><span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span></li>
-                <li id="menu-filter" class="menu-item"><span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span></li>
-                <li id="menu-aisales" class="menu-item"><span style="font-size:1.2em;">🤖</span> <span>AI Sales</span></li>
-                <li id="menu-chatbot" class="menu-item"><span style="font-size:1.2em;">💬</span> <span>AI Companion</span></li>
-                <li id="menu-saved" class="menu-item" style="margin-top:1.5em;font-weight:600;color:#1a365d;"><span style="font-size:1.2em;">💾</span> <span>Saved companies</span></li>
-                <li id="menu-contacts" class="menu-item"><span style="font-size:1.2em;">👤</span> <span>Leads</span></li>
-                <li id="menu-icebreaker" class="menu-item active"><span style="font-size:1.2em;">🧊</span> <span>Ice Breaker</span></li>
-                <li style="flex:1 1 auto;"></li>
-            </ul>
-        </nav>
-        <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
-    </aside>
-    <div class="container">
-        <h1>Ice Breaker Generator</h1>
-        <div class="drop-zone" id="drop-zone">
-            <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
-            <span id="drop-text">Glissez-déposez ou cliquez pour importer votre fichier de contacts (.xlsx, .xls, .csv)</span>
-            <div class="file-info" id="file-info"></div>
-        </div>
-        <div class="msg" id="msg"></div>
-        <div id="result-table-container"></div>
-        <button class="btn" id="download-btn" style="display:none;margin-top:2em;">Télécharger le fichier enrichi</button>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="js/icebreaker.js"></script>
-</body>
-</html>
+
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Ice Breaker Generator</title>
+                <style>
+                    :root {
+                        --primary: #3b4cca;
+                        --secondary: #5f7cff;
+                        --background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%);
+                        --card-bg: #fff;
+                        --text: #222;
+                        --border: #d1d5db;
+                        --shadow: 0 4px 24px rgba(0,0,0,0.08);
+                        --danger: #d32f2f;
+                        --success: #27ae60;
+                        --gray: #e0e7ff;
+                    }
+                    html, body {
+                        background: var(--background);
+                        color: var(--text);
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .layout {
+                        display: flex;
+                        min-height: 100vh;
+                    }
+                    aside.menu {
+                        background: #e0e7ff;
+                        border-right: 1.5px solid #d1d5db;
+                        padding: 2em 1.2em;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2em;
+                        min-width: 210px;
+                        position: relative;
+                        border-top-left-radius: 18px;
+                        border-bottom-left-radius: 18px;
+                    }
+                    .menu ul {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.2em;
+                    }
+                    .menu li {
+                        margin-bottom: 0.7em;
+                        cursor: pointer;
+                        color: var(--primary);
+                        font-weight: 500;
+                        padding: 0.3em 0.5em;
+                        border-radius: 8px;
+                        transition: background 0.2s, color 0.2s;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.7em;
+                    }
+                    .menu li.active, .menu li:hover {
+                        background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
+                        color: #fff;
+                    }
+                    .container {
+                        max-width: 500px;
+                        margin: 2em auto;
+                        padding: 2em;
+                        background: var(--card-bg);
+                        border-radius: 18px;
+                        box-shadow: var(--shadow);
+                        animation: fadeIn 0.7s;
+                        flex: 1;
+                    }
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(30px); }
+                        to { opacity: 1; transform: none; }
+                    }
+                    h1 {
+                        color: var(--primary);
+                        margin-top: 0;
+                        margin-bottom: 1.5em;
+                        letter-spacing: 1px;
+                        font-size: 2em;
+                        text-align: center;
+                    }
+                    .drop-zone {
+                        border: 2px dashed var(--primary);
+                        border-radius: 12px;
+                        padding: 2em;
+                        text-align: center;
+                        color: var(--primary);
+                        background: #f3f7fa;
+                        cursor: pointer;
+                        margin-bottom: 2em;
+                        transition: border-color 0.2s;
+                    }
+                    .drop-zone.dragover {
+                        border-color: var(--secondary);
+                        background: #e0e7ff;
+                    }
+                    .file-info {
+                        margin-bottom: 1em;
+                        color: var(--primary);
+                        font-weight: 500;
+                    }
+                    .btn {
+                        background: linear-gradient(90deg, #3b4cca 0%, #5f7cff 100%);
+                        color: #fff;
+                        border: none;
+                        border-radius: 8px;
+                        padding: 0.5em 1.2em;
+                        font-size: 1.05em;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+                        box-shadow: 0 1px 4px rgba(26,54,93,0.08);
+                        min-width: 120px;
+                    }
+                    .btn:hover, .btn:focus {
+                        background: linear-gradient(90deg, #5f7cff 0%, #3b4cca 100%);
+                        color: #fff;
+                        transform: translateY(-2px) scale(1.03);
+                    }
+                    .msg {
+                        margin: 1em 0;
+                        padding: 1em;
+                        border-radius: 8px;
+                        font-size: 1.1em;
+                        background: #eaf6ff;
+                        color: var(--primary);
+                        border: 1px solid #b7eacb;
+                        display: none;
+                    }
+                    .msg.visible {
+                        display: block;
+                    }
+                </style>
+            </head>
+            <body>
+            <div class="layout">
+                <aside class="menu">
+                    <nav>
+                        <ul>
+                            <li id="menu-prompt" class="menu-item"><span style="font-size:1.2em;">💡</span> <span>Prompt Finder</span></li>
+                            <li id="menu-name" class="menu-item"><span style="font-size:1.2em;">🔍</span> <span>Domain Lookup</span></li>
+                            <li id="menu-filter" class="menu-item"><span style="font-size:1.2em;">🧠</span> <span>Smart Filter Search</span></li>
+                            <li id="menu-aisales" class="menu-item"><span style="font-size:1.2em;">🤖</span> <span>AI Sales</span></li>
+                            <li id="menu-chatbot" class="menu-item"><span style="font-size:1.2em;">💬</span> <span>AI Companion</span></li>
+                            <li id="menu-saved" class="menu-item" style="margin-top:1.5em;font-weight:600;color:#1a365d;"><span style="font-size:1.2em;">💾</span> <span>Saved companies</span></li>
+                            <li id="menu-contacts" class="menu-item"><span style="font-size:1.2em;">👤</span> <span>Leads</span></li>
+                            <li id="menu-icebreaker" class="menu-item active"><span style="font-size:1.2em;">🧊</span> <span>Ice Breaker</span></li>
+                            <li style="flex:1 1 auto;"></li>
+                        </ul>
+                    </nav>
+                    <button class="btn btn-gray" style="font-size:1em;padding:0.5em 1.1em;width:90%;position:absolute;left:5%;bottom:1.5em;" onclick="window.location.href='auth.html'">Logout</button>
+                </aside>
+                <div class="container">
+                    <h1>Ice Breaker Generator</h1>
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none;">
+                        <span id="drop-text">Glissez-déposez ou cliquez pour importer votre fichier de contacts (.xlsx, .xls, .csv)</span>
+                        <div class="file-info" id="file-info"></div>
+                    </div>
+                    <div class="msg" id="msg"></div>
+                    <button class="btn" id="download-btn" style="display:none;margin-top:2em;">Télécharger le fichier enrichi</button>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+            <script src="js/icebreaker.js"></script>
+            </body>
+            </html>

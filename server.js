@@ -1212,7 +1212,7 @@ app.post('/api/icebreaker', async (req, res) => {
   if (!Array.isArray(contacts) || !contacts.length) {
     return res.status(400).json({ error: 'Aucun contact fourni.' });
   }
-  // Génération : utilise les bons champs
+  // Génération simple : crée un icebreaker pour chaque contact
   const enriched = contacts.map(c => {
     let icebreaker = '';
     if (c.first_name && c.company) {
