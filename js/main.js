@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuPrompt = document.getElementById('menu-prompt');
     const menuFilter = document.getElementById('menu-filter');
     const menuName = document.getElementById('menu-name');
+    const menuIcebreaker = document.getElementById('menu-icebreaker');
     const promptBar = document.getElementById('prompt-search-bar');
     const filterBar = document.getElementById('filter-search-bar');
     const nameBar = document.getElementById('name-search-bar');
@@ -254,6 +255,11 @@ document.addEventListener('DOMContentLoaded', function() {
     menuPrompt.addEventListener('click', () => { setActiveMenu(menuPrompt); window.location.hash = '#prompt'; });
     menuFilter.addEventListener('click', () => { setActiveMenu(menuFilter); window.location.hash = '#filter'; });
     menuName.addEventListener('click', () => { setActiveMenu(menuName); window.location.hash = '#domain'; });
+    if (menuIcebreaker) {
+        menuIcebreaker.addEventListener('click', () => {
+            window.location.href = 'icebreaker.html';
+        });
+    }
 });
 
 // --- RECHERCHE PAR FILTRE MULTI-CHOIX ---
