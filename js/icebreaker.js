@@ -101,6 +101,7 @@ function handleFile(file) {
         }
     };
     reader.readAsBinaryString(file);
+
 function showMsg(msg, type) {
     const msgDiv = document.getElementById('msg');
     msgDiv.textContent = msg;
