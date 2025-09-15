@@ -1230,6 +1230,9 @@ if (!global.profileRagStore) global.profileRagStore = {};
 if (!global.profileRagChunks) global.profileRagChunks = {};
 
 // Sert aussi chatbot.html à la racine
+app.get('/icebreaker.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'icebreaker.html'));
+});
 app.get('/chatbot.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'chatbot.html'));
 });
