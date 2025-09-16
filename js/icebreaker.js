@@ -53,6 +53,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             console.log('Contacts parsés depuis le fichier:', contacts);
+            contacts.forEach((c, i) => {
+                console.log(`Contact ${i}:`, c, 'linkedin_url:', c.linkedin_url);
+            });
             enrichContacts(contacts);
         };
         reader.onerror = function () {

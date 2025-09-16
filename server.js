@@ -1212,27 +1212,51 @@ app.post('/api/icebreaker', async (req, res) => {
   if (!Array.isArray(contacts) || !contacts.length) {
     return res.status(400).json({ error: 'Aucun contact fourni.' });
   }
-  // Génération simple : crée un icebreaker pour chaque contact
-  const enriched = contacts.map(c => {
-    let icebreaker = '';
-    if (c.first_name && c.company) {
-      icebreaker = `Bonjour ${c.first_name}, ravi de voir votre parcours chez ${c.company}${c.position ? ' en tant que ' + c.position : ''}!`;
-    } else if (c.last_name && c.company) {
-      icebreaker = `Bonjour ${c.last_name}, votre expérience chez ${c.company} est inspirante.`;
-    } else {
-      icebreaker = `Bonjour, ravi de découvrir votre profil!`;
+  const OPENAI_KEY = process.env.OPENAIKEY;
+  const PORT = process.env.PORT || 5000;
+  // Pour chaque contact, génère l'icebreaker comme dans le endpoint unitaire
+  const results = [];
+  for (const contact of contacts) {
+    if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.company || !contact.linkedin_url) {
+      results.push({ ...contact, icebreaker: '', error: 'All fields required (email, first_name, last_name, position, company, linkedin_url)' });
+      continue;
     }
-    return {
-      email: c.email || '',
-      first_name: c.first_name || '',
-      last_name: c.last_name || '',
-      position: c.position || '',
-      company: c.company || '',
-      linkedin_url: c.linkedin_url || '',
-      icebreaker
-    };
-  });
-  res.json({ contacts: enriched });
+    let linkedinData = {};
+    try {
+      const scrapeRes = await axios.post('http://localhost:' + PORT + '/api/contact-linkedin', { linkedin_url: contact.linkedin_url });
+      linkedinData = scrapeRes.data;
+    } catch {}
+    let prompt = `Your task is to write a 1-3 sentence icebreaker that introduces a conversation naturally, based strictly on public information found on the person's LinkedIn profile, without using flattery or superlatives.\n\n` +
+      `🔍 Context:\n- Use specific information such as current role, industry, recent post, shared article, published content, job transitions, certifications, project topics, or company focus.\n- Focus on relevance and shared curiosity — not compliments.\n- Mention the fact you *noticed* or *saw* something that triggered your interest.\n- Do **not** use words like *impressive*, *amazing*, *great*, or *incredible*.\n\n` +
+      `📌 Output format:\nStart with: "I noticed on your profile that..."\nThen continue with a factual, relevant observation and one short, thoughtful reflection or question.\n\n` +
+      `✅ Examples:\n- "I noticed on your profile that you're currently focused on logistics optimization at [Company]. I've been looking into how AI is being applied in that field — do you see growing demand for automation from your clients?"\n- "I saw you recently transitioned from [Industry A] to [Industry B]. Curious what drove that shift — was it a tech trend or something company-specific?"\n- "I noticed you shared an article on the regulatory impact of the new EU AI Act. Are you seeing a lot of internal alignment work around compliance at [Company]?"\n\nGenerate only the icebreaker. Keep it neutral, concise, and based on factual LinkedIn insights.\n\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
+    let icebreaker = '';
+    try {
+      const gptRes = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-4-turbo',
+          messages: [
+            { role: 'system', content: 'You are a B2B networking expert.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 120,
+          temperature: 0.7
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${OPENAI_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      icebreaker = gptRes.data.choices[0].message.content.trim();
+    } catch (e) {
+      icebreaker = '';
+    }
+    results.push({ ...contact, icebreaker });
+  }
+  res.json({ contacts: results });
 });
 if (!global.profileRagStore) global.profileRagStore = {};
 if (!global.profileRagChunks) global.profileRagChunks = {};
