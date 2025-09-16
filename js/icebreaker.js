@@ -67,14 +67,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function enrichContacts(contacts) {
         showMsg('Enrichissement des contacts en cours...');
-        console.log('Envoi des contacts à /api/icebreaker:', contacts);
-        const payload = { contacts };
+        // On ne garde que linkedin_url pour chaque contact
+        const minimalContacts = contacts.map(c => ({ linkedin_url: c.linkedin_url }));
+        console.log('Envoi des contacts à /api/icebreaker:', minimalContacts);
+        const payload = { contacts: minimalContacts };
         console.log('Payload envoyé à /api/icebreaker:', JSON.stringify(payload, null, 2));
-        fetch('/api/icebreaker', {
+        const response = await fetch('/api/icebreaker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        })
+        });
         .then(async res => {
             console.log('Réponse brute:', res);
             let data;
