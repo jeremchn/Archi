@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 showMsg('Aucun contact trouvé dans le fichier.', 'error');
                 return;
             }
+            console.log('Contacts parsés depuis le fichier:', contacts);
             enrichContacts(contacts);
         };
         reader.onerror = function () {
