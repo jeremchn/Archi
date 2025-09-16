@@ -1216,7 +1216,9 @@ app.post('/api/icebreaker', async (req, res) => {
   const PORT = process.env.PORT || 5000;
   // Pour chaque contact, génère l'icebreaker comme dans le endpoint unitaire
   const results = [];
-  for (const contact of contacts) {
+  for (const [i, contact] of contacts.entries()) {
+    console.log(`Contact reçu [${i}]:`, contact);
+    console.log(`Clés du contact [${i}]:`, Object.keys(contact));
     if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.company || !contact.linkedin_url) {
       results.push({ ...contact, icebreaker: '', error: 'All fields required (email, first_name, last_name, position, company, linkedin_url)' });
       continue;
