@@ -1,0 +1,50 @@
+﻿**********************
+Début de la transcription Windows PowerShell
+Heure de début : 20250916133002
+Nom d'utilisateur : DESKTOP-GSMNTK6\jerem
+Utilisateur runAs :  DESKTOP-GSMNTK6\jerem
+Nom de la configuration : 
+Ordinateur : DESKTOP-GSMNTK6 (Microsoft Windows NT 10.0.19045.0)
+Application hôte : C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -Command Start-Transcript -Path .\icebreaker_debug.log -Append
+ID de processus : 13460
+PSVersion: 5.1.19041.6093
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6093
+BuildVersion: 10.0.19041.6093
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcription démarrée, le fichier de sortie est .\icebreaker_debug.log
+PS>$global:?
+True
+**********************
+Fin de la transcription Windows PowerShell
+Heure de fin : 20250916133002
+**********************
+**********************
+Début de la transcription Windows PowerShell
+Heure de début : 20250916133335
+Nom d'utilisateur : DESKTOP-GSMNTK6\jerem
+Utilisateur runAs :  DESKTOP-GSMNTK6\jerem
+Nom de la configuration : 
+Ordinateur : DESKTOP-GSMNTK6 (Microsoft Windows NT 10.0.19045.0)
+Application hôte : C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -Command Start-Transcript -Path .\icebreaker_debug.log -Append
+ID de processus : 25828
+PSVersion: 5.1.19041.6093
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6093
+BuildVersion: 10.0.19041.6093
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcription démarrée, le fichier de sortie est .\icebreaker_debug.log
+PS>$global:?
+True
+**********************
+Fin de la transcription Windows PowerShell
+Heure de fin : 20250916133335
+**********************

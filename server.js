@@ -1218,9 +1218,8 @@ app.post('/api/icebreaker', async (req, res) => {
   const results = [];
   for (const [i, contact] of contacts.entries()) {
     console.log(`Contact reçu [${i}]:`, contact);
-    console.log(`Clés du contact [${i}]:`, Object.keys(contact));
-    if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.company || !contact.linkedin_url) {
-      results.push({ ...contact, icebreaker: '', error: 'All fields required (email, first_name, last_name, position, company, linkedin_url)' });
+    if (!contact || !contact.linkedin_url) {
+      results.push({ ...contact, icebreaker: '', error: 'linkedin_url is required' });
       continue;
     }
     let linkedinData = {};
@@ -1230,8 +1229,8 @@ app.post('/api/icebreaker', async (req, res) => {
     } catch {}
     let prompt = `Your task is to write a 1-3 sentence icebreaker that introduces a conversation naturally, based strictly on public information found on the person's LinkedIn profile, without using flattery or superlatives.\n\n` +
       `🔍 Context:\n- Use specific information such as current role, industry, recent post, shared article, published content, job transitions, certifications, project topics, or company focus.\n- Focus on relevance and shared curiosity — not compliments.\n- Mention the fact you *noticed* or *saw* something that triggered your interest.\n- Do **not** use words like *impressive*, *amazing*, *great*, or *incredible*.\n\n` +
-      `📌 Output format:\nStart with: "I noticed on your profile that..."\nThen continue with a factual, relevant observation and one short, thoughtful reflection or question.\n\n` +
-      `✅ Examples:\n- "I noticed on your profile that you're currently focused on logistics optimization at [Company]. I've been looking into how AI is being applied in that field — do you see growing demand for automation from your clients?"\n- "I saw you recently transitioned from [Industry A] to [Industry B]. Curious what drove that shift — was it a tech trend or something company-specific?"\n- "I noticed you shared an article on the regulatory impact of the new EU AI Act. Are you seeing a lot of internal alignment work around compliance at [Company]?"\n\nGenerate only the icebreaker. Keep it neutral, concise, and based on factual LinkedIn insights.\n\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
+      `📌 Output format:\nStart with: \"I noticed on your profile that...\"\nThen continue with a factual, relevant observation and one short, thoughtful reflection or question.\n\n` +
+      `✅ Examples:\n- \"I noticed on your profile that you're currently focused on logistics optimization at [Company]. I've been looking into how AI is being applied in that field — do you see growing demand for automation from your clients?\"\n- \"I saw you recently transitioned from [Industry A] to [Industry B]. Curious what drove that shift — was it a tech trend or something company-specific?\"\n- \"I noticed you shared an article on the regulatory impact of the new EU AI Act. Are you seeing a lot of internal alignment work around compliance at [Company]?\"\n\nGenerate only the icebreaker. Keep it neutral, concise, and based on factual LinkedIn insights.\n\nHere is the full LinkedIn profile data (JSON):\n${JSON.stringify(linkedinData, null, 2)}\n`;
     let icebreaker = '';
     try {
       const gptRes = await axios.post(
