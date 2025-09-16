@@ -72,38 +72,39 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Envoi des contacts à /api/icebreaker:', minimalContacts);
         const payload = { contacts: minimalContacts };
         console.log('Payload envoyé à /api/icebreaker:', JSON.stringify(payload, null, 2));
-        const response = await fetch('/api/icebreaker', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        .then(async res => {
-            console.log('Réponse brute:', res);
-            let data;
+        (async () => {
             try {
-                data = await res.json();
-            } catch (e) {
-                console.error('Erreur parsing JSON:', e);
-                showMsg('Erreur parsing JSON: ' + e.message, 'error');
-                return;
+                const response = await fetch('/api/icebreaker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log('Réponse brute:', response);
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.error('Erreur parsing JSON:', e);
+                    showMsg('Erreur parsing JSON: ' + e.message, 'error');
+                    return;
+                }
+                console.log('Réponse JSON:', data);
+                if (!response.ok) {
+                    showMsg('Erreur backend: ' + (data && data.error ? data.error : JSON.stringify(data)), 'error');
+                    return;
+                }
+                if (!data || !Array.isArray(data.contacts) || !data.contacts.length) {
+                    showMsg('Erreur lors de l\'enrichissement des contacts ou réponse trop lente.', 'error');
+                    return;
+                }
+                enrichedData = data.contacts;
+                showMsg('Contacts enrichis avec succès !', 'success');
+                downloadBtn.style.display = 'inline-block';
+            } catch (err) {
+                console.error('Erreur lors de la requête /api/icebreaker :', err);
+                showMsg('Erreur serveur lors de l\'enrichissement : ' + (err && err.message ? err.message : JSON.stringify(err)), 'error');
             }
-            console.log('Réponse JSON:', data);
-            if (!res.ok) {
-                showMsg('Erreur backend: ' + (data && data.error ? data.error : JSON.stringify(data)), 'error');
-                return;
-            }
-            if (!data || !Array.isArray(data.contacts) || !data.contacts.length) {
-                showMsg('Erreur lors de l\'enrichissement des contacts ou réponse trop lente.', 'error');
-                return;
-            }
-            enrichedData = data.contacts;
-            showMsg('Contacts enrichis avec succès !', 'success');
-            downloadBtn.style.display = 'inline-block';
-        })
-        .catch((err) => {
-            console.error('Erreur lors de la requête /api/icebreaker :', err);
-            showMsg('Erreur serveur lors de l\'enrichissement : ' + (err && err.message ? err.message : JSON.stringify(err)), 'error');
-        });
+        })();
     }
 
     downloadBtn.addEventListener('click', function () {
