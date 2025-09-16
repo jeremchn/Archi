@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Contacts parsés depuis le fichier:', contacts);
             contacts.forEach((c, i) => {
                 console.log(`Contact ${i}:`, c, 'linkedin_url:', c.linkedin_url);
+                console.log(`Clés du contact ${i}:`, Object.keys(c));
             });
             enrichContacts(contacts);
         };
