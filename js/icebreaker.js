@@ -67,17 +67,28 @@ document.addEventListener('DOMContentLoaded', function () {
     function enrichContacts(contacts) {
         showMsg('Enrichissement des contacts en cours...');
         console.log('Envoi des contacts à /api/icebreaker:', contacts);
+        const payload = { contacts };
+        console.log('Payload envoyé à /api/icebreaker:', JSON.stringify(payload, null, 2));
         fetch('/api/icebreaker', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contacts })
+            body: JSON.stringify(payload)
         })
-        .then(res => {
+        .then(async res => {
             console.log('Réponse brute:', res);
-            return res.json();
-        })
-        .then(data => {
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.error('Erreur parsing JSON:', e);
+                showMsg('Erreur parsing JSON: ' + e.message, 'error');
+                return;
+            }
             console.log('Réponse JSON:', data);
+            if (!res.ok) {
+                showMsg('Erreur backend: ' + (data && data.error ? data.error : JSON.stringify(data)), 'error');
+                return;
+            }
             if (!data || !Array.isArray(data.contacts) || !data.contacts.length) {
                 showMsg('Erreur lors de l\'enrichissement des contacts ou réponse trop lente.', 'error');
                 return;
