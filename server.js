@@ -475,7 +475,7 @@ app.post('/api/contact-linkedin', async (req, res) => {
 });
 
 // Modifie la génération d'ice breaker pour utiliser toutes les infos Proxycurl du profil
-app.post('/api/icebreaker', async (req, res) => {
+app.post('/api/icebreaker-single', async (req, res) => {
   const { contact } = req.body;
   if (!contact || !contact.email || !contact.first_name || !contact.last_name || !contact.position || !contact.company || !contact.linkedin_url) {
     return res.status(400).json({ error: 'All fields required (email, first_name, last_name, position, company, linkedin_url)' });

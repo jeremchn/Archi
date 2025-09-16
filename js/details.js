@@ -129,7 +129,7 @@ async function renderContacts(contacts, icebreakers = null) {
                 const row = btn.closest('tr');
                 row.querySelector('.linkedin-info-cell').innerHTML = infoText;
                 // Génère l'ice breaker (optionnel, tu peux garder ou retirer cette partie)
-                const iceRes = await fetch('/api/icebreaker', {
+                const iceRes = await fetch('/api/icebreaker-single', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contact })
