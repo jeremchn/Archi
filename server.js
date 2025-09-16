@@ -1224,9 +1224,13 @@ app.post('/api/icebreaker', async (req, res) => {
     }
     let linkedinData = {};
     try {
+      // Scrape LinkedIn profile (exactement comme dans details.html)
       const scrapeRes = await axios.post('http://localhost:' + PORT + '/api/contact-linkedin', { linkedin_url: contact.linkedin_url });
       linkedinData = scrapeRes.data;
-    } catch {}
+    } catch (e) {
+      linkedinData = {};
+    }
+    // Prompt identique à details.html : icebreaker neutre, factuel, basé sur LinkedIn
     let prompt = `Your task is to write a 1-3 sentence icebreaker that introduces a conversation naturally, based strictly on public information found on the person's LinkedIn profile, without using flattery or superlatives.\n\n` +
       `🔍 Context:\n- Use specific information such as current role, industry, recent post, shared article, published content, job transitions, certifications, project topics, or company focus.\n- Focus on relevance and shared curiosity — not compliments.\n- Mention the fact you *noticed* or *saw* something that triggered your interest.\n- Do **not** use words like *impressive*, *amazing*, *great*, or *incredible*.\n\n` +
       `📌 Output format:\nStart with: \"I noticed on your profile that...\"\nThen continue with a factual, relevant observation and one short, thoughtful reflection or question.\n\n` +
